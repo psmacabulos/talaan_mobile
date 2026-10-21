@@ -1,0 +1,35 @@
+# Lint, types, colours and tests on every push, on the same Node the backend
+# uses (docs/PLAN.md, M1). The colour check is its own step so a stray colour
+# is reported as exactly that, not buried in a lint run (docs/DESIGN.md, rule 1).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Colours only from the theme
+        run: npm run check:colors
+
+      - name: Tests
+        run: npm test

@@ -4,15 +4,40 @@ Short, plain-language answers to things that came up while building. Organised b
 
 ## Contents
 
+- [Setting up the machine](#setting-up-the-machine)
+  - [nvm installs a Node version without switching to it](#nvm-installs-a-node-version-without-switching-to-it)
 - [Builds and installing the app](#builds-and-installing-the-app)
   - [Can the app get real pushes without the Play Store?](#can-the-app-get-real-pushes-without-the-play-store)
   - [APK or AAB: only one of them installs by hand](#apk-or-aab-only-one-of-them-installs-by-hand)
   - [How many free EAS builds we get](#how-many-free-eas-builds-we-get)
   - [What the owner sees on the phone when installing by hand](#what-the-owner-sees-on-the-phone-when-installing-by-hand)
   - [Google's developer verification, and why it matters by 2027](#googles-developer-verification-and-why-it-matters-by-2027)
+  - [Expo Go runs one SDK, and the store copy lags](#expo-go-runs-one-sdk-and-the-store-copy-lags)
 - [Push notifications](#push-notifications)
   - [Why Expo Go can't test push](#why-expo-go-cant-test-push)
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
+
+## Setting up the machine
+
+### nvm installs a Node version without switching to it
+
+`nvm install 24.11.0` downloads a version. It does **not** start using it. Switching is a second command, and on Windows it needs an **Administrator** terminal, because it rewrites the link at `C:\Program Files\nodejs` that `node` actually resolves to:
+
+```powershell
+nvm use 24.11.0
+node -v            # expect v24.11.0
+```
+
+Without admin rights the switch fails quietly and `node -v` keeps reporting the old version, which looks exactly like the install having failed. It didn't — check `C:\Users\<you>\AppData\Roaming\nvm` and you'll see both versions sitting there.
+
+How to tell what's really going on, from any terminal:
+
+```powershell
+Get-Item "C:\Program Files\nodejs" | Select-Object Target   # which version is live
+Get-ChildItem "$env:NVM_HOME" -Directory                    # which versions exist
+```
+
+A version switch also doesn't reach terminals that are already open. Close and reopen them, this editor included, or they keep the old `node` on their `PATH`.
 
 ## Builds and installing the app
 
@@ -84,6 +109,46 @@ Where this leaves us:
 - 20 devices does **not** cover a 500-student pilot. When global enforcement lands, a pilot that size needs either a verified developer account or the Play Store (the US$25 one-time fee, plus a privacy policy page).
 
 So: hand-installing is right for the demo and fine for a small trial, but the 500-student rollout should plan on Google Play. That is already on `docs/PLAN.md`'s after-the-demo list; the new part is that 2027 puts a clock on it.
+
+### Expo Go runs one SDK, and the store copy lags
+
+Expo Go is a single app that can only open projects built for **one** SDK
+version. It is not backwards or forwards compatible. When the SDK your project
+uses and the SDK your Expo Go supports don't match, the phone says:
+
+> Project is incompatible with this version of Expo Go
+
+The wording blames the project, which is misleading. Usually nothing is wrong
+with it.
+
+The part that catches people out is the timing. A new SDK is released, but the
+matching Expo Go has to pass Google's and Apple's review before it reaches the
+stores — days, sometimes weeks. During that gap:
+
+| | Expo Go in the Play Store | A project on the new SDK |
+|---|---|---|
+| Right after a release | still the **old** SDK | refused |
+| A few weeks later | the **new** SDK | works, and old-SDK projects break instead |
+
+So "use the newest SDK so Expo Go keeps working" is right in the long run and
+wrong during that window. We hit exactly this: SDK 58 came out on 2026-10-15
+and its Expo Go still wasn't in the Play Store on 2026-10-21.
+
+**How to check, instead of guessing.** Expo publishes a signed Expo Go APK for
+every SDK, listed here:
+
+```
+https://api.expo.dev/v2/versions/latest
+```
+
+Each entry has an `androidClientUrl` pointing at an APK on Expo's own GitHub
+releases. Download that on the phone and install it — the same hand-installing
+as [[can-the-app-get-real-pushes-without-the-play-store]]. It replaces whatever
+Expo Go is already there.
+
+**This stops mattering at M7.** A development build carries its own copy of the
+runtime, so it never consults Expo Go and never cares which SDK the stores are
+on.
 
 ## Push notifications
 

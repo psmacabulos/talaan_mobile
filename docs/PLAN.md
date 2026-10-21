@@ -7,15 +7,15 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 ## The demo (M1 to M8)
 
 ### Step M1: Set up the project
-- [ ] Expo (latest stable SDK) with Expo Router, TypeScript `strict`, npm, Node 24 (`.nvmrc` and `engines`)
-- [ ] ESLint (Expo's config), Prettier, Jest with `jest-expo` and React Native Testing Library; `npm run lint`, `npm run typecheck`, `npm test`
-- [ ] GitHub Actions running lint, typecheck and tests on every push, on Node 24
-- [ ] The app's name **Bantay Aral** and id **`com.bantayaral.parent`**, in `app.config.ts`; `PRODUCT_NAME` in one file
-- [ ] `src/theme`: the colour tokens (light and dark, following the phone), the type scale, space and corners, from the owner's design in `design/` or `docs/DESIGN.md`'s fallbacks
-- [ ] Lexend and Atkinson Hyperlegible loaded, the splash screen held until they're ready
-- [ ] `src/strings.ts` for every string a parent sees
-- [ ] One styled screen (the sign-in screen's look, no sign-in yet) with the Bantay Aral logo drawn from `reference/mark-shapes.ts`
-- [ ] `README.md` (what this is, how to start it), `docs/COMMANDS.md`, `.env.example`
+- [x] Expo (latest stable SDK) with Expo Router, TypeScript `strict`, npm, Node 24 (`.nvmrc` and `engines`)
+- [x] ESLint (Expo's config), Prettier, Jest with `jest-expo` and React Native Testing Library; `npm run lint`, `npm run typecheck`, `npm test`
+- [x] GitHub Actions running lint, typecheck and tests on every push, on Node 24
+- [x] The app's name **Bantay Aral** and id **`com.bantayaral.parent`**, in `app.config.ts`; `PRODUCT_NAME` in one file
+- [x] `src/theme`: the colour tokens (light and dark, following the phone), the type scale, space and corners, from the owner's design in `design/` or `docs/DESIGN.md`'s fallbacks
+- [x] Lexend and Atkinson Hyperlegible loaded, the splash screen held until they're ready
+- [x] `src/strings.ts` for every string a parent sees
+- [x] One styled screen (the sign-in screen's look, no sign-in yet) with the Bantay Aral logo drawn from `reference/mark-shapes.ts`
+- [x] `README.md` (what this is, how to start it), `docs/COMMANDS.md`, `.env.example`
 Done when: lint, typecheck and tests pass in CI, and the screen looks right on the owner's Android phone, in light and dark.
 Commit: `chore: set up the Expo app with the Bantay Aral theme`
 - [ ] Owner review: I checked it and said "approved"
