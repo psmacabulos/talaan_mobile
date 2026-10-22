@@ -6,6 +6,10 @@
  * are fixed by docs/PRODUCT-RULES.md, "The words to use" — they match the
  * school's web app exactly, so parents and staff never see two names for the
  * same thing.
+ *
+ * The field messages below are the server's own, copied from
+ * docs/PRODUCT-RULES.md, "Form field rules". The app checks as the parent
+ * types; the server checks again and sends these same words back.
  */
 import { PRODUCT_NAME } from "./product";
 
@@ -25,8 +29,56 @@ export const strings = {
     passwordLabel: "Password",
     passwordPlaceholder: "Your password",
     submit: "Sign in",
+    submitting: "Signing in…",
     noAccount: "Don't have an account?",
     signUp: "Sign up",
+  },
+
+  signUp: {
+    heading: "Create your account",
+    subheading: "One account covers every child, at any Bantay Aral school.",
+    firstNameLabel: "First name",
+    firstNamePlaceholder: "Juan",
+    lastNameLabel: "Last name",
+    lastNamePlaceholder: "Dela Cruz",
+    mobileLabel: "Mobile number",
+    mobilePlaceholder: "09171234567",
+    emailLabel: "Email address",
+    emailPlaceholder: "you@example.com",
+    passwordLabel: "Password",
+    passwordPlaceholder: "At least 8 characters",
+    confirmPasswordLabel: "Confirm password",
+    confirmPasswordPlaceholder: "Type it again",
+    submit: "Sign up",
+    submitting: "Creating your account…",
+    haveAccount: "Already have an account?",
+    signIn: "Sign in",
+    /** A 409 means the email is taken: offer the way forward, not a dead end. */
+    signInInstead: "Sign in instead",
+  },
+
+  /**
+   * Exactly the messages in docs/PRODUCT-RULES.md, "Form field rules", so a
+   * parent sees the same words whether the app or the server caught it.
+   */
+  fields: {
+    firstNameRequired: "Enter a first name",
+    lastNameRequired: "Enter a last name",
+    mobileInvalid: "Enter a valid PH mobile number, e.g. 09171234567",
+    emailInvalid: "Enter a valid email address",
+    passwordTooShort: "Use at least 8 characters",
+    passwordTooLong: "Use 128 characters or fewer",
+    passwordRequired: "Enter your password",
+    confirmPasswordRequired: "Confirm your password",
+    passwordsDoNotMatch: "Passwords don't match",
+  },
+
+  session: {
+    /** The landing screen until M5 replaces it with Home. */
+    greeting: "You're signed in",
+    signOut: "Sign out",
+    signingOut: "Signing out…",
+    checking: "Checking your sign-in…",
   },
 
   /**

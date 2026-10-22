@@ -34,3 +34,34 @@ export type School = z.infer<typeof schoolSchema>;
 export const schoolsResponseSchema = z.object({
   schools: z.array(schoolSchema),
 });
+
+/** The parent themselves (docs/TALAAN-API.md:67). */
+export const parentSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+  mobile: z.string(),
+});
+
+export type Parent = z.infer<typeof parentSchema>;
+
+/** `POST /signup` → `201 { token, parent }`, `POST /login` → `200` the same. */
+export const authResponseSchema = z.object({
+  token: z.string(),
+  parent: parentSchema,
+});
+
+export type AuthResult = z.infer<typeof authResponseSchema>;
+
+/**
+ * `GET /me` → `{ parent, children: [ChildToday] }`.
+ *
+ * Only `parent` is described here. Zod drops `children` on the way through,
+ * which is deliberate: M3 has no use for it, and an unexpected child shape
+ * must never be able to stop a parent signing in. M5 adds it when Home needs
+ * it.
+ */
+export const meResponseSchema = z.object({
+  parent: parentSchema,
+});

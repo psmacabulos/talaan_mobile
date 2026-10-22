@@ -461,3 +461,68 @@ would reach the network.
 **The rule:** a test never touches the network. When a step adds a component
 that calls the API, every test that renders a screen containing it needs the
 mock — which is a reason to keep API calls out of shared screen furniture.
+
+---
+
+## P-009 — signing out hung on "Checking your sign-in…" for ever
+
+- **Date:** 2026-10-22
+- **Where:** M3, on the owner's phone
+- **Tag:** Other
+- **Status:** Fixed
+
+**Symptom**
+
+Pressing **Sign out** on the signed-in screen did nothing visible. The screen
+replaced the parent's name with a spinner and "Checking your sign-in…", kept
+the Sign out button, and stayed that way indefinitely. No error, no crash, no
+way back. Every check had passed and 109 tests were green.
+
+**Cause — two bugs stacked, and either alone would have been survivable**
+
+**1. `queryClient.clear()` orphans the observers watching it.** `hasToken`
+lived in the query cache. Signing out did:
+
+```ts
+await clearToken();
+queryClient.clear();
+queryClient.setQueryData(HAS_TOKEN_KEY, false);
+```
+
+`clear()` destroys every query, including the one the gate's `useQuery` was
+attached to. The `setQueryData` afterwards builds a **new** query object that
+the now-orphaned observer is not watching. So the gate was never told the
+token had gone, and never moved the parent to sign-in.
+
+The deeper mistake was putting it there at all. TanStack Query looks after
+*server* state — answers that go stale, get refetched, get retried. "Is there
+a token on this phone" is none of those things. It is local state, and it now
+lives in React state (`src/auth/session-context.tsx`), where clearing the
+cache cannot touch it.
+
+**2. A disabled query reports `isPending: true` for ever.** The screen read:
+
+```tsx
+{me.isPending ? <Checking /> : me.isError ? <Error /> : <Name />}
+```
+
+`useMe` is `enabled` only when there is a token. The instant `hasToken` went
+false the query was disabled — and in React Query v5 a disabled query has
+`status: "pending"` with `fetchStatus: "idle"`, so `isPending` stays true with
+nothing in flight. That is the spinner in the screenshot. `isLoading`
+(`isPending && isFetching`) is the "really loading" flag; the screen now
+branches on `me.data` instead, which also narrows the type.
+
+Bug 1 stranded the parent on the screen. Bug 2 decided what they stared at.
+
+**Why the tests missed it**
+
+Every test rendered one screen in isolation. Nothing exercised *sign out* with
+a real `SessionProvider` and a cleared cache, which is the only place the two
+met. `src/auth/__tests__/session.test.tsx` now does exactly that: it watches
+what the gate watches and fails if `hasToken` ever stops reaching a listener
+after a sign-out.
+
+**The lesson worth carrying to M4–M7:** state that decides *navigation* must
+not live anywhere that a cleanup routine can wipe out from underneath its
+listeners. And `isPending` is not "loading" when a query can be disabled.

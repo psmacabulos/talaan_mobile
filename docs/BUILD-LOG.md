@@ -331,3 +331,119 @@ the app and wrong about the tests: anything that calls the API from shared
 screen furniture becomes a mock every screen test has to remember. Mocked in
 the screen test, and worth weighing before the next component that fetches on
 mount.
+
+## M3 — Sign up, sign in, sign out
+
+**Date:** 2026-10-22
+
+### Packages
+
+`@tanstack/react-query` 5.104.5, `react-hook-form` 7.90.0 (the backend uses
+^7.89.0), `expo-device` 58.0.5 — all named in `CLAUDE.md`'s stack — plus
+`@hookform/resolvers`, which is not, and was approved with the plan.
+
+**`@hookform/resolvers@6` cannot be installed here.** Its optional peer wants
+`effect@^4`, while its own `@typeschema` dependency tree pulls `effect@^3`:
+
+```
+npm error peerOptional effect@"^4.0.0" from @hookform/resolvers@6.0.0
+npm error Found: effect@3.22.3
+```
+
+None of that is used — those peers exist for Effect Schema, Valibot, Joi and
+the rest. v5.9.2 lists `zod: ^3.25.0 || ^4.0.0` and installs cleanly, so the
+dependency is pinned to `^5.9.2`.
+
+### Two owners of navigation, avoided
+
+The first design had the gate in `_layout.tsx` **and** `onSignedOut` calling
+`router.replace`. Two things moving a parent is a race waiting to happen.
+
+`onSignedOut` now only clears state — the query cache, and the "is there a
+token" flag. The gate watches that flag and is the only thing that navigates.
+A `401` therefore travels: API client clears the token → handler clears the
+cache → the flag flips → the gate moves the parent. No step of that chain
+knows where sign-in is except the last.
+
+### A routing bug worth remembering
+
+`src/app/index.tsx` and `src/app/(app)/index.tsx` **both resolved to `/`**. A
+route group in parentheses adds no path segment, so `(app)/index.tsx` is not
+`/app` — it is `/`, colliding with the root screen.
+
+The signed-in screen is now `(app)/home.tsx` → `/home`, and `/` is a neutral
+"Checking your sign-in…" screen belonging to neither group. That forced a
+second fix: the gate originally asked "are they in the wrong half?", which
+left a signed-in parent sitting on `/` forever, in neither half. It now asks
+"are they where they belong?" and moves them either way.
+
+### No internet is not being signed out
+
+`/me` failing on a cold start has three meanings and they must not be blurred:
+the token was rejected, the server could not be reached, or it answered.
+
+Only the first ends a session. The second keeps the parent signed in and
+offers "Try again" — being on a tricycle with no signal should not log anyone
+out. The API client already made this easy: a dropped connection becomes
+`kind: "network"` long before any sign-out path.
+
+### The privacy trap in `deviceLabel`
+
+`deviceLabel` is sent to the server and kept. The obvious property to reach for
+is `Device.deviceName` — and Expo's own documented example for it is
+**"Vivian's iPhone XS"**. It is set by whoever owns the phone and routinely
+contains a real name, so using it would have sent a parent's name to the
+backend on every sign-in.
+
+It uses `Device.modelName` ("Pixel 7"), with a test that fails if anyone
+swaps it back.
+
+### Tests
+
+107 across 6 suites. The new ones: every field rule in
+`docs/PRODUCT-RULES.md` with its exact message, including six ways a Philippine
+mobile number can be wrong; the `deviceLabel` privacy property; and the sign-in
+screen's three server answers — a wrong password keeps the email, too many
+tries leaves the button enabled, and no internet is said plainly rather than as
+a password problem.
+
+### What the code review caught
+
+Four things, all of them quiet failures rather than crashes:
+
+1. **`clear()` then `invalidateQueries` is a no-op.** `clear()` removes the
+   query being invalidated, so nothing was left to invalidate and the gate only
+   learned the token was gone when something else happened to re-render.
+   `setQueryData(HAS_TOKEN_KEY, false)` says it outright.
+2. **A field name the form doesn't have failed silently.** The screens wrote
+   every `fields` message onto a form field by name. `deviceLabel` is sent with
+   every sign-in and is on no form — a complaint about it would have stopped
+   the spinner and shown the parent nothing at all. Messages that don't land
+   now fall back to the error's own text (`src/auth/server-errors.ts`).
+3. **Signing out ended in an error state.** The request error propagated after
+   the local clear, so an offline sign-out that worked still looked broken.
+4. **The focus listener was never removed.** Returning `void` from
+   `startFocusTracking` — done earlier to satisfy a type error — meant the
+   `AppState` subscription outlived the app. That was the Jest warning about a
+   worker that wouldn't exit. Returning the cleanup, plus `gcTime: 0` in the
+   test's query client, cleared it.
+
+### The bug that got through everything
+
+Every check passed, 109 tests were green, and signing out hung the app for
+ever (P-009). Two mistakes stacked:
+
+`hasToken` was a cached query, and `forgetSession` cleared the cache —
+destroying the very query the gate was watching, so the gate was never told
+anything. The fix was to stop treating it as server state at all: it is local
+state and now lives in React state, where clearing the cache cannot reach it.
+
+And the screen branched on `me.isPending`, which in React Query v5 is `true`
+for ever on a **disabled** query. The moment `hasToken` went false, `useMe`
+was disabled and the screen froze on "Checking your sign-in…". It branches on
+`me.data` now.
+
+What the tests got wrong is the more useful lesson. Each one rendered a single
+screen in isolation with everything around it mocked, which is exactly why
+they all passed: the bug lived in the seam between the session, the cache and
+the gate, and nothing had ever rendered those three together.

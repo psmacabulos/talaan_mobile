@@ -52,13 +52,26 @@ function serverError(
 
 const fetchMock = jest.fn();
 
+/**
+ * The client logs to the console in development when an answer does not match
+ * the contract, and two tests below deliberately trigger that. Silencing it
+ * keeps a passing run clean — a red stack trace in green output trains people
+ * to ignore red stack traces.
+ */
+let devLog: jest.SpyInstance;
+
 beforeEach(() => {
   jest.clearAllMocks();
+  devLog = jest.spyOn(console, "error").mockImplementation(() => {});
   resetBaseUrlForTests();
   resetSessionForTests();
   process.env.EXPO_PUBLIC_API_URL = BASE;
   secureStore.getItemAsync.mockResolvedValue(null);
   globalThis.fetch = fetchMock as unknown as typeof fetch;
+});
+
+afterEach(() => {
+  devLog.mockRestore();
 });
 
 describe("a call that works", () => {

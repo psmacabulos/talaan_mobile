@@ -49,6 +49,7 @@ a parent sees says Bantay Aral.
 | `docs/DESIGN.md` | How to use the UI design, and the rules that hold regardless |
 | `docs/DESIGN-QUESTIONS.md` | Where the mockup and the server disagree, and what to do |
 | `docs/API-CLIENT.md` | How the app talks to the server: the token, the checking, the errors |
+| `docs/AUTH.md` | Signing in: the token, the gate, and what happens when it expires |
 | `docs/SERVER.md` | Which server to talk to, the demo data, testing a real push |
 | `docs/COMMANDS.md` | Every command, grouped by task |
 | `docs/BUILD-LOG.md` | How each step was actually built |

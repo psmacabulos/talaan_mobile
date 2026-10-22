@@ -8,16 +8,16 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 14 of 43 tasks, 1 of 8 steps approved.**
+**To the demo: 20 of 43 tasks, 2 of 8 steps approved.**
 
-`██████░░░░░░░░░░░░░░` 33%
+`█████████░░░░░░░░░░░` 46%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
 | M1 | The app opens, in the Bantay Aral theme | 9/9 | **Approved** |
-| M2 | The app can talk to the server | 5/5 | Built, awaiting review |
-| M3 | Sign up, sign in, sign out | 0/6 | Next |
-| M4 | Link a child | 0/4 | Not started |
+| M2 | The app can talk to the server | 5/5 | **Approved** |
+| M3 | Sign up, sign in, sign out | 6/6 | Built, awaiting review |
+| M4 | Link a child | 0/4 | Next |
 | M5 | Today's attendance per child | 0/4 | Not started |
 | M6 | The notification feed, and a child's day | 0/4 | Not started |
 | M7 | **The phone buzzes when a child taps** | 0/7 | Not started |
@@ -50,15 +50,15 @@ Commit: `chore: set up the Expo app with the Bantay Aral theme`
 - [x] Unit tests with a fake server, covering every error code
 Done when: the tests cover every error code, and `GET /schools` works from the phone against the live server.
 Commit: `feat(api): add the API client with one error handler`
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved"
 
 ### Step M3: Sign up, sign in, sign out
-- [ ] Sign-up (first and last name, mobile, email, password twice) and sign-in, with the field rules in `docs/PRODUCT-RULES.md`
-- [ ] A `409` on sign-up offers "Sign in instead"; `wrong_credentials` keeps the email; `too_many_tries` keeps the form usable
-- [ ] `deviceLabel` from the phone's model
-- [ ] Sign out calls `POST /logout`, then clears everything locally
-- [ ] `/me` called on every app start and every return to the foreground
-- [ ] No "Forgot password?" link yet (Talaan Step 55.5)
+- [x] Sign-up (first and last name, mobile, email, password twice) and sign-in, with the field rules in `docs/PRODUCT-RULES.md`
+- [x] A `409` on sign-up offers "Sign in instead"; `wrong_credentials` keeps the email; `too_many_tries` keeps the form usable
+- [x] `deviceLabel` from the phone's model
+- [x] Sign out calls `POST /logout`, then clears everything locally
+- [x] `/me` called on every app start and every return to the foreground
+- [x] No "Forgot password?" link yet (Talaan Step 55.5)
 Done when: a new parent can sign up, sign out and sign in again, and a sign-in survives closing the app.
 Commit: `feat(auth): add sign up, sign in and sign out`
 - [ ] Owner review: I checked it and said "approved"
