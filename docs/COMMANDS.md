@@ -93,6 +93,8 @@ Expect `name: 'Bantay Aral'`, `package: 'com.bantayaral.parent'`, and
 | `Cannot find module './src/...'` from an Expo command | `app.config.ts` is importing from `src/`. It can't (`docs/PROBLEMS-LOG.md`, P-002) |
 | `ERESOLVE` on install | A peer version conflict. Don't reach for `--legacy-peer-deps`; read which two packages disagree (P-001) |
 | An install that takes minutes | The repository is inside OneDrive (P-003) |
+| "Server not reached" on the sign-in screen | Check `EXPO_PUBLIC_API_URL` in `.env`. The address in `docs/SERVER.md` is dead; use `https://bantayaral.com` (P-007) |
+| A change to `.env` seems ignored | Environment variables are baked in at bundle time: `npx expo start --clear` |
 | The app loads but text looks wrong | A font didn't load. The splash is hidden either way on purpose, so check the Metro log for a font error |
 | A change doesn't show up | `npx expo start --clear` |
 

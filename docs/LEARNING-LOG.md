@@ -13,6 +13,8 @@ Short, plain-language answers to things that came up while building. Organised b
   - [What the owner sees on the phone when installing by hand](#what-the-owner-sees-on-the-phone-when-installing-by-hand)
   - [Google's developer verification, and why it matters by 2027](#googles-developer-verification-and-why-it-matters-by-2027)
   - [Expo Go runs one SDK, and the store copy lags](#expo-go-runs-one-sdk-and-the-store-copy-lags)
+- [Talking to the server](#talking-to-the-server)
+  - [What EXPO_PUBLIC_API_URL should be](#what-expo_public_api_url-should-be)
 - [Push notifications](#push-notifications)
   - [Why Expo Go can't test push](#why-expo-go-cant-test-push)
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
@@ -149,6 +151,71 @@ Expo Go is already there.
 **This stops mattering at M7.** A development build carries its own copy of the
 runtime, so it never consults Expo Go and never cares which SDK the stores are
 on.
+
+## Talking to the server
+
+### What EXPO_PUBLIC_API_URL should be
+
+**Just the origin: the scheme and the host, nothing after it.**
+
+```
+EXPO_PUBLIC_API_URL="https://bantayaral.com"
+```
+
+Not a route, and not one endpoint. The app adds the rest itself. It builds
+every request as the base plus a full path:
+
+```ts
+url = `${getBaseUrl()}${path}`;        // src/api/client.ts
+path: "/api/v1/parents/schools"        // src/api/endpoints.ts
+```
+
+so the value you set and the path the app knows meet exactly once.
+
+| What you put in `.env` | What the app asks for | |
+|---|---|---|
+| `https://bantayaral.com` | `https://bantayaral.com/api/v1/parents/schools` | correct |
+| `https://bantayaral.com/` | the same — a trailing slash is stripped | fine |
+| `https://bantayaral.com/api/v1` | `…/api/v1/api/v1/parents/schools` | 404 |
+| `https://bantayaral.com/api/v1/parents/schools` | one endpoint doubled onto every other | 404 |
+
+### Why it looks like "just the website"
+
+It is the same address, and that is not a coincidence. Talaan is a **Next.js**
+app, and Next.js serves pages and API routes from one server. So the one domain
+answers two kinds of request:
+
+| Address | Answers with |
+|---|---|
+| `https://bantayaral.com/` | `text/html` — the staff web app |
+| `https://bantayaral.com/api/v1/parents/schools` | `application/json` — the API |
+
+The gate tablet, the guardhouse monitor, the staff web app and this phone app
+all talk to that one server. It is not a separate API domain, and there is no
+`api.` subdomain to look for.
+
+### Why the app keeps only the origin
+
+Because not every address lives under `/api/v1/parents`. A child's photo is at
+`/api/v1/photos/<key>` (`docs/TALAAN-API.md:62`). If the base URL carried the
+`/parents` part, photos would be the awkward exception that has to undo it.
+Keeping the base bare means every path is written out in full and nothing needs
+a special case.
+
+### Telling the three failures apart
+
+The dev-only line on the sign-in screen tags the kind, which says where to
+look:
+
+| It says | Meaning | Look at |
+|---|---|---|
+| `(network)` | nothing answered | internet, or the host is wrong or dead |
+| `(response)` | something answered, but not the API | the path part — a 404 page is HTML, not the API's JSON |
+| `(config)` | `EXPO_PUBLIC_API_URL` isn't set at all | `.env` exists? Did you restart with `--clear`? |
+
+That last one catches people out: `EXPO_PUBLIC_*` values are baked into the
+bundle when it is built, not read while the app runs. Editing `.env` changes
+nothing until `npx expo start --clear`.
 
 ## Push notifications
 

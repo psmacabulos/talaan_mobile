@@ -4,6 +4,28 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 **The server:** Talaan's live server on Heroku (`https://bantayaral.herokuapp.com`), over HTTPS, deployed through Talaan's Step 54.1. Talaan on the owner's Mac is the fallback (`docs/SERVER.md`).
 
+## Progress
+
+Updated at the end of each step, when its "Owner review" box is ticked.
+
+**To the demo: 14 of 43 tasks, 1 of 8 steps approved.**
+
+`██████░░░░░░░░░░░░░░` 33%
+
+| Step | What it gives a parent | Tasks | Status |
+|---|---|---|---|
+| M1 | The app opens, in the Bantay Aral theme | 9/9 | **Approved** |
+| M2 | The app can talk to the server | 5/5 | Built, awaiting review |
+| M3 | Sign up, sign in, sign out | 0/6 | Next |
+| M4 | Link a child | 0/4 | Not started |
+| M5 | Today's attendance per child | 0/4 | Not started |
+| M6 | The notification feed, and a child's day | 0/4 | Not started |
+| M7 | **The phone buzzes when a child taps** | 0/7 | Not started |
+| M8 | An installable build, and the demo run | 0/4 | Not started |
+
+M7 is the one that matters: everything before it exists so that a tap at the
+gate can reach a parent's phone. M8 only packages it.
+
 ## The demo (M1 to M8)
 
 ### Step M1: Set up the project
@@ -18,14 +40,14 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 - [x] `README.md` (what this is, how to start it), `docs/COMMANDS.md`, `.env.example`
 Done when: lint, typecheck and tests pass in CI, and the screen looks right on the owner's Android phone, in light and dark.
 Commit: `chore: set up the Expo app with the Bantay Aral theme`
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved"
 
 ### Step M2: The API client
-- [ ] The server's address from `EXPO_PUBLIC_API_URL`, never hard-coded
-- [ ] Typed requests, every answer checked with Zod, unknown fields ignored
-- [ ] One error handler for the error shape in `docs/TALAAN-API.md`, plus "no answer at all" (no internet, server down)
-- [ ] The token in `expo-secure-store`; any `401` clears it and everything cached, and goes to sign-in
-- [ ] Unit tests with a fake server, covering every error code
+- [x] The server's address from `EXPO_PUBLIC_API_URL`, never hard-coded
+- [x] Typed requests, every answer checked with Zod, unknown fields ignored
+- [x] One error handler for the error shape in `docs/TALAAN-API.md`, plus "no answer at all" (no internet, server down)
+- [x] The token in `expo-secure-store`; any `401` clears it and everything cached, and goes to sign-in
+- [x] Unit tests with a fake server, covering every error code
 Done when: the tests cover every error code, and `GET /schools` works from the phone against the live server.
 Commit: `feat(api): add the API client with one error handler`
 - [ ] Owner review: I checked it and said "approved"
@@ -45,6 +67,7 @@ Commit: `feat(auth): add sign up, sign in and sign out`
 - [ ] The school from `GET /schools`, the LRN (12 digits, number keyboard), last name, and birth date from a date picker
 - [ ] `404` ("no match") and `409` ("already linked") both shown clearly
 - [ ] After linking, the new child appears at once (the answer is a `ChildToday`)
+- [ ] Delete `src/components/dev/server-check.tsx` and its use in `src/app/index.tsx`: the real school picker replaces it (M2)
 Done when: linking the demo student works, and a wrong birth date and a second link both say so clearly.
 Commit: `feat(children): link a child with their LRN and birth date`
 - [ ] Owner review: I checked it and said "approved"

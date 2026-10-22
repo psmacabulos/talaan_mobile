@@ -10,6 +10,7 @@ import { ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Logo } from "@/components/brand/logo";
+import { ServerCheck } from "@/components/dev/server-check";
 import { strings } from "@/strings";
 import { useTheme } from "@/theme";
 
@@ -129,6 +130,8 @@ export default function SignInScreen() {
             {strings.signIn.signUp}
           </Text>
         </View>
+
+        <ServerCheck />
       </ScrollView>
     </SafeAreaView>
   );

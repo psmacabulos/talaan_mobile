@@ -1,5 +1,12 @@
 # Which server the app talks to
 
+> **The address below is out of date (checked 2026-10-21).**
+> `https://bantayaral.herokuapp.com` returns Heroku's "no such app" page. The
+> live API answers at `https://bantayaral.com`, with the same demo data, and
+> `.env.example` points there. This file is left as the owner wrote it until
+> they confirm the move — see `docs/PROBLEMS-LOG.md`, P-007.
+
+
 **The live server is the default.** Talaan is deployed on Heroku at `https://bantayaral.herokuapp.com`, current through Talaan's Step 54.1 (as of 2026-10-19): every parent API address in `docs/TALAAN-API.md` is live there. Develop against it, over HTTPS, so every build behaves like the real one.
 
 Talaan running on the owner's Mac is the fallback, for when the owner is testing a Talaan change that isn't deployed yet, or wants to reset the demo data freely.

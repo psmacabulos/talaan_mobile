@@ -11,6 +11,11 @@
  * Without the await it returns a pending promise, which shows up as
  * "getByText is not a function", or as `screen` insisting nothing was
  * rendered — neither of which points at the real cause.
+ *
+ * The screen renders <ServerCheck />, which calls the API. That call is
+ * mocked here: a test must never depend on a network. Left real it waits on
+ * the connection, times out at five seconds, and fails offline and in CI —
+ * while saying nothing about the layout this file is actually checking.
  */
 import { render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -18,6 +23,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { strings } from "@/strings";
 
 import SignInScreen from "@/app/index";
+
+jest.mock("@/api/endpoints", () => ({
+  getSchools: jest.fn().mockResolvedValue([]),
+}));
 
 /** SafeAreaProvider has no real insets in a test, so they're supplied here. */
 const metrics = {

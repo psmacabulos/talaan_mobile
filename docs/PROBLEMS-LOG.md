@@ -334,3 +334,130 @@ work with no payoff.
 gives a clear "not configured" message instead of a crash, and
 `app.config.test.ts` keeps it that way. If web is ever wanted, this is the
 entry in the log to reopen.
+
+---
+
+## P-007 — the live server moved, and the docs still name the old one
+
+- **Date:** 2026-10-21
+- **Where:** M2, checking `GET /schools` against the live server
+- **Tag:** Other
+- **Status:** Open — needs the owner to confirm
+
+**Symptom**
+
+```
+$ curl https://bantayaral.herokuapp.com/api/v1/parents/schools
+HTTP 404   <iframe src="https://www.herokucdn.com/error-pages/no-such-app.html">
+```
+
+"No such app" means the Heroku application does not exist — not that it is
+asleep, or that the path is wrong.
+
+**What does answer**
+
+```
+$ curl https://bantayaral.com/api/v1/health
+{"ok":true,"database":"ok"}
+
+$ curl https://bantayaral.com/api/v1/parents/schools
+{"schools":[{"id":"school-balanga","name":"Balanga City National Science High School"},
+            {"id":"school-crimsonridge","name":"Crimson Ridge National High School"},
+            {"id":"school-oceanview","name":"Oceanview National High School"}]}
+```
+
+The whole parent API is live at `https://bantayaral.com`, with the same three
+schools `docs/SERVER.md` describes as the demo data. The answer was checked
+against this app's own Zod schema and matches exactly.
+
+**Impact**
+
+Anyone following the docs sets `EXPO_PUBLIC_API_URL` to the Heroku address and
+gets the "no answer at all" path on every screen — which looks exactly like a
+bug in this app rather than a wrong address.
+
+**Cause**
+
+Unknown from this side. Most likely Talaan moved to its own domain and these
+docs weren't copied again (`mobile/README.md`, "Keeping it current"). The
+address appears in `docs/SERVER.md`, `docs/PLAN.md` and `README.md`.
+
+**Solution**
+
+`.env.example` now points at `https://bantayaral.com`, which is verified
+working, with a comment explaining why it differs from `docs/SERVER.md`.
+
+`docs/SERVER.md` and `docs/PLAN.md` are **not** changed yet: `docs/SERVER.md`
+says to ask the owner whether a deploy is current before changing anything
+here, and the hosting is theirs to describe. Once they confirm, the address
+should be corrected in both, and `mobile/starter/docs/SERVER.md` in the Talaan
+repository too, so the next copy does not bring the dead address back.
+
+**Also worth confirming:** whether `PUSH_SENDER` and `EXPO_ACCESS_TOKEN` are
+set wherever the server now runs. M7 depends on them, and `docs/SERVER.md`
+describes setting them with `heroku config:set`, which no longer applies.
+
+---
+
+## P-008 — a screen test started waiting on the network
+
+- **Date:** 2026-10-22
+- **Where:** M2, `npm test` on the owner's machine
+- **Tag:** Other
+- **Status:** Fixed
+
+**Symptom**
+
+```
+● the sign-in screen › shows the heading and what the app is for
+  thrown: "Exceeded timeout of 5000 ms for a test."
+Tests: 1 failed, 75 passed, 76 total
+Time: 57.006 s
+```
+
+The same suite passed on another machine minutes earlier, in nine seconds.
+
+**Cause**
+
+M2 added `<ServerCheck />` to the sign-in screen, and it calls `getSchools()`
+on mount. `src/__tests__/sign-in-screen.test.tsx` mocked nothing, so rendering
+the screen in a test made a **real HTTPS request** to the live server. The test
+then raced the connection: fast enough and it passes, slow enough and Jest's
+five-second limit fires.
+
+The 57-second run against a 9-second one is the tell — almost all of it was
+waiting on a socket.
+
+The failure also points at the wrong thing. It names the heading assertion,
+which is fine; the problem is three lines above, in a component the test never
+mentions.
+
+**Impact**
+
+Flaky on any slow connection, and guaranteed to fail offline or in CI if the
+server is unreachable — a red build that says nothing about the code.
+
+**Options weighed**
+
+1. Raise the Jest timeout — hides it, keeps the network dependency, still fails
+   offline.
+2. Guard `ServerCheck` so it does nothing under test — spreads test awareness
+   into app code.
+3. Mock the API module in the screen test.
+
+**Solution**
+
+Option 3:
+
+```ts
+jest.mock("@/api/endpoints", () => ({
+  getSchools: jest.fn().mockResolvedValue([]),
+}));
+```
+
+The run dropped back to 14 seconds. Both test files now mock everything that
+would reach the network.
+
+**The rule:** a test never touches the network. When a step adds a component
+that calls the API, every test that renders a screen containing it needs the
+mock — which is a reason to keep API calls out of shared screen furniture.

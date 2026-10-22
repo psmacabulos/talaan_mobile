@@ -28,4 +28,16 @@ export const strings = {
     noAccount: "Don't have an account?",
     signUp: "Sign up",
   },
+
+  /**
+   * What a parent reads when something fails on our side. The server's own
+   * errors are shown exactly as they arrive — they are already plain,
+   * friendly English (docs/PRODUCT-RULES.md, "Validate every answer").
+   */
+  errors: {
+    noAnswer:
+      "Can't reach Bantay Aral right now. Check your internet connection and try again.",
+    unexpected: "Something went wrong. Please try again.",
+    tryAgain: "Try again",
+  },
 } as const;
