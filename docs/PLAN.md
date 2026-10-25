@@ -8,17 +8,17 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 20 of 43 tasks, 2 of 8 steps approved.**
+**To the demo: 24 of 43 tasks, 3 of 8 steps approved.**
 
-`█████████░░░░░░░░░░░` 46%
+`███████████░░░░░░░░░` 55%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
 | M1 | The app opens, in the Bantay Aral theme | 9/9 | **Approved** |
 | M2 | The app can talk to the server | 5/5 | **Approved** |
-| M3 | Sign up, sign in, sign out | 6/6 | Built, awaiting review |
-| M4 | Link a child | 0/4 | Next |
-| M5 | Today's attendance per child | 0/4 | Not started |
+| M3 | Sign up, sign in, sign out | 6/6 | **Approved** |
+| M4 | Link a child | 4/4 | Built, awaiting review |
+| M5 | Today's attendance per child | 0/4 | Next |
 | M6 | The notification feed, and a child's day | 0/4 | Not started |
 | M7 | **The phone buzzes when a child taps** | 0/7 | Not started |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
@@ -26,7 +26,62 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 M7 is the one that matters: everything before it exists so that a tap at the
 gate can reach a parent's phone. M8 only packages it.
 
+## How to run it
+
+Once, on a new machine:
+
+```powershell
+nvm use 24.11.0          # Administrator PowerShell
+npm install
+```
+
+`.env` must exist, with the live server in it:
+
+```
+EXPO_PUBLIC_API_URL="https://bantayaral.com"
+```
+
+Then, every time:
+
+```powershell
+npx expo start --clear
+```
+
+Scan the QR code with **Expo Go** on an Android phone on the same Wi-Fi. Use
+`--clear` after anything that changed packages, `app.config.ts` or `.env` —
+those are read when the bundle is built, not while the app runs.
+
+Expo Go must match the SDK (58). If the phone says the project is
+incompatible, install the matching build by hand — `docs/COMMANDS.md`.
+
+**The four checks**, before any step is called done:
+
+```powershell
+npm run lint
+npm run typecheck
+npm run check:colors
+npm test
+```
+
+CI runs the same four on every push. Green here is not green there, so also
+check the Actions tab — `docs/COMMANDS.md`, section 7, reproduces CI exactly.
+
+### The demo accounts
+
+| | |
+|---|---|
+| Parent | `parent-one@balanga.example` / `Talaan123!` |
+| A child to link | Balanga City National Science High School, LRN `100000000002`, last name **Pascual**, born **3 March 2014** |
+
+Signing up as a new parent works too — use a clearly fake email, since this is
+the real server.
+
 ## The demo (M1 to M8)
+
+Every step carries a **"Check it on the phone"** table: what to tap, and what
+should happen. It is written when the step is built, and it is how the owner
+decides whether to tick "Owner review". A step is not finished until that
+table exists and every row of it passes on a real phone.
 
 ### Step M1: Set up the project
 - [x] Expo (latest stable SDK) with Expo Router, TypeScript `strict`, npm, Node 24 (`.nvmrc` and `engines`)
@@ -39,6 +94,16 @@ gate can reach a parent's phone. M8 only packages it.
 - [x] One styled screen (the sign-in screen's look, no sign-in yet) with the Bantay Aral logo drawn from `reference/mark-shapes.ts`
 - [x] `README.md` (what this is, how to start it), `docs/COMMANDS.md`, `.env.example`
 Done when: lint, typecheck and tests pass in CI, and the screen looks right on the owner's Android phone, in light and dark.
+
+**Check it on the phone** — `npx expo start --clear`, scan with Expo Go.
+
+| Do this | Expect |
+|---|---|
+| Open the app | The Bantay Aral logo and the sign-in screen |
+| Switch the phone to dark mode | The screen follows, no restart |
+| Look at the fonts | Heading is Lexend, body is Atkinson Hyperlegible — not both the same |
+| Settings → Display → font size, maximum | Everything still readable, the screen scrolls, nothing clipped |
+
 Commit: `chore: set up the Expo app with the Bantay Aral theme`
 - [x] Owner review: I checked it and said "approved"
 
@@ -49,6 +114,12 @@ Commit: `chore: set up the Expo app with the Bantay Aral theme`
 - [x] The token in `expo-secure-store`; any `401` clears it and everything cached, and goes to sign-in
 - [x] Unit tests with a fake server, covering every error code
 Done when: the tests cover every error code, and `GET /schools` works from the phone against the live server.
+
+**Check it on the phone** — nothing new to see. M2 is the plumbing that lets
+the app talk to the server; the first screen that uses it is M3's sign-in.
+What proves it is `npm test` (every error code the server can answer with)
+and the sign-in screen working in M3.
+
 Commit: `feat(api): add the API client with one error handler`
 - [x] Owner review: I checked it and said "approved"
 
@@ -60,15 +131,42 @@ Commit: `feat(api): add the API client with one error handler`
 - [x] `/me` called on every app start and every return to the foreground
 - [x] No "Forgot password?" link yet (Talaan Step 55.5)
 Done when: a new parent can sign up, sign out and sign in again, and a sign-in survives closing the app.
+
+**Check it on the phone** — `npx expo start --clear`.
+
+| Do this | Expect |
+|---|---|
+| Tap **Sign up**, fill it in, submit | Lands on "Your children" |
+| Tap **Sign out** | Straight back to sign-in |
+| Sign in again | Back to "Your children" |
+| **Force-close the app and reopen it** | Straight in, no sign-in — this is the one that matters |
+| Sign in with a wrong password | The server's message, and your **email is still filled in** |
+| Aeroplane mode, then cold start | "Can't reach Bantay Aral", **still signed in**, with "Try again" |
+| Aeroplane mode, then sign out | Signs out cleanly, no error |
+
 Commit: `feat(auth): add sign up, sign in and sign out`
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved"
 
 ### Step M4: Link a child
-- [ ] The school from `GET /schools`, the LRN (12 digits, number keyboard), last name, and birth date from a date picker
-- [ ] `404` ("no match") and `409` ("already linked") both shown clearly
-- [ ] After linking, the new child appears at once (the answer is a `ChildToday`)
-- [ ] Delete `src/components/dev/server-check.tsx` and its use in `src/app/index.tsx`: the real school picker replaces it (M2)
+- [x] The school from `GET /schools`, the LRN (12 digits, number keyboard), last name, and birth date from a date picker
+- [x] `404` ("no match") and `409` ("already linked") both shown clearly
+- [x] After linking, the new child appears at once (the answer is a `ChildToday`)
+- [x] Delete `src/components/dev/server-check.tsx` and its use in `src/app/index.tsx`: the real school picker replaces it (M2)
 Done when: linking the demo student works, and a wrong birth date and a second link both say so clearly.
+
+**Check it on the phone** — `npx expo start --clear`, signed in.
+
+| Do this | Expect |
+|---|---|
+| Tap **Link a child** | The form, with the school list loaded |
+| School **Balanga**, LRN **100000000002**, last name **Pascual**, born **3 March 2014** | Back to home, with **Jose Pascual** listed |
+| Link the same child again | The server's "already linked" |
+| Try again with a wrong birth date | The message **plus** the line naming all four things to check |
+| Open the date picker, then press back | Nothing is set, the screen stays |
+| Android back inside the school sheet | Closes the sheet only, not the screen |
+| Turn Wi-Fi off, open the link screen | The schools error with "Try again" |
+| 200% font at 360pt, and dark mode | Everything reachable, nothing clipped |
+
 Commit: `feat(children): link a child with their LRN and birth date`
 - [ ] Owner review: I checked it and said "approved"
 

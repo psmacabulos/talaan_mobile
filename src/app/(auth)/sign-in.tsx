@@ -28,7 +28,6 @@ import { takeEmailForSignIn } from "@/auth/pending-email";
 import { applyServerFieldErrors } from "@/auth/server-errors";
 import { useSignIn } from "@/auth/session";
 import { Logo } from "@/components/brand/logo";
-import { ServerCheck } from "@/components/dev/server-check";
 import { Button } from "@/components/form/button";
 import { Field } from "@/components/form/field";
 import { TextLink } from "@/components/form/text-link";
@@ -212,8 +211,6 @@ export default function SignInScreen() {
             onPress={() => router.push("/sign-up")}
           />
         </View>
-
-        <ServerCheck />
       </ScrollView>
     </SafeAreaView>
   );

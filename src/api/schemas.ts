@@ -54,6 +54,77 @@ export const authResponseSchema = z.object({
 
 export type AuthResult = z.infer<typeof authResponseSchema>;
 
+
+/**
+ * A child as the server describes them today (docs/TALAAN-API.md).
+ *
+ * Everything a phone can ever know about a child is here. The LRN, the birth
+ * date and the card serial are never sent back (docs/PRODUCT-RULES.md).
+ */
+export const childTodaySchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  /** 7 to 12 — Bantay Aral is a high school system. */
+  gradeLevel: z.number(),
+  section: z.string(),
+  /** A path like "/api/v1/photos/…", loaded with the same token. */
+  photo: z.string().nullable(),
+  school: z.object({
+    id: z.string(),
+    name: z.string(),
+    notificationPreference: z.enum([
+      "off",
+      "time_in_only",
+      "time_in_and_time_out",
+    ]),
+  }),
+  today: z.object({
+    date: z.string(),
+    status: z.enum(["present", "late", "absent", "idle"]),
+    /** A weekend: no late and no absent. */
+    flexible: z.boolean(),
+    timeIn: z.string().nullable(),
+    timeOut: z.string().nullable(),
+    tapCount: z.number(),
+  }),
+});
+
+export type ChildToday = z.infer<typeof childTodaySchema>;
+
+/**
+ * Children, checked one at a time, with anything unrecognisable dropped.
+ *
+ * A plain `z.array(childTodaySchema)` would fail the whole answer over one odd
+ * child — a status we don't know yet, a null where a string was promised —
+ * and `/me` failing takes the entire signed-in app with it. One child the app
+ * can't read should cost that child's card, not the parent's session.
+ */
+const tolerantChildren = z
+  .array(z.unknown())
+  .optional()
+  .transform((items) =>
+    (items ?? []).flatMap((item) => {
+      const parsed = childTodaySchema.safeParse(item);
+      return parsed.success ? [parsed.data] : [];
+    }),
+  );
+
+/**
+ * `POST /children` → `201 { child: ChildToday }`.
+ *
+ * The child is read tolerantly on purpose. A `201` means the link was made on
+ * the server; if the app then rejected the body the parent would see a failure
+ * for something that worked, retry, and be told the child is already linked.
+ * A child that doesn't parse becomes `null` and the confirmation simply says
+ * less.
+ */
+export const linkChildResponseSchema = z
+  .object({ child: z.unknown() })
+  .transform(({ child }) => {
+    const parsed = childTodaySchema.safeParse(child);
+    return parsed.success ? parsed.data : null;
+  });
 /**
  * `GET /me` → `{ parent, children: [ChildToday] }`.
  *
@@ -64,4 +135,7 @@ export type AuthResult = z.infer<typeof authResponseSchema>;
  */
 export const meResponseSchema = z.object({
   parent: parentSchema,
+  children: tolerantChildren,
 });
+
+export type MeResult = z.infer<typeof meResponseSchema>;

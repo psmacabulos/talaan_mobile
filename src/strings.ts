@@ -71,6 +71,71 @@ export const strings = {
     passwordRequired: "Enter your password",
     confirmPasswordRequired: "Confirm your password",
     passwordsDoNotMatch: "Passwords don't match",
+    schoolRequired: "Select your child's school",
+    lrnInvalid: "LRN must be exactly 12 digits",
+    childLastNameRequired: "Enter your child's last name",
+    birthDateRequired: "Enter your child's birth date",
+  },
+
+  common: {
+    close: "Close",
+  },
+
+  /** Month names, so dates never depend on the phone's locale. */
+  months: [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ],
+
+  linkChild: {
+    heading: "Link your child",
+    subheading:
+      "These details are checked against the school's records. They are sent once and never shown again.",
+    schoolLabel: "School",
+    schoolPlaceholder: "Choose a school",
+    schoolPickerTitle: "Your child's school",
+    schoolsFailed: "Couldn't load the schools.",
+    lrnLabel: "LRN",
+    lrnPlaceholder: "12 digits",
+    lrnHint: "The Learner Reference Number on your child's school records.",
+    lastNameLabel: "Child's last name",
+    lastNamePlaceholder: "Pascual",
+    birthDateLabel: "Date of birth",
+    birthDatePlaceholder: "Choose a date",
+    submit: "Link my child",
+    submitting: "Linking…",
+    cancel: "Cancel",
+    /** A 404 means nothing matched all four details. The app must not guess which. */
+    checkTheseAgain:
+      "Check the school, the LRN, the last name and the date of birth. All four must match the school's records.",
+    linked: "Linked",
+  },
+
+  child: {
+    /**
+     * "Grade 7 – Rizal", with an en dash (docs/PRODUCT-RULES.md, "The words to
+     * use"). A function rather than a sentence, because a translation will want
+     * to put the pieces in its own order.
+     */
+    gradeAndSection: (gradeLevel: number, section: string) =>
+      `Grade ${gradeLevel} – ${section}`,
+  },
+
+  home: {
+    yourChildren: "Your children",
+    noChildren: "No children linked yet.",
+    noChildrenHint: "Link a child to see when they arrive at school.",
+    addChild: "Link a child",
   },
 
   session: {
