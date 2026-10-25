@@ -8,18 +8,18 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 24 of 43 tasks, 3 of 8 steps approved.**
+**To the demo: 28 of 43 tasks, 4 of 8 steps approved.**
 
-`███████████░░░░░░░░░` 55%
+`█████████████░░░░░░░` 65%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
 | M1 | The app opens, in the Bantay Aral theme | 9/9 | **Approved** |
 | M2 | The app can talk to the server | 5/5 | **Approved** |
 | M3 | Sign up, sign in, sign out | 6/6 | **Approved** |
-| M4 | Link a child | 4/4 | Built, awaiting review |
-| M5 | Today's attendance per child | 0/4 | Next |
-| M6 | The notification feed, and a child's day | 0/4 | Not started |
+| M4 | Link a child | 4/4 | **Approved** |
+| M5 | Today's attendance per child | 4/4 | Built, awaiting review |
+| M6 | The notification feed, and a child's day | 0/4 | Next |
 | M7 | **The phone buzzes when a child taps** | 0/7 | Not started |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
@@ -168,14 +168,31 @@ Done when: linking the demo student works, and a wrong birth date and a second l
 | 200% font at 360pt, and dark mode | Everything reachable, nothing clipped |
 
 Commit: `feat(children): link a child with their LRN and birth date`
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved"
 
 ### Step M5: Home
-- [ ] Each child's card for today: photo (4:5), name, school, "Grade 7 – Rizal", the status pill, time in and time out, and "N taps today" when there are more than 2
-- [ ] The weekend words when `flexible` is true
-- [ ] Pull to refresh; skeletons while loading; the empty state says how to link a child; the error state offers "Try again"
-- [ ] The child's school's notification setting shown on the card
+- [x] Each child's card for today: photo (4:5), name, school, "Grade 7 – Rizal", the status pill, time in and time out, and "N taps today" when there are more than 2
+- [x] The weekend words when `flexible` is true
+- [x] Pull to refresh; skeletons while loading; the empty state says how to link a child; the error state offers "Try again"
+- [x] The child's school's notification setting shown on the card
 Done when: a child who tapped at the gate shows as present, with the time.
+
+**Check it on the phone** — `npx expo start --clear`, signed in, with Jose
+Pascual linked.
+
+| Do this | Expect |
+|---|---|
+| Open the app | A card for Jose: photo, name, "Grade 7 – Rizal", the school, a status pill |
+| Before he has tapped | **Not yet tapped** in grey, and a dash for both times |
+| Tap his card at the gate, then pull down to refresh | **Present** in green, with the time in |
+| Look at the time | The time at the **school** — set your phone to another country and it must not change |
+| Read the bottom line of the card | "Your school sends: time in and time out" |
+| Turn Wi-Fi off and pull to refresh | "Can't reach Bantay Aral", with "Try again" — still signed in |
+| Sign out, sign in as a different parent | No sign of the previous parent's child or photo |
+| A parent with no children | "No children linked yet" and how to add one |
+| While it first loads | Two grey card outlines, standing still — no shimmer |
+| 200% font at 360pt, and dark mode | The card still holds together |
+
 Commit: `feat(home): show each child's day`
 - [ ] Owner review: I checked it and said "approved"
 

@@ -570,3 +570,115 @@ It typechecked, because an empty template literal is perfectly valid, and
 nothing asserted the text. There is a test for it now, including one that
 fails if the placeholders ever vanish again. The wider lesson is to stop using
 `perl` substitution for anything containing `${...}`.
+
+## M5 — Home
+
+**Date:** 2026-10-25
+
+### The school's clock
+
+`src/lib/school-time.ts`, ported from `reference/school-time.ts`. A parent
+working in Dubai must see the time their child walked through the gate in
+Balanga — "7:56 AM" — not "3:56 AM", which is what their own phone would say.
+
+So it never touches `toLocaleTimeString` or `Intl`: `Date.parse` gets the
+right instant from the offset in the string, that instant moves forward eight
+hours, and the **UTC** fields are read. Android's support for named time zones
+also varies between handsets, which is the second reason.
+
+The first version of the test mocked `Date.prototype.getTimezoneOffset` to
+pretend the phone was elsewhere. That proved nothing — the helper never calls
+it — and ESLint complaining about extending a native prototype is what
+prompted a second look. It now spies on the three locale formatters and
+asserts none is called, which is the rule itself. Inserting
+`clock.toLocaleTimeString()` into the helper fails exactly that test; removing
+it passes 11 of 11.
+
+### One copy of the token, and where it lives
+
+A child's photo is private: `GET /api/v1/photos/<key>` only answers with the
+parent's token, and `expo-image` takes the header on its source — **without
+being able to await the keystore**.
+
+Rather than a screen keeping its own copy, the single in-memory copy now sits
+in `src/api/token.ts` beside the storage that owns it: written by `setToken`,
+erased by `clearToken` *before* the keystore delete, so a throw there still
+stops the app sending it. Every API request got faster as a side effect, since
+the client no longer reads the keystore per call.
+
+Deliberately **not** in the query cache: `forgetSession` clears that, but any
+other reset would leave a token sitting in a cache dump.
+
+### Photos and signing out
+
+The contract says a photo is `immutable` per path and "a phone keeps a photo it
+has loaded even after the child is unlinked", which reads like a conflict with
+CLAUDE.md's "signing out clears the cached photos". It isn't: `immutable`
+governs **re-fetching**, sign-out governs **erasing**. `forgetSession` now
+clears both of expo-image's caches. M3 had already left a note reserving this
+for M5.
+
+The method names were checked against the installed package rather than its
+docs — `clearMemoryCache` and `clearDiskCache` both exist, as does
+`headers?: Record<string, string>` on the source.
+
+### A photo that fails must not sign anyone out
+
+A photo request does **not** go through `src/api/client.ts`, so a `401` on it
+never reaches the one error handler. That is the right behaviour, stated
+explicitly in the file: a parent on a patchy connection sees a grey box with
+their child's initials, not the sign-in screen. A genuinely dead token is
+caught by `/me`, which does go through the client.
+
+### Weekends
+
+`today.flexible` means the school has no late and no absent that day. So
+"Present" becomes "Came in", and the rather accusing "Not yet tapped" becomes
+"No tap". There is a test asserting that no weekend status can ever produce
+"Absent" or "Late".
+
+### Skeletons stand still
+
+A shimmer is the fashion, but CLAUDE.md requires motion to stop when the phone
+asks for reduced motion, and a skeleton animates on every single load. A plain
+block says the same thing and asks nothing of anyone. They are also hidden from
+screen readers, which should hear the real content when it arrives.
+
+### What the code review caught
+
+Three, and the first was a privacy gap rather than a bug.
+
+**A `401` did not clear the photos.** Pressing Sign out did, but a token that
+expired or was revoked went down a different path — `signOutLocally` clears
+the token, and the handler cleared the query cache and the session flag, and
+nothing cleared the images. CLAUDE.md:56 is explicit: "Signing out, **and any
+`401`**, clear the token, the cached data and the cached photos." So a 30-day
+expiry left children's faces on the phone's disk. Both paths now call one
+`clearPhotoCache()`.
+
+It is the easy one to miss because nothing visible happens at the time: no
+button was pressed, no screen changed, and the photos are not on screen to
+remind anyone they exist.
+
+**A failed refresh wiped the cards.** The screen checked `me.isError` before
+it checked whether it had data, and `/me` does not retry — so one pull in a
+tunnel replaced a child's whole morning with an error message. The full error
+is now only for when there is nothing to show; otherwise the cards stay and
+the failure is a line above them.
+
+**The spinner span on its own.** `isRefetching` is also true when the app
+returns to the foreground and re-asks `/me`, so coming back from the home
+screen spun a pull-to-refresh control nobody had pulled. A local flag now
+separates a real pull from a background refresh.
+
+Also: `cachePolicy` went from `disk` to `memory-disk`, because `disk` decodes
+the image again on every remount; and each card became one accessibility
+group, so TalkBack reads a child in one swipe rather than six.
+
+### One thing for the backend
+
+`docs/API-REQUESTS.md` now has its first entry. The app drops a child whose
+`status` it cannot read, which is right for a malformed answer and wrong for a
+status that is merely newer than the app — a future `excused` would make
+children silently vanish from phones already in parents' hands. Two possible
+answers are written up there for the owner to take to the Talaan repository.

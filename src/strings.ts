@@ -157,4 +157,40 @@ export const strings = {
     unexpected: "Something went wrong. Please try again.",
     tryAgain: "Try again",
   },
+
+  /**
+   * The status words, exactly as docs/PRODUCT-RULES.md, "The words to use"
+   * lists them — the same words the school's staff see in the web app, so a
+   * parent and a teacher never describe the same morning differently.
+   *
+   * At weekends (`today.flexible`) a school has no late and no absent, so a
+   * child who came in "Came in" rather than "Present", and one who did not has
+   * "No tap" rather than the accusing "Not yet tapped".
+   */
+  status: {
+    present: "Present",
+    late: "Late",
+    absent: "Absent",
+    idle: "Not yet tapped",
+    presentAtWeekend: "Came in",
+    idleAtWeekend: "No tap",
+  },
+
+  card: {
+    timeIn: "Time in",
+    timeOut: "Time out",
+    /** A time that has not happened yet. */
+    noTime: "—",
+    /** Shown only when there are more than two taps: they left and came back. */
+    tapsToday: (count: number) => `${count} taps today`,
+    photoOf: (firstName: string) => `${firstName}'s photo`,
+    /**
+     * The principal sets this for every parent at the school and parents
+     * cannot change it (docs/PRODUCT-RULES.md). Saying it on the card is how a
+     * parent knows whether to expect a notification at home time.
+     */
+    sendsNothing: "Your school doesn't send notifications",
+    sendsTimeIn: "Your school sends: time in",
+    sendsBoth: "Your school sends: time in and time out",
+  },
 } as const;

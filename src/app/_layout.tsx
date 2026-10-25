@@ -28,6 +28,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 
+import { clearPhotoCache } from "@/api/photo-cache";
 import { onSignedOut } from "@/api/session";
 import { startFocusTracking } from "@/auth/focus";
 import { SessionProvider, useSession } from "@/auth/session-context";
@@ -91,6 +92,11 @@ function AppShell() {
   useEffect(() => {
     onSignedOut(() => {
       client.clear();
+      // A token that expired or was revoked ends the session just as surely as
+      // pressing Sign out, and CLAUDE.md requires any 401 to clear the photos
+      // too. Nothing visible happens at this moment, which is exactly why it
+      // is easy to leave children's faces behind.
+      void clearPhotoCache();
       setHasToken(false);
     });
 

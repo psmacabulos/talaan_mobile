@@ -12,6 +12,7 @@ import * as SecureStore from "expo-secure-store";
 
 import { request, requestNoContent } from "../client";
 import { resetBaseUrlForTests } from "../config";
+import { resetTokenCacheForTests } from "../token";
 import { getSchools } from "../endpoints";
 import { ApiError, meansSignedOut } from "../errors";
 import { schoolsResponseSchema } from "../schemas";
@@ -64,6 +65,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   devLog = jest.spyOn(console, "error").mockImplementation(() => {});
   resetBaseUrlForTests();
+  resetTokenCacheForTests();
   resetSessionForTests();
   process.env.EXPO_PUBLIC_API_URL = BASE;
   secureStore.getItemAsync.mockResolvedValue(null);

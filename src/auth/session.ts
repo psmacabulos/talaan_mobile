@@ -31,6 +31,7 @@ import {
   type SignInInput,
   type SignUpInput,
 } from "@/api/endpoints";
+import { clearPhotoCache } from "@/api/photo-cache";
 import { clearToken, setToken } from "@/api/token";
 
 import { deviceLabel } from "./device-label";
@@ -67,8 +68,9 @@ export function useMe(enabled: boolean) {
  * Forget this sign-in locally: the token, and everything cached that was
  * fetched with it (CLAUDE.md requires a 401 to clear the cached data too).
  *
- * Cached photos are not cleared here because none exist yet — M5 is the step
- * that loads them, and clearing them belongs with the code that creates them.
+ * Cached photos go too. They are children's faces, and a phone that has been
+ * handed to the next parent must not still hold them — M3 reserved this and
+ * M5 is the step that put photos on the screen.
  *
  * This changes state only. Nothing here navigates: the gate in
  * `src/app/_layout.tsx` watches `hasToken` and decides where the parent is, so
@@ -80,6 +82,8 @@ export async function forgetSession(
 ): Promise<void> {
   await clearToken();
   queryClient.clear();
+
+  await clearPhotoCache();
   // Safe to call after clear(): this is React state, not a cached query, so
   // emptying the cache cannot orphan whoever is listening to it.
   setHasToken(false);
