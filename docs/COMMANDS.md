@@ -102,3 +102,23 @@ Expect `name: 'Bantay Aral'`, `package: 'com.bantayaral.parent'`, and
 
 Push, development builds and the installable APK arrive in M7 and M8. Their
 commands get added here then.
+
+## 7. Run the checks the way CI runs them
+
+CI checks out a clean tree, so it does **not** have the files Expo generates
+and gitignores — `expo-env.d.ts` and `.expo/`. Without them TypeScript sees a
+different set of globals, which once let three steps pass locally while every
+push was failing (`docs/PROBLEMS-LOG.md`, P-010).
+
+To reproduce CI exactly, move both aside and run all four:
+
+```bash
+mv expo-env.d.ts /tmp/ && mv .expo /tmp/dot-expo
+npm run lint && npm run typecheck && npm run check:colors && npm test
+mv /tmp/expo-env.d.ts . && mv /tmp/dot-expo .expo
+```
+
+Expo recreates both the next time `npx expo start` runs, so nothing is lost if
+you forget to move them back.
+
+**Then look at the Actions tab.** Green locally is not green in CI.

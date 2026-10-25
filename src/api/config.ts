@@ -46,8 +46,14 @@ export function getBaseUrl(): string {
     );
   }
 
-  cached = raw.replace(/\/+$/, "");
-  return cached;
+  // Kept in a local as well, so what is returned is plainly a string.
+  // Relying on TypeScript narrowing a module-level `let` typechecked on a
+  // developer's machine and failed in CI, which sees a different set of
+  // global types (docs/PROBLEMS-LOG.md, P-010).
+  const base = raw.replace(/\/+$/, "");
+  cached = base;
+
+  return base;
 }
 
 /** Tests set the variable per case; production never calls this. */
