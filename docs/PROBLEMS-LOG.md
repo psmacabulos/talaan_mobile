@@ -662,3 +662,89 @@ for tapping a child's card that had not been run yet.
 
 **The lesson:** a detail screen is not a tab. Tabs are where a parent lives;
 everything else is pushed over them.
+
+## P-012 — a child who left and came back looked as if they never moved
+
+- **Date:** 2026-10-26
+- **Where:** M5's child card on Home, found by the owner on the live server
+- **Tag:** Other
+- **Status:** Fixed in M6.1, waiting for the owner's phone check
+
+**Symptom**
+
+A real child had 13 taps today, the last a time in at 7:05 PM. Their card
+said only "Time in 11:09 AM" and "Time out —", which is exactly what a child
+who arrived and never moved looks like.
+
+**Cause**
+
+The card showed `timeIn` and `timeOut`. The server's `timeOut` is the last tap
+**only when that tap is a time out**, so after in, out, in it is `null`. The
+card had nothing else to show: the API sent no newest tap.
+
+**Options weighed**
+
+1. Work out the latest tap in the app from `GET /children/:id/taps`. Rejected:
+   one more request per child on every Home load, and the app would be deciding
+   which tap counts as what, which is the server's job (CLAUDE.md, "The backend
+   is somewhere else").
+2. Ask the server for the newest tap and its kind. Talaan Step 59.3 added
+   `today.latest: { at, kind } | null`.
+
+**Solution**
+
+Option 2. The card shows the time in, then, from the second tap on, "Out 4:05
+PM" or "Back in 7:05 PM" (`latestTapWords` in `src/children/status-words.ts`).
+The separate "Time out" goes. A server without `latest` gets the old time in
+and time out pair, and a `latest` the app can't read is dropped on its own
+rather than losing the child's whole card (`.catch(undefined)` in
+`src/api/schemas.ts`).
+
+## P-013 — "another parent linked your child" notices are dropped from the feed
+
+- **Date:** 2026-10-26
+- **Where:** the feed (M6), found while copying the fresh contract for M6.1
+- **Tag:** Security
+- **Impact:** a parent is never told in the app that another account linked
+  their child, which is the one notice meant to catch a stranger doing it. The
+  unread badge also counts a notice the parent can never see or clear.
+- **Status:** Open, to be fixed in M6.2 (feed) and M7 (push)
+
+**Symptom**
+
+No error. Talaan Step 55.2 sends feed items with `kind: "guardian_linked"`
+(docs/TALAAN-API.md, "Notifications"). The app's feed simply doesn't show them,
+while the tab's badge can say "1" with nothing unread in the list.
+
+**Cause**
+
+`notificationSchema.kind` in `src/api/schemas.ts` only accepts `"time_in"` and
+`"time_out"`. The feed's list is read with `tolerantArray`, which drops any
+item that fails its schema, so the notice is thrown away quietly. That is the
+behaviour we wanted for a broken item, and the wrong one for a new kind. The
+`unreadCount` comes from the server, which does count it.
+
+```
+Talaan                                  This app
+──────                                  ────────
+Ana links Juan  ──► feed item           GET /notifications
+                    kind: guardian_linked ──► notificationSchema: kind ∉ {in, out}
+                                              └► tolerantArray drops it
+                ──► unreadCount: 1      ──► badge "1", list empty
+                ──► push "A new parent       (M7: must not read it as a tap)
+                    account was linked
+                    to Juan"
+```
+
+**Options weighed**
+
+1. Accept any `kind` and show unknown ones as a tap. Rejected: the contract
+   says never to show an unknown kind as a tap.
+2. Add `guardian_linked`, with its optional `guardian`, and show it as its own
+   kind of row with the contract's words. Keep dropping kinds still unknown.
+
+**Solution**
+
+Option 2, planned as Step M6.2 in `docs/PLAN.md`. Its push ("A new parent
+account was linked to Juan") is handled in M7, which must open the feed and
+never treat it as a tap.

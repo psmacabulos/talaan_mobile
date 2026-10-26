@@ -84,9 +84,27 @@ export const childTodaySchema = z.object({
     status: z.enum(["present", "late", "absent", "idle"]),
     /** A weekend: no late and no absent. */
     flexible: z.boolean(),
+    /** The first tap: the arrival, which present or late comes from. */
     timeIn: z.string().nullable(),
+    /** The last tap, only when it is a time out: none after in, out, in. */
     timeOut: z.string().nullable(),
     tapCount: z.number(),
+    /**
+     * The newest tap, and whether the server counted it as an in or an out
+     * (Talaan Step 59.3). `null` with no tap; with one tap, the time in.
+     *
+     * `undefined` means an older server that doesn't send it, or a value the
+     * app can't read. Either way the card falls back to its time in and time
+     * out, rather than losing the whole child to `tolerantArray` below.
+     */
+    latest: z
+      .object({
+        at: z.string(),
+        kind: z.enum(["time_in", "time_out"]),
+      })
+      .nullable()
+      .optional()
+      .catch(undefined),
   }),
 });
 

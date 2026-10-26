@@ -1,6 +1,6 @@
 /**
  * Turning a child's status into the word a parent reads, and the colour it
- * wears.
+ * wears, and their latest tap into "Out …" or "Back in …".
  *
  * Both come from docs/PRODUCT-RULES.md, "The words to use". The server decides
  * the status; this only chooses how to say it. The app never works out whether
@@ -13,6 +13,7 @@
  * against a Saturday.
  */
 import type { ChildToday } from "@/api/schemas";
+import { formatSchoolTime } from "@/lib/school-time";
 import { strings } from "@/strings";
 import type { StatusName } from "@/theme";
 
@@ -55,6 +56,42 @@ export function statusLabel(
       return {
         word: flexible ? strings.status.idleAtWeekend : strings.status.idle,
         tone: "idle",
+      };
+  }
+}
+
+/** The latest tap as the card shows it, and as a screen reader says it. */
+export type LatestTapWords = {
+  text: string;
+  spoken: string;
+};
+
+/**
+ * "Out 4:05 PM" or "Back in 7:05 PM", from the second tap on.
+ *
+ * With one tap the latest is the time in already on the card, so there is
+ * nothing more to say. The server decides whether the tap was an in or an out;
+ * this only chooses the words for it.
+ */
+export function latestTapWords(
+  today: Pick<Today, "tapCount" | "latest">,
+): LatestTapWords | undefined {
+  const { tapCount, latest } = today;
+  if (tapCount < 2 || latest === null || latest === undefined) return undefined;
+
+  const time = formatSchoolTime(latest.at);
+  if (time === undefined) return undefined;
+
+  switch (latest.kind) {
+    case "time_out":
+      return {
+        text: strings.card.latestOut(time),
+        spoken: strings.card.latestOutSpoken(time),
+      };
+    case "time_in":
+      return {
+        text: strings.card.latestBackIn(time),
+        spoken: strings.card.latestBackInSpoken(time),
       };
   }
 }

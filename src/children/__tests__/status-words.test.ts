@@ -9,7 +9,11 @@
 import type { ChildToday } from "@/api/schemas";
 import { strings } from "@/strings";
 
-import { notificationSentence, statusLabel } from "../status-words";
+import {
+  latestTapWords,
+  notificationSentence,
+  statusLabel,
+} from "../status-words";
 
 type Today = ChildToday["today"];
 
@@ -21,6 +25,7 @@ function today(over: Partial<Today>): Today {
     timeIn: null,
     timeOut: null,
     tapCount: 0,
+    latest: null,
     ...over,
   };
 }
@@ -90,5 +95,67 @@ describe("what the school sends", () => {
     // A parent whose school has notifications off should find out here, not by
     // waiting all term for one that never arrives.
     expect(notificationSentence("off")).toMatch(/doesn't send/i);
+  });
+});
+
+describe("the latest tap", () => {
+  const out = {
+    at: "2026-10-22T16:05:00.000+08:00",
+    kind: "time_out",
+  } as const;
+  const backIn = {
+    at: "2026-10-22T19:05:00.000+08:00",
+    kind: "time_in",
+  } as const;
+
+  test("an out reads 'Out 4:05 PM', and is spoken with 'at'", () => {
+    expect(latestTapWords(today({ tapCount: 2, latest: out }))).toEqual({
+      text: "Out 4:05 PM",
+      spoken: "Out at 4:05 PM",
+    });
+  });
+
+  test("an in after the first is 'Back in', never a plain 'In'", () => {
+    const words = latestTapWords(today({ tapCount: 13, latest: backIn }));
+
+    expect(words).toEqual({
+      text: "Back in 7:05 PM",
+      spoken: "Back in at 7:05 PM",
+    });
+    expect(words?.text).not.toMatch(/^In /);
+  });
+
+  test("one tap says nothing more: the latest is the time in already shown", () => {
+    const first = {
+      at: "2026-10-22T07:12:00.000+08:00",
+      kind: "time_in",
+    } as const;
+
+    expect(
+      latestTapWords(today({ tapCount: 1, latest: first })),
+    ).toBeUndefined();
+  });
+
+  test("no tap says nothing", () => {
+    expect(
+      latestTapWords(today({ tapCount: 0, latest: null })),
+    ).toBeUndefined();
+  });
+
+  test("taps but no latest says nothing, rather than guessing", () => {
+    expect(
+      latestTapWords(today({ tapCount: 2, latest: null })),
+    ).toBeUndefined();
+    expect(
+      latestTapWords(today({ tapCount: 2, latest: undefined })),
+    ).toBeUndefined();
+  });
+
+  test("a time it can't read says nothing, rather than 'Out Invalid Date'", () => {
+    expect(
+      latestTapWords(
+        today({ tapCount: 2, latest: { at: "not a time", kind: "time_out" } }),
+      ),
+    ).toBeUndefined();
   });
 });

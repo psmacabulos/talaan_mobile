@@ -791,3 +791,81 @@ from screen readers because the tab already has a label.
 
 The badge itself was fine and stayed as it was. Its contrast was measured
 rather than assumed: 8.42:1 in dark and 6.10:1 in light, both well past AA.
+
+## M6.1 — The latest tap on the child's card
+
+**Date:** 2026-10-26
+
+Added after the plan was written, at the owner's request: Talaan Step 59.3
+added `today.latest`, because a child who tapped in, out, then in again read
+"Time out —" (`docs/PROBLEMS-LOG.md`, P-012).
+
+### The contract wasn't in this repository yet
+
+The request said the new contract had been copied to `docs/TALAAN-API.md`.
+It hadn't: the file was unchanged since its first commit and had no `latest`.
+`grep -n latest ~/Documents/talaan/docs/PARENT-API.md` found it on line 86, so
+with the owner's go-ahead:
+
+```bash
+cp ~/Documents/talaan/docs/PARENT-API.md docs/TALAAN-API.md
+```
+
+The fresh copy also brought password reset (Step 55.6), `403 link_blocked`
+(55.4) and the `guardian_linked` feed kind (55.2). Only `latest` is built
+here. `guardian_linked` turned out to be silently dropped by the feed, which
+became P-013 and Step M6.2.
+
+### `npm install` on the Mac rewrote the lockfile
+
+First run on the owner's Mac (Node 24.16.0, npm 11.13.0). `package-lock.json`
+came back modified: no version changes, only `"peer": true` markers moved and
+two optional `@emnapi/*` entries added. It's left out of this step's commit
+(`docs/LEARNING-LOG.md`, "npm install changed package-lock.json on a new
+computer").
+
+### A `latest` the app can't read costs one line, not a child
+
+```ts
+latest: z
+  .object({ at: z.string(), kind: z.enum(["time_in", "time_out"]) })
+  .nullable()
+  .optional()
+  .catch(undefined),
+```
+
+`.optional()` covers an older server that doesn't send it. `.catch(undefined)`
+covers a value the app can't read, such as a kind added later. Without it the
+child would fail `childTodaySchema`, and `tolerantArray` would drop the whole
+card. With it, the card falls back to the time in and time out it showed
+before. In Zod 4 the key stays optional through `.catch`.
+
+### The words, and who decides them
+
+`latestTapWords` in `src/children/status-words.ts` maps the server's `kind` to
+"Out …" or "Back in …", with a spoken form for TalkBack. It never works out the
+kind. It says nothing with fewer than two taps, with no `latest`, or with a
+time it can't format.
+
+The card keeps one `hasLatest` value: with it, the "Time out" column goes;
+without it, the M5 layout stays exactly as it was. The latest line is Lexend
+(DESIGN.md: every time is Lexend), foreground, `sm`, one step below the time
+in above it. "N taps today" was never in the spoken label; it is now.
+
+### Checks run while building
+
+```bash
+npx jest src/components/child src/children   # 3 suites, 51 tests, pass
+npx prettier --check <the changed files>
+```
+
+Prettier flagged a few long lines in the files touched. Only the new lines
+were reformatted; three older lines it would also change
+(`schemas.ts:57`, `status-words.ts:43`, `link-child.test.ts:146`) were left
+alone. ESLint doesn't run Prettier, so they don't fail lint.
+
+### What the code review caught
+
+Nothing in the code. It asked for one more test (a `latest.at` that can't be
+read as a time says nothing rather than "Out Invalid Date"), and for the docs
+to be finished before the report.

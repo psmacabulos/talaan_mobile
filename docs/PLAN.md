@@ -8,9 +8,9 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 32 of 43 tasks, 6 of 8 steps approved.**
+**To the demo: 36 of 52 tasks, 6 of 10 steps approved.**
 
-`███████████████░░░░░` 74%
+`██████████████░░░░░░` 69%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
@@ -20,8 +20,13 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M4 | Link a child | 4/4 | **Approved** |
 | M5 | Today's attendance per child | 4/4 | **Approved** |
 | M6 | The notification feed, and a child's day | 4/4 | **Approved** |
-| M7 | **The phone buzzes when a child taps** | 0/7 | In progress |
+| M6.1 | A child who left and came back reads "Back in …" | 4/4 | Built, awaiting review |
+| M6.2 | "Another parent linked your child" in the feed | 0/4 | Next |
+| M7 | **The phone buzzes when a child taps** | 0/8 | In progress, paused for M6.1 and M6.2 |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
+
+M6.1 and M6.2 were added on 2026-10-26, after the plan was written. Each
+starts with a "Changed by" line saying why.
 
 M7 is the one that matters: everything before it exists so that a tap at the
 gate can reach a parent's phone. M8 only packages it.
@@ -171,7 +176,7 @@ Commit: `feat(children): link a child with their LRN and birth date`
 - [x] Owner review: I checked it and said "approved"
 
 ### Step M5: Home
-- [x] Each child's card for today: photo (4:5), name, school, "Grade 7 – Rizal", the status pill, time in and time out, and "N taps today" when there are more than 2
+- [x] Each child's card for today: photo (4:5), name, school, "Grade 7 – Rizal", the status pill, the time in plus the latest tap ("Out …" or "Back in …") from the second tap on, and "N taps today" when there are more than 2 (the latest tap replaced "time out" in M6.1)
 - [x] The weekend words when `flexible` is true
 - [x] Pull to refresh; skeletons while loading; the empty state says how to link a child; the error state offers "Try again"
 - [x] The child's school's notification setting shown on the card
@@ -183,7 +188,7 @@ Pascual linked.
 | Do this | Expect |
 |---|---|
 | Open the app | A card for Jose: photo, name, "Grade 7 – Rizal", the school, a status pill |
-| Before he has tapped | **Not yet tapped** in grey, and a dash for both times |
+| Before he has tapped | **Not yet tapped** in grey, and a dash for the time in (two dashes before M6.1) |
 | Tap his card at the gate, then pull down to refresh | **Present** in green, with the time in |
 | Look at the time | The time at the **school** — set your phone to another country and it must not change |
 | Read the bottom line of the card | "Your school sends: time in and time out" |
@@ -224,6 +229,53 @@ There are now **two tabs** at the bottom: Home and Notifications.
 Commit: `feat(feed): add the notification feed and a child's day`
 - [x] Owner review: I checked it and said "approved"
 
+### Step M6.1: The latest tap on the child's card
+
+**Changed by:** the owner, 2026-10-26. Talaan Step 59.3 added `today.latest`,
+because a child who tapped in, out, then in again showed "Time out —", the
+same as a child who never moved (`docs/PROBLEMS-LOG.md`, P-012). This changes
+M5's card.
+
+- [x] `today.latest` read from `/me`; missing (an older server) or unreadable keeps the time in and time out as before
+- [x] From the second tap, "Out 4:05 PM" or "Back in 7:05 PM" under the time in, never a plain "In"; nothing more with one tap; no separate "Time out"
+- [x] The screen reader hears "Out at 4:05 PM" or "Back in at 7:05 PM", and "N taps today"
+- [x] Tests for no tap, one tap, in-out, in-out-in and an older server
+Done when: a child who left and came back reads "Back in …" on their card.
+
+**Check it on the phone** — `npx expo start --clear`, signed in, with Jose
+Pascual linked. Make the taps with his sticker at `/gate`. Taps on one card
+**less than 2 minutes apart count as one**, so wait between them. Pull down on
+Home after each.
+
+| Do this | Expect |
+|---|---|
+| Before he has tapped | "Time in" with a dash, and **no "Time out"** |
+| Tap once | His time in, and nothing under it |
+| Tap again, 2+ minutes later | The time in, then **Out** and the time of that tap. No "taps today" yet |
+| Tap a third time, 2+ minutes later | **Back in** and that time, then **3 taps today**. Never a plain "In" |
+| Tap the card | His day opens with all three taps |
+| TalkBack on, swipe to the card | It says "… Time in 7:12 AM. Back in at 7:20 AM. 3 taps today" (your times) |
+| 200% font at 360pt, and dark mode | The "Back in" line wraps cleanly and is readable |
+
+Commit: `feat(home): show the latest tap on each child's card`
+- [ ] Owner review: I checked it and said "approved"
+
+### Step M6.2: "Another parent linked your child" in the feed
+
+**Changed by:** the owner, 2026-10-26. Talaan Step 55.2 sends a
+`guardian_linked` notice when another parent account links a child. The app
+drops it today, while the badge still counts it (`docs/PROBLEMS-LOG.md`,
+P-013). It's the one notice meant to catch a stranger linking a child, so it
+comes before push.
+
+- [ ] The feed reads `guardian_linked` and its `guardian` (or `null`); a kind still unknown is never shown as a tap
+- [ ] Its own row: "An account named Ana Santos linked to Juan Cruz. If you don't know them, contact the school.", or "A parent account linked to Juan Cruz. …" without a name, looking different from a tap
+- [ ] Opening it marks it read; the badge and "Mark all as read" count it like any other
+- [ ] Tests for the new kind, `guardian: null`, and an unknown kind
+Done when: linking Jose from a second parent account shows the notice on the first parent's phone, and the badge clears when it's read.
+Commit: `feat(feed): show when another parent links a child`
+- [ ] Owner review: I checked it and said "approved"
+
 ### Step M7: Push
 - [ ] The owner's free Expo account and EAS project id, and a free Firebase project with an Android app `com.bantayaral.parent`: give the owner the exact clicks
 - [ ] A development build installed on the phone (Expo Go can't receive push on Android)
@@ -231,6 +283,7 @@ Commit: `feat(feed): add the notification feed and a child's day`
 - [ ] Permission asked right after the first child is linked, never on first launch
 - [ ] The Expo push token registered after sign-in, on every app start, and whenever it changes
 - [ ] In the foreground: shown in the app, home and feed refreshed. Tapping a push opens the feed at that notification
+- [ ] A link notice's push ("A new parent account was linked to Juan", Talaan Step 55.2) opens the feed like any other, and is never treated as a tap (`docs/PROBLEMS-LOG.md`, P-013)
 - [ ] The live server switched to send for real: `PUSH_SENDER=expo` and `EXPO_ACCESS_TOKEN`, set by the owner on Heroku (`docs/SERVER.md`, "Testing a real push")
 Done when: a tap at `/gate` for a linked child buzzes the phone, with the app closed.
 Commit: `feat(push): get a push when a child taps in or out`

@@ -192,6 +192,15 @@ export const strings = {
     timeOut: "Time out",
     /** A time that has not happened yet. */
     noTime: "—",
+    /**
+     * The newest tap, from the second tap on (docs/PRODUCT-RULES.md). A time
+     * in after the first always means the child left and came back, so it is
+     * "Back in", never a plain "In" that reads like the arrival.
+     */
+    latestOut: (time: string) => `Out ${time}`,
+    latestBackIn: (time: string) => `Back in ${time}`,
+    latestOutSpoken: (time: string) => `Out at ${time}`,
+    latestBackInSpoken: (time: string) => `Back in at ${time}`,
     /** Shown only when there are more than two taps: they left and came back. */
     tapsToday: (count: number) => `${count} taps today`,
     photoOf: (firstName: string) => `${firstName}'s photo`,

@@ -6,7 +6,9 @@ Short, plain-language answers to things that came up while building. Organised b
 
 - [Setting up the machine](#setting-up-the-machine)
   - [nvm installs a Node version without switching to it](#nvm-installs-a-node-version-without-switching-to-it)
+  - [npm install changed package-lock.json on a new computer](#npm-install-changed-package-lockjson-on-a-new-computer)
 - [Builds and installing the app](#builds-and-installing-the-app)
+  - [Running the app on a phone without any store](#running-the-app-on-a-phone-without-any-store)
   - [Can the app get real pushes without the Play Store?](#can-the-app-get-real-pushes-without-the-play-store)
   - [APK or AAB: only one of them installs by hand](#apk-or-aab-only-one-of-them-installs-by-hand)
   - [How many free EAS builds we get](#how-many-free-eas-builds-we-get)
@@ -42,7 +44,31 @@ Get-ChildItem "$env:NVM_HOME" -Directory                    # which versions exi
 
 A version switch also doesn't reach terminals that are already open. Close and reopen them, this editor included, or they keep the old `node` on their `PATH`.
 
+### npm install changed package-lock.json on a new computer
+
+On the Mac, `npm install` changed `package-lock.json` even though nobody added a package. Looking at the diff, no package changed version. npm only moved some `"peer": true` markers and recorded two optional packages (`@emnapi/core`, `@emnapi/runtime`) that only some computers need. A different npm version or operating system writes the same lockfile slightly differently.
+
+It's harmless, but it's noise in a commit. Two ways to keep it out:
+
+```bash
+git restore package-lock.json   # undo the churn, keep node_modules as installed
+npm ci                          # next time: installs exactly the lockfile and never rewrites it
+```
+
+`npm ci` is the one to use on a new machine. `npm install` is for when you mean to change packages.
+
 ## Builds and installing the app
+
+### Running the app on a phone without any store
+
+While the app is being built, it doesn't need the Play Store or the App Store. **Expo Go**, a free app on the phone, loads the code straight from your computer over Wi-Fi:
+
+```bash
+npm install              # once
+npx expo start --clear   # then scan the QR code with Expo Go
+```
+
+The phone and the computer must be on the same Wi-Fi, `.env` must hold `EXPO_PUBLIC_API_URL`, and Expo Go must be the build for this project's SDK (see "Expo Go runs one SDK, and the store copy lags" below). Expo Go can't receive push, so M7 installs a development build instead, and M8 makes an APK you can send to any phone. Neither needs a store. The full list is in `docs/COMMANDS.md`.
 
 ### Can the app get real pushes without the Play Store?
 

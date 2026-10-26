@@ -155,6 +155,43 @@ describe("the children list", () => {
     ]);
   });
 
+  test("an older server without the latest tap still gives the child", () => {
+    const result = meResponseSchema.safeParse({
+      parent,
+      children: [goodChild],
+    });
+
+    expect(result.data?.children).toHaveLength(1);
+    expect(result.data?.children[0]?.today.latest).toBeUndefined();
+  });
+
+  test("reads the latest tap the server sends", () => {
+    const latest = { at: "2026-10-22T16:05:00.000+08:00", kind: "time_out" };
+    const result = meResponseSchema.safeParse({
+      parent,
+      children: [{ ...goodChild, today: { ...goodChild.today, latest } }],
+    });
+
+    expect(result.data?.children[0]?.today.latest).toEqual(latest);
+  });
+
+  test.each([
+    [
+      "an unknown kind",
+      { at: "2026-10-22T16:05:00.000+08:00", kind: "from_the_future" },
+    ],
+    ["a bad shape", { at: 5 }],
+  ])("a latest tap with %s costs only that line", (_, latest) => {
+    const result = meResponseSchema.safeParse({
+      parent,
+      children: [{ ...goodChild, today: { ...goodChild.today, latest } }],
+    });
+
+    // The child is kept: the card falls back to its time in and time out.
+    expect(result.data?.children).toHaveLength(1);
+    expect(result.data?.children[0]?.today.latest).toBeUndefined();
+  });
+
   test("a parent with no children yet reads as an empty list", () => {
     const result = meResponseSchema.safeParse({ parent, children: [] });
 

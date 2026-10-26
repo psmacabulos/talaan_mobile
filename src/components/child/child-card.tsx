@@ -9,11 +9,20 @@
  * `status`, the `kind` and the times it was given (CLAUDE.md, "The backend is
  * somewhere else"). Times are drawn on the **school's** clock, so a parent
  * working abroad sees when their child walked through the gate in Balanga.
+ *
+ * Under the time in, from the second tap on, is the newest tap: "Out 4:05 PM"
+ * or "Back in 7:05 PM". A separate time out can't tell those apart, since the
+ * server only sends one when the last tap was an out (Talaan Step 59.3). An
+ * older server without `latest` gets the time in and time out as before.
  */
 import { Pressable, Text, View } from "react-native";
 
 import type { ChildToday } from "@/api/schemas";
-import { notificationSentence, statusLabel } from "@/children/status-words";
+import {
+  latestTapWords,
+  notificationSentence,
+  statusLabel,
+} from "@/children/status-words";
 import { formatSchoolTime } from "@/lib/school-time";
 import { strings } from "@/strings";
 import { useTheme } from "@/theme";
@@ -38,14 +47,21 @@ export function ChildCard({
     child.today.timeIn === null
       ? undefined
       : formatSchoolTime(child.today.timeIn);
+
+  // An older server sends no `latest`: keep its time in and time out pair.
+  const hasLatest = child.today.latest !== undefined;
   const timeOut =
-    child.today.timeOut === null
+    hasLatest || child.today.timeOut === null
       ? undefined
       : formatSchoolTime(child.today.timeOut);
+  const latest = latestTapWords(child.today);
 
-  // A child can leave and come back. More than two taps means the pair of
-  // times above no longer tells the whole story (docs/PRODUCT-RULES.md).
-  const manyTaps = child.today.tapCount > 2;
+  // A child can leave and come back. More than two taps means the times
+  // above no longer tell the whole story (docs/PRODUCT-RULES.md).
+  const tapsToday =
+    child.today.tapCount > 2
+      ? strings.card.tapsToday(child.today.tapCount)
+      : undefined;
 
   return (
     <Pressable
@@ -62,6 +78,8 @@ export function ChildCard({
         label.word,
         timeIn ? `${strings.card.timeIn} ${timeIn}` : undefined,
         timeOut ? `${strings.card.timeOut} ${timeOut}` : undefined,
+        latest?.spoken,
+        tapsToday,
       ]
         .filter(Boolean)
         .join(". ")}
@@ -114,10 +132,25 @@ export function ChildCard({
 
       <View style={{ flexDirection: "row", gap: theme.space.xl }}>
         <TimeOfDay label={strings.card.timeIn} time={timeIn} />
-        <TimeOfDay label={strings.card.timeOut} time={timeOut} />
+        {hasLatest ? null : (
+          <TimeOfDay label={strings.card.timeOut} time={timeOut} />
+        )}
       </View>
 
-      {manyTaps ? (
+      {latest ? (
+        <Text
+          style={{
+            color: theme.colors.foreground,
+            // Lexend for every number and time (docs/DESIGN.md).
+            fontFamily: theme.fontFamily.heading,
+            fontSize: theme.fontSize.sm,
+          }}
+        >
+          {latest.text}
+        </Text>
+      ) : null}
+
+      {tapsToday ? (
         <Text
           style={{
             color: theme.colors.mutedForeground,
@@ -125,7 +158,7 @@ export function ChildCard({
             fontSize: theme.fontSize.sm,
           }}
         >
-          {strings.card.tapsToday(child.today.tapCount)}
+          {tapsToday}
         </Text>
       ) : null}
 
