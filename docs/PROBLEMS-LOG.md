@@ -595,3 +595,70 @@ the dev server and is not committed, so **typed routes are not verified in
 CI**. A mistyped `router.push("/hom")` fails on a developer's machine and
 passes the pipeline. Left as is for now; if it ever bites, commit the file or
 generate it in the workflow.
+
+---
+
+## P-011 — "Link a child" flickered and did nothing
+
+- **Date:** 2026-10-26
+- **Where:** M6, on the owner's phone, after the tab bar was added
+- **Tag:** Other
+- **Status:** Fixed
+
+**Symptom**
+
+Tapping **Link a child** on Home made the screen flicker, as if it had
+refreshed, and stayed on Home. No error, nothing in the log. Tapping a child's
+card had the same problem. Both had worked in M4 and M5.
+
+**Cause**
+
+M6 turned `src/app/(app)/_layout.tsx` into a `<Tabs>`. That made **every**
+file under `(app)` a tab screen — including `link-child.tsx` and
+`child/[id].tsx`, which are not tabs. They were hidden from the bar with:
+
+```tsx
+<Tabs.Screen name="link-child" options={{ href: null }} />
+```
+
+`href: null` does not mean "hidden but still reachable". It takes the screen
+out of the navigator's reachable set, so `router.push("/link-child")` had
+nowhere to go. The flicker was the navigation attempt failing.
+
+Before M6 there was no `(app)/_layout.tsx` at all, so these were screens on the
+root **stack** and pushing them worked. Adding tabs silently changed what they
+were.
+
+**Options weighed**
+
+1. Drop `href: null` — the detail screens would appear in the tab bar, which
+   is wrong: "Link a child" is not a destination a parent lives in.
+2. Move them out of `(app)` — they would lose the signed-in gate.
+3. Put a stack above the tabs, which is the ordinary shape for this.
+
+**Solution**
+
+Option 3, and it is what should have been built in M6:
+
+```
+src/app/(app)/_layout.tsx          Stack
+src/app/(app)/(tabs)/_layout.tsx   Tabs — Home, Notifications
+src/app/(app)/(tabs)/home.tsx
+src/app/(app)/(tabs)/notifications.tsx
+src/app/(app)/link-child.tsx       pushed over the tabs
+src/app/(app)/child/[id].tsx       pushed over the tabs
+```
+
+A `(tabs)` group adds no path segment, so `/home`, `/notifications`,
+`/link-child` and `/child/[id]` are all unchanged, and the gate in
+`src/app/_layout.tsx` still matches on `segments[0] === "(app)"`.
+
+**Why nothing caught it.** Lint, types, 178 tests and the Android export all
+passed throughout — a route that exists but cannot be reached is still a valid
+route. Only tapping the button on a phone shows it. The rule in
+`docs/PLAN.md` — that a step is not done until every row of its "Check it on
+the phone" table passes — exists for exactly this, and M6's table had a row
+for tapping a child's card that had not been run yet.
+
+**The lesson:** a detail screen is not a tab. Tabs are where a parent lives;
+everything else is pushed over them.
