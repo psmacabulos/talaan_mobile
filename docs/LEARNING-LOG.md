@@ -17,6 +17,7 @@ Short, plain-language answers to things that came up while building. Organised b
   - [What EXPO_PUBLIC_API_URL should be](#what-expo_public_api_url-should-be)
 - [Push notifications](#push-notifications)
   - [Why Expo Go can't test push](#why-expo-go-cant-test-push)
+  - [Why push needs Firebase at all](#why-push-needs-firebase-at-all)
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
 
 ## Setting up the machine
@@ -231,3 +232,46 @@ Two causes worth knowing before the demo, neither of them our bug:
 - **No Google Play Services at all.** Huawei phones sold after 2019 ship without it, so Firebase Cloud Messaging can never reach them. There is no workaround in our app; it would need Huawei's own push service. Rare, but it exists in the Philippines, so don't demo on a Huawei.
 
 If a push doesn't arrive, `docs/SERVER.md` ("Testing a real push") lists what to check on the server side, and anything new goes in `docs/PROBLEMS-LOG.md`.
+
+### Why push needs Firebase at all
+
+**On Android there is no way around it**, and the reason is not about Firebase
+being a good product.
+
+Android does not let an app sit in the background waiting for messages — that
+would drain the battery, so the system forbids it. Instead the phone keeps
+**one** always-open connection to Google, shared by every app installed on it.
+WhatsApp, Gmail, Messenger and ours all arrive down that single pipe.
+
+That pipe is Firebase Cloud Messaging. It is not a product we picked; it is the
+doorway Android gives every app, and FCM is its name.
+
+```mermaid
+flowchart LR
+    Gate["a tap at the gate"] --> Server["Talaan"]
+    Server --> Expo["Expo push service<br/>(a convenience)"]
+    Expo --> FCM["Firebase Cloud Messaging<br/>(the only way in)"]
+    FCM --> Phone["the phone"]
+```
+
+**What we actually use from Firebase:** only the credentials that say "this
+notification belongs to `com.bantayaral.parent`". No Firebase database, no
+Firebase auth, no analytics — Talaan already does all of that. The project
+exists to hold a key. Free, no card.
+
+**The alternatives, and why they fail:**
+
+| Instead | Why not |
+|---|---|
+| Our own background connection | Android kills it, so nothing arrives with the app closed — the whole point |
+| Polling every few minutes | Battery, mobile data, and still minutes late |
+| SMS | Costs money per message, forever, for 500 students |
+
+**Expo is the optional part.** Its push service saves writing separate Android
+and iOS plumbing. We could talk to FCM directly and drop Expo — but Firebase
+would still be there.
+
+**The one real consequence:** a phone with no Google Play Services, such as a
+Huawei sold after 2019, cannot receive push at all. Nothing in this app changes
+that, which is why the demo should not be run on one
+[[what-the-owner-sees-on-the-phone-when-installing-by-hand]].
