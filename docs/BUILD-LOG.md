@@ -869,3 +869,82 @@ alone. ESLint doesn't run Prettier, so they don't fail lint.
 Nothing in the code. It asked for one more test (a `latest.at` that can't be
 read as a time says nothing rather than "Out Invalid Date"), and for the docs
 to be finished before the report.
+
+## M6.2 — "Another parent linked your child" in the feed
+
+**Date:** 2026-10-26
+
+Added after the plan was written, at the owner's request: the feed was
+dropping Talaan's `guardian_linked` notices while the badge counted them
+(`docs/PROBLEMS-LOG.md`, P-013).
+
+### The owner corrected the test before the build
+
+The first plan tested it by linking Jose Pascual from a second account. That
+would have produced nothing: a notice goes only to parents **already** linked
+to the child, and parent-one isn't linked to Jose. The owner checked against
+Talaan's code and gave the children parent-one is linked to (Maria Ramos,
+Carmen Sison; Juan Cruz has no LRN). Also corrected: a parent can't unlink
+themselves, a principal's removal blocks re-linking for good, and the 10-tries
+limit counts tries from anyone for that school, LRN and last name, not
+counting a correct one. `docs/SERVER.md` now lists parent-one's children.
+
+### One union, one switch
+
+`notificationSchema` became a `z.discriminatedUnion("kind", …)`: taps keep
+their exact shape, and only `guardian_linked` carries `guardian`. A
+`guardian` the app can't read becomes `null` (`.catch(null)`), so a bad name
+costs the name, not the safety notice.
+
+Everything a kind decides lives in one exhaustive switch, `feedWords` in
+`src/feed/feed-words.ts`: the sentence, the advice, the time on the right,
+and whether pressing it opens the child's day. The `default` assigns the item
+to `never`, so the next kind added to the schema fails typecheck there.
+
+The first version of the row had its own `isTap = item.kind !==
+"guardian_linked"`. The code review caught it: a future kind would pass that
+test and quietly open a child's day. `opensChildDay` moved into the switch.
+
+### The row moved out of the screen
+
+`FeedRow` was defined inside `src/app/(app)/(tabs)/notifications.tsx`, where
+it can't have a test beside it (P-004). It moved to
+`src/components/feed/feed-row.tsx` as it was, plus the new branch.
+
+### Two things the tests caught
+
+- **"Juan Cruz.. If you don't…"** The notice's sentences end in a full stop,
+  and the spoken label joins its parts with ". ". Each part's trailing full
+  stop is now stripped before joining.
+- **`jest.mock` refused `push`.** A mock factory may only use outside
+  variables whose names start with `mock`, so it became `mockPush`.
+
+### Always a Pressable
+
+A read notice has nothing left to do, so it stops being announced as a button.
+The first version swapped the `Pressable` for a `View` when that happened. The
+review pointed out that this rebuilds the row under TalkBack's focus, which on
+Android can throw focus to the top of the screen. It now stays one `Pressable`,
+with the role, hint and `onPress` set only while it can be pressed. Not
+`disabled`: TalkBack would say "disabled". Whether TalkBack still offers
+"double tap to activate" without an `onPress` is unverified; it's a row in the
+phone check.
+
+### Checks run while building
+
+```bash
+npx jest src/feed src/components/feed   # then the whole suite: 15 suites, 218 tests
+npx tsc --noEmit                         # clean
+npx prettier --check src/feed src/components/feed src/components/icons/feed-icons.tsx
+```
+
+Prettier also flags one older line in `notifications.tsx` (`FeedFailure`'s
+style), left alone.
+
+### Written down, not built
+
+- `docs/API-REQUESTS.md` #3: the advice says "contact the school", but Talaan
+  stores no school phone or email at all. It needs a school setting on the
+  server first, then the API field.
+- `docs/DESIGN-QUESTIONS.md` #16: the mockup puts every row's time on the
+  right; tap rows still say it inside the sentence.

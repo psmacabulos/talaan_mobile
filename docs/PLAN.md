@@ -8,9 +8,9 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 36 of 52 tasks, 6 of 10 steps approved.**
+**To the demo: 40 of 52 tasks, 7 of 10 steps approved.**
 
-`██████████████░░░░░░` 69%
+`███████████████░░░░░` 77%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
@@ -20,8 +20,8 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M4 | Link a child | 4/4 | **Approved** |
 | M5 | Today's attendance per child | 4/4 | **Approved** |
 | M6 | The notification feed, and a child's day | 4/4 | **Approved** |
-| M6.1 | A child who left and came back reads "Back in …" | 4/4 | Built, awaiting review |
-| M6.2 | "Another parent linked your child" in the feed | 0/4 | Next |
+| M6.1 | A child who left and came back reads "Back in …" | 4/4 | **Approved** |
+| M6.2 | "Another parent linked your child" in the feed | 4/4 | Built, awaiting review |
 | M7 | **The phone buzzes when a child taps** | 0/8 | In progress, paused for M6.1 and M6.2 |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
@@ -258,7 +258,7 @@ Home after each.
 | 200% font at 360pt, and dark mode | The "Back in" line wraps cleanly and is readable |
 
 Commit: `feat(home): show the latest tap on each child's card`
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved"
 
 ### Step M6.2: "Another parent linked your child" in the feed
 
@@ -268,11 +268,50 @@ drops it today, while the badge still counts it (`docs/PROBLEMS-LOG.md`,
 P-013). It's the one notice meant to catch a stranger linking a child, so it
 comes before push.
 
-- [ ] The feed reads `guardian_linked` and its `guardian` (or `null`); a kind still unknown is never shown as a tap
-- [ ] Its own row: "An account named Ana Santos linked to Juan Cruz. If you don't know them, contact the school.", or "A parent account linked to Juan Cruz. …" without a name, looking different from a tap
-- [ ] Opening it marks it read; the badge and "Mark all as read" count it like any other
-- [ ] Tests for the new kind, `guardian: null`, and an unknown kind
-Done when: linking Jose from a second parent account shows the notice on the first parent's phone, and the badge clears when it's read.
+- [x] The feed reads `guardian_linked` and its `guardian` (or `null`); a kind still unknown is never shown as a tap
+- [x] Its own row: "An account named Ana Santos linked to Juan Cruz. If you don't know them, contact the school.", or "A parent account linked to Juan Cruz. …" without a name, looking different from a tap
+- [x] Opening it marks it read; the badge and "Mark all as read" count it like any other
+- [x] Tests for the new kind, `guardian: null`, and an unknown kind
+Done when: a second parent account linking one of parent-one's children shows the notice on parent-one's phone, and the badge clears when it's read.
+
+**Check it on the phone** — `npx expo start --clear`.
+
+A notice goes **only to parents already linked** to the child, never to the
+one who links. So the test links a child that `parent-one@balanga.example` is
+already linked to, from a throwaway second account:
+
+- **Maria Ramos:** Balanga, LRN `100000000001`, last name **Ramos**, born **2 February 2013**
+- or **Carmen Sison:** Balanga, LRN `100000000005`, last name **Sison**, born **6 June 2013**
+
+(Juan Cruz is linked to parent-one too, but has no LRN, so he can't be linked
+from the form.) The live server's data can differ from the demo data, so check
+first.
+
+**Before you start, know this:** the link is real and stays. A parent can't
+unlink themselves (there's no address for it). Only the principal can remove
+it, and once they do, that account is **blocked** from linking that child
+again. So use a throwaway account, and never reuse it for the same child.
+Linking is limited to 10 tries per child in 24 hours (counting tries from
+anyone, for that school, LRN and last name; a correct try doesn't count), and
+5 wrong tries per parent in 15 minutes.
+
+| Do this | Expect |
+|---|---|
+| Sign in as parent-one | **Maria Ramos** (or Carmen Sison) is on Home. If not, stop: use a child that is |
+| Sign out, sign up a throwaway account (a clearly fake email) | Lands on "Your children", empty |
+| Link Maria with her details above | She appears on the throwaway's Home |
+| Sign out, sign in as parent-one, open Notifications | The person icon, "**An account named** (the throwaway's name) **linked to Maria Ramos.**", "If you don't know them, contact the school." under it, and the time on the right. Never "tapped" |
+| Look at the tab | The badge went up by one |
+| Tap the notice | It goes un-bold, the badge drops, and you **stay on the feed** |
+| Tap a tap row | It still opens that child's day |
+| TalkBack on, swipe to the notice | It reads the whole notice once, then "Marks it as read" while unread |
+| With TalkBack, double-tap the unread notice | Focus **stays on that row** (doesn't jump to the top); swipe away and back: no "button" now |
+| The next day, look at yesterday's notice at 200% font, 360pt | "Monday, October 26, 6:12 PM" on the right doesn't squeeze the sentence to a word per line |
+| 200% font at 360pt, and dark mode | The advice wraps, nothing is cut off, the icon is visible |
+
+Afterwards, ask the principal to remove the throwaway's link from Maria (web
+app), so she doesn't keep an extra guardian.
+
 Commit: `feat(feed): show when another parent links a child`
 - [ ] Owner review: I checked it and said "approved"
 

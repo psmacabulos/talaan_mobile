@@ -127,3 +127,60 @@ describe("a notification the app cannot read", () => {
     expect(page.success && page.data.nextBefore).toBeNull();
   });
 });
+
+describe("another parent linked a child", () => {
+  // Talaan Step 55.2. It was once dropped as "a notification the app cannot
+  // read" while the badge still counted it (docs/PROBLEMS-LOG.md, P-013).
+  const notice = {
+    id: "notification-9",
+    childId: "student-0001",
+    childName: "Juan Cruz",
+    kind: "guardian_linked",
+    at: "2026-10-22T18:12:00.000+08:00",
+    read: false,
+    guardian: { firstName: "Ana", lastName: "Santos" },
+  };
+
+  function parse(notifications: unknown[]) {
+    return feedPageSchema.parse({
+      notifications,
+      unreadCount: notifications.length,
+      nextBefore: null,
+    }).notifications;
+  }
+
+  test("is read, with who linked", () => {
+    expect(parse([notice])).toEqual([notice]);
+  });
+
+  test("is read when their account is gone", () => {
+    const [item] = parse([{ ...notice, guardian: null }]);
+
+    expect(item).toMatchObject({ kind: "guardian_linked", guardian: null });
+  });
+
+  test("is read with no guardian at all", () => {
+    const { guardian: _, ...withoutGuardian } = notice;
+
+    expect(parse([withoutGuardian])).toHaveLength(1);
+  });
+
+  test("a guardian it can't read keeps the notice, without a name", () => {
+    const [item] = parse([{ ...notice, guardian: { firstName: 5 } }]);
+
+    expect(item).toMatchObject({ kind: "guardian_linked", guardian: null });
+  });
+
+  test("sits in the same page as taps, which are unchanged", () => {
+    const tap = {
+      id: "notification-1",
+      childId: "student-0001",
+      childName: "Juan Cruz",
+      kind: "time_out",
+      at: "2026-10-22T16:05:00.000+08:00",
+      read: true,
+    };
+
+    expect(parse([notice, tap])).toEqual([notice, tap]);
+  });
+});

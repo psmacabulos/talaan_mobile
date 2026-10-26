@@ -39,6 +39,7 @@ That is everything a parent's phone can ever receive about a child.
 | 12 | 8. Notifications | "School Announcement — No classes tomorrow" | `Item.kind` is only `time_in` or `time_out`. Suspensions are Talaan Step 63 | Attendance only for the demo; `API-REQUESTS.md` for announcements | M6 | |
 | 13 | 8. Notifications | "Maria is now in class" | Not a notification the server sends | Remove | M6 | |
 | 14 | 8. Notifications | Per-child filter chips (All / Maria / Miguel) | The feed is one list across all children, paged by an opaque cursor. Filtering client-side would break paging | Drop the chips for the demo, or request a `childId` filter | M6 | |
+| 16 | 8. Notifications | The time on the right of **every** row | Tap rows say the time inside the sentence ("Juan Cruz tapped in at 7:56 AM", the contract's wording), and the day on the right only when it isn't today. The `guardian_linked` notice (M6.2) has its time on the right, as the mockup does | Keep for now; decide whether tap rows move their time to the right too | after demo | |
 | 15 | 10. Profile | "Notification Settings" as a parent setting | `notificationPreference` is **per school, set by the principal**. Parents can't change it | Read-only: "Your school sends: time in and time out" | after demo | |
 
 ## Resolved — no longer open

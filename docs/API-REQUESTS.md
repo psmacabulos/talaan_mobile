@@ -92,3 +92,40 @@ carry both.
 **Until then.** The badge clears as notifications are individually opened, and
 "Mark all as read" clears it in one go — with the caveat above, which is worth
 saying out loud to the owner before anyone uses it as a shortcut.
+
+---
+
+## 3. A way for a parent to contact the school
+
+**Found:** 2026-10-26, during M6.2.
+
+**What happens now.** When another parent account links a child, the feed
+says "If you don't know them, contact the school." (docs/TALAAN-API.md, the
+feed). The same advice ends `403 link_blocked`: "Contact your child's school."
+But the app can't offer a phone number or an email to contact, because **the
+server doesn't store one at all**: there's no school contact setting in
+Talaan, so there's nothing for the API to send.
+
+A parent who has just learned that a stranger may have linked their child is
+the one parent who most needs a number to call, right now.
+
+**What we'd like, in two parts:**
+
+1. **On the server first:** a school setting for a contact phone and/or email,
+   edited by the principal in the web app's Settings.
+2. **Then the API:** the school's contact on each child, beside its name.
+
+```ts
+school: {
+  id: string;
+  name: string;
+  notificationPreference: "off" | "time_in_only" | "time_in_and_time_out";
+  contact: { phone: string | null; email: string | null } | null; // new
+};
+```
+
+With that, the notice could offer "Call Balanga City National Science High
+School" (opening the dialler) or an email link, under the advice.
+
+**Until then.** The advice stays as the contract words it. Nothing in the app
+pretends to have a number.

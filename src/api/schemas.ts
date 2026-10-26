@@ -162,20 +162,41 @@ export const meResponseSchema = z.object({
 
 export type MeResult = z.infer<typeof meResponseSchema>;
 
-/**
- * One line in the feed: "Juan Cruz tapped in at 7:56 AM".
- *
- * `childName` is the full name here; a push uses the first name only
- * (docs/PRODUCT-RULES.md:24).
- */
-export const notificationSchema = z.object({
+const notificationBase = z.object({
   id: z.string(),
   childId: z.string(),
+  /** The full name here; a push uses the first name only. */
   childName: z.string(),
-  kind: z.enum(["time_in", "time_out"]),
   at: z.string(),
   read: z.boolean(),
 });
+
+/**
+ * One line in the feed, of one of two sorts (docs/TALAAN-API.md, the feed):
+ *
+ * - a tap: "Juan Cruz tapped in at 7:56 AM";
+ * - `guardian_linked` (Talaan Step 55.2): another parent account linked one of
+ *   this parent's children. It's the notice meant to catch a stranger doing
+ *   it, so a `guardian` the app can't read becomes `null` (the wording without
+ *   a name) rather than dropping the notice.
+ *
+ * A kind the app doesn't know yet fails here and is dropped by
+ * `tolerantArray`: the contract says never to show it as a tap.
+ */
+export const notificationSchema = z.discriminatedUnion("kind", [
+  notificationBase.extend({
+    kind: z.enum(["time_in", "time_out"]),
+  }),
+  notificationBase.extend({
+    kind: z.literal("guardian_linked"),
+    /** Who linked; `null` once their account is deleted. */
+    guardian: z
+      .object({ firstName: z.string(), lastName: z.string() })
+      .nullable()
+      .optional()
+      .catch(null),
+  }),
+]);
 
 export type Notification = z.infer<typeof notificationSchema>;
 

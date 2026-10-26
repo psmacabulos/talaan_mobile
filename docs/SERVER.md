@@ -36,7 +36,7 @@ Things to know about it:
 
 ## Demo accounts and data
 
-- **Parent:** `parent-one@balanga.example`, password `Talaan123!`. Already linked to children at Balanga.
+- **Parent:** `parent-one@balanga.example`, password `Talaan123!`. Already linked to children at Balanga: Maria Ramos (LRN `100000000001`, Ramos, born 2013-02-02), Carmen Sison (LRN `100000000005`, Sison, born 2013-06-06) and Juan Cruz (no LRN, so he can't be linked from the form). Not linked to Jose Pascual. Checked with the owner 2026-10-26; the live server can differ, so check Home first.
 - **A child to link:** school Balanga City National Science High School, LRN `100000000002`, last name Pascual, birth date `2014-03-03` (Jose Pascual, Grade 7 – Rizal). This is Talaan's seed data, checked 2026-10-19; if the live server's data has changed, ask the owner for a current example.
 - **Make a tap for a chosen child:** at the gate tablet (`/gate`), tap an NFC sticker linked to that child (web app: Students → the child → Card serial). The push goes out within seconds.
 - **Without a sticker:** sign in to the web app as the school's principal, open **Attendance**, find the child's class, and press **Record time in** on the child's row. It works once per child per day, before any tap, and sends the same notification and push as a gate tap.

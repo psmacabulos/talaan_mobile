@@ -708,7 +708,7 @@ rather than losing the child's whole card (`.catch(undefined)` in
 - **Impact:** a parent is never told in the app that another account linked
   their child, which is the one notice meant to catch a stranger doing it. The
   unread badge also counts a notice the parent can never see or clear.
-- **Status:** Open, to be fixed in M6.2 (feed) and M7 (push)
+- **Status:** Fixed in the feed in M6.2, waiting for the owner's phone check. The push is M7
 
 **Symptom**
 
@@ -745,6 +745,13 @@ Ana links Juan  ──► feed item           GET /notifications
 
 **Solution**
 
-Option 2, planned as Step M6.2 in `docs/PLAN.md`. Its push ("A new parent
-account was linked to Juan") is handled in M7, which must open the feed and
-never treat it as a tap.
+Option 2, built in Step M6.2. `notificationSchema` is a discriminated union
+of taps and `guardian_linked`; `feedWords` (`src/feed/feed-words.ts`) has an
+exhaustive switch, so the next new kind fails typecheck until it has words,
+instead of being dropped without a sound. Its push ("A new parent account was
+linked to Juan", already sent by the server) is handled in M7, which must open
+the feed and never treat it as a tap.
+
+A kind still unknown is still dropped while the badge counts it. "Mark all as
+read" clears that, and the exhaustive switch means it only lasts until the app
+learns the kind.

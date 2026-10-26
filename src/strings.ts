@@ -233,6 +233,20 @@ export const strings = {
       `${childName} tapped in at ${time}`,
     tappedOut: (childName: string, time: string) =>
       `${childName} tapped out at ${time}`,
+    /**
+     * Another parent account linked one of this parent's children, in the
+     * contract's words (docs/TALAAN-API.md, the feed). Without a name when
+     * their account is gone.
+     */
+    guardianLinked: (guardianName: string, childName: string) =>
+      `An account named ${guardianName} linked to ${childName}.`,
+    guardianLinkedNoName: (childName: string) =>
+      `A parent account linked to ${childName}.`,
+    guardianLinkedAdvice: "If you don't know them, contact the school.",
+    /** "Monday, October 13, 6:12 PM", for a notice from an earlier day. */
+    dayAndTime: (day: string, time: string) => `${day}, ${time}`,
+    opensChildDay: (childName: string) => `Opens ${childName}'s day`,
+    marksAsRead: "Marks it as read",
     unreadLabel: "Unread",
     loadingMore: "Loading more…",
   },
