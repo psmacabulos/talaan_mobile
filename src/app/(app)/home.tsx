@@ -146,7 +146,11 @@ export default function HomeScreen() {
           </View>
         ) : (
           answer.children.map((child) => (
-            <ChildCard key={child.id} child={child} />
+            <ChildCard
+              key={child.id}
+              child={child}
+              onPress={() => router.push(`/child/${child.id}`)}
+            />
           ))
         )}
 

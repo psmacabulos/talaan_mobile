@@ -8,9 +8,9 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 28 of 43 tasks, 4 of 8 steps approved.**
+**To the demo: 32 of 43 tasks, 6 of 8 steps approved.**
 
-`█████████████░░░░░░░` 65%
+`███████████████░░░░░` 74%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
@@ -18,9 +18,9 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M2 | The app can talk to the server | 5/5 | **Approved** |
 | M3 | Sign up, sign in, sign out | 6/6 | **Approved** |
 | M4 | Link a child | 4/4 | **Approved** |
-| M5 | Today's attendance per child | 4/4 | Built, awaiting review |
-| M6 | The notification feed, and a child's day | 0/4 | Next |
-| M7 | **The phone buzzes when a child taps** | 0/7 | Not started |
+| M5 | Today's attendance per child | 4/4 | **Approved** |
+| M6 | The notification feed, and a child's day | 4/4 | **Approved** |
+| M7 | **The phone buzzes when a child taps** | 0/7 | In progress |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
 M7 is the one that matters: everything before it exists so that a tap at the
@@ -194,16 +194,35 @@ Pascual linked.
 | 200% font at 360pt, and dark mode | The card still holds together |
 
 Commit: `feat(home): show each child's day`
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved"
 
 ### Step M6: The feed and a child's day
-- [ ] Notifications newest first, more as the parent scrolls (`nextBefore`), pull to refresh
-- [ ] The unread badge on the feed's tab ("9+" from 10)
-- [ ] Opening one marks it read; "Mark all as read"
-- [ ] A child's day: every tap, from the taps address
+- [x] Notifications newest first, more as the parent scrolls (`nextBefore`), pull to refresh
+- [x] The unread badge on the feed's tab ("9+" from 10)
+- [x] Opening one marks it read; "Mark all as read"
+- [x] A child's day: every tap, from the taps address
 Done when: the feed matches the web parent portal's bell for the same parent.
+
+**Check it on the phone** — `npx expo start --clear`, signed in.
+
+There are now **two tabs** at the bottom: Home and Notifications.
+
+| Do this | Expect |
+|---|---|
+| Tap a child's card on Home | Their day opens: every tap, not just the first and last |
+| Open the Notifications tab | "Katrina tapped in at 2:14 PM", newest first |
+| Look at the tab while unread | A badge with the number; **"9+"** once there are ten or more |
+| Tap a notification | It stops being bold, the badge drops, and that child's day opens |
+| Tap **Mark all as read** | Every row goes un-bold and the badge disappears |
+| Scroll to the bottom of a long feed | Older ones load by themselves, with no repeated rows |
+| Pull down on the feed | It refreshes, and the spinner does **not** appear while older ones load |
+| Background the app and return, three times | One `/me` and one badge call — not one per page you had scrolled |
+| Turn Wi-Fi off, open Notifications | The error with "Try again" |
+| A child with no taps today | "No taps yet today." |
+| 200% font at 360pt, and dark mode | Both tabs still usable |
+
 Commit: `feat(feed): add the notification feed and a child's day`
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved"
 
 ### Step M7: Push
 - [ ] The owner's free Expo account and EAS project id, and a free Firebase project with an Android app `com.bantayaral.parent`: give the owner the exact clicks

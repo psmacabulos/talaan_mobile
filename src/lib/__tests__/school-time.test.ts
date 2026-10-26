@@ -6,7 +6,11 @@
  * was where they are standing — so the rule is that nothing here may read the
  * phone's zone, and that is what gets asserted.
  */
-import { formatSchoolTime } from "../school-time";
+import {
+  formatSchoolDate,
+  formatSchoolTime,
+  schoolDateOf,
+} from "../school-time";
 
 describe("a time on the school's clock", () => {
   test.each([
@@ -57,5 +61,27 @@ describe("the phone's time zone cannot change the answer", () => {
   test("an offset that is not +08:00 is still shown on the school's clock", () => {
     // A tap recorded as 02:56 in London is 09:56 in Balanga.
     expect(formatSchoolTime("2026-10-13T02:56:00.000+01:00")).toBe("9:56 AM");
+  });
+});
+
+describe("a date on the school's calendar", () => {
+  test("names the weekday and month from our own words, not the phone's", () => {
+    // 13 October 2026 is a Tuesday in Balanga.
+    expect(formatSchoolDate("2026-10-13T07:56:00.000+08:00")).toBe(
+      "Tuesday, October 13",
+    );
+  });
+
+  test("uses the school's day, not UTC's", () => {
+    // 00:30 on the 14th in Balanga is still the 13th in UTC. A tap just after
+    // midnight belongs to the day the school would call it.
+    expect(schoolDateOf("2026-10-14T00:30:00.000+08:00")).toBe("2026-10-14");
+    expect(formatSchoolDate("2026-10-14T00:30:00.000+08:00")).toBe(
+      "Wednesday, October 14",
+    );
+  });
+
+  test("a time it cannot read gives nothing", () => {
+    expect(formatSchoolDate("not a date")).toBeUndefined();
   });
 });

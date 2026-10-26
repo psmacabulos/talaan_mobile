@@ -122,3 +122,32 @@ Expo recreates both the next time `npx expo start` runs, so nothing is lost if
 you forget to move them back.
 
 **Then look at the Actions tab.** Green locally is not green in CI.
+
+## 8. Refuse a commit that would fail CI
+
+`.githooks/pre-commit` runs the same four checks CI runs and refuses the commit
+if any fails. **Turn it on once per clone:**
+
+```bash
+git config core.hooksPath .githooks
+```
+
+That is all. It takes about 40 seconds, which is deliberate — this project
+commits once per step, not once a minute.
+
+In a genuine emergency:
+
+```bash
+git commit --no-verify
+```
+
+Skipping means CI is the only thing checking, so look at the Actions tab.
+
+**Why it exists:** CI was red for three steps while every check passed locally,
+because nobody looked at the Actions tab (`docs/PROBLEMS-LOG.md`, P-010). A red
+build found a minute after committing is an annoyance; one found three steps
+later is an afternoon.
+
+**It is not a replacement for CI.** The hook runs on your machine, with your
+`node_modules` and your generated files. CI starts from a clean clone, which is
+how P-010 happened in the first place. Section 7 above reproduces that.

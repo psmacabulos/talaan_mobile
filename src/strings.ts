@@ -81,6 +81,17 @@ export const strings = {
     close: "Close",
   },
 
+  /** Weekday names, indexed by getUTCDay(): 0 is Sunday. */
+  weekdays: [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ],
+
   /** Month names, so dates never depend on the phone's locale. */
   months: [
     "January",
@@ -192,5 +203,38 @@ export const strings = {
     sendsNothing: "Your school doesn't send notifications",
     sendsTimeIn: "Your school sends: time in",
     sendsBoth: "Your school sends: time in and time out",
+  },
+
+  feed: {
+    title: "Notifications",
+    tabLabel: "Notifications",
+    /** The badge caps at 10, because the server's count does. */
+    badgeOverflow: "9+",
+    unreadTab: (count: number) =>
+      count === 0
+        ? "Notifications"
+        : `Notifications, ${count === 10 ? "10 or more" : count} unread`,
+    markAllRead: "Mark all as read",
+    markingAllRead: "Marking…",
+    empty: "Nothing yet.",
+    emptyHint:
+      "When your child taps their ID card at the gate, it will show up here.",
+    /** docs/PRODUCT-RULES.md:24 — the exact wording of a feed entry. */
+    tappedIn: (childName: string, time: string) =>
+      `${childName} tapped in at ${time}`,
+    tappedOut: (childName: string, time: string) =>
+      `${childName} tapped out at ${time}`,
+    unreadLabel: "Unread",
+    loadingMore: "Loading more…",
+  },
+
+  childDay: {
+    title: "Today",
+    taps: "Taps today",
+    noTaps: "No taps yet today.",
+    notFound: "That's no longer available.",
+    tappedIn: "Tapped in",
+    tappedOut: "Tapped out",
+    back: "Back",
   },
 } as const;

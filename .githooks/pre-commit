@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# Runs the same four checks CI runs, and refuses the commit if any fails.
+#
+# This exists because CI was red for three steps while every check passed on a
+# developer's machine, and nobody looked at the Actions tab
+# (docs/PROBLEMS-LOG.md, P-010). A red build found a minute after committing is
+# a small annoyance; one found three steps later is an afternoon.
+#
+# It takes about 40 seconds. That is deliberate: this project commits once per
+# step, not once a minute.
+#
+# To set it up, once per clone:
+#   git config core.hooksPath .githooks
+#
+# To skip it in a genuine emergency:
+#   git commit --no-verify
+#
+# Skipping means CI is now the only thing checking, so look at the Actions tab.
+
+set -e
+
+# Order matters: the quick ones first, so an obvious mistake is reported in
+# seconds rather than after the full test run.
+checks="lint typecheck check:colors test"
+
+printf '\nRunning the checks CI runs (about 40s). Ctrl-C to stop.\n\n'
+
+for check in $checks; do
+  printf '  %-14s ' "$check"
+
+  if npm run "$check" >/tmp/bantayaral-precommit.log 2>&1; then
+    printf 'ok\n'
+  else
+    printf 'FAILED\n\n'
+    cat /tmp/bantayaral-precommit.log
+    printf '\n'
+    printf 'Commit refused: "npm run %s" failed.\n' "$check"
+    printf 'Fix it, or commit with --no-verify if you know what you are doing.\n\n'
+    exit 1
+  fi
+done
+
+printf '\nAll four passed. Committing.\n\n'

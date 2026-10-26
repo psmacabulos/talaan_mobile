@@ -8,11 +8,15 @@
 import { request, requestNoContent } from "./client";
 import {
   authResponseSchema,
+  childDaySchema,
+  feedPageSchema,
   linkChildResponseSchema,
   meResponseSchema,
   schoolsResponseSchema,
   type AuthResult,
+  type ChildDay,
   type ChildToday,
+  type FeedPage,
   type MeResult,
   type School,
 } from "./schemas";
@@ -117,5 +121,80 @@ export async function linkChild(
     path: "/api/v1/parents/children",
     body: input,
     schema: linkChildResponseSchema,
+  });
+}
+
+/** The feed's page size. The server clamps anything outside 1–50. */
+const FEED_PAGE_SIZE = 30;
+
+/**
+ * One page of the feed, newest first, across every linked child.
+ *
+ * **`before` is the server's own cursor** and is sent back exactly as it
+ * arrived. The app never builds or reads one: a cursor the server didn't make
+ * is a `400`, not a quiet first page (docs/TALAAN-API.md). It is
+ * URL-encoded because it is base64 and can contain characters a query string
+ * would otherwise swallow.
+ */
+export async function getFeedPage(before?: string): Promise<FeedPage> {
+  const query = new URLSearchParams({ limit: String(FEED_PAGE_SIZE) });
+
+  if (before !== undefined) {
+    query.set("before", before);
+  }
+
+  return request({
+    path: `/api/v1/parents/notifications?${query.toString()}`,
+    schema: feedPageSchema,
+  });
+}
+
+/**
+ * Just the unread count, as cheaply as the contract allows.
+ *
+ * The badge needs this wherever the parent is, so it cannot come from the
+ * feed's own query — sharing that key would keep every page the parent has
+ * scrolled through alive and refetching.
+ */
+export async function getUnreadCount(): Promise<number> {
+  const { unreadCount } = await request({
+    path: "/api/v1/parents/notifications?limit=1",
+    schema: feedPageSchema,
+  });
+
+  return unreadCount;
+}
+
+/** Mark one notification read. Already-read is also a `204`. */
+export async function markNotificationRead(id: string): Promise<void> {
+  await requestNoContent({
+    method: "POST",
+    path: `/api/v1/parents/notifications/${encodeURIComponent(id)}/read`,
+  });
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  await requestNoContent({
+    method: "POST",
+    path: "/api/v1/parents/notifications/read-all",
+  });
+}
+
+/**
+ * Every tap a child made on a day — they can leave and come back.
+ *
+ * Today when no date is given. A child who isn't this parent's answers `404`,
+ * exactly as one that doesn't exist: the server never says "forbidden",
+ * because that would confirm the child is real.
+ */
+export async function getChildDay(
+  childId: string,
+  date?: string,
+): Promise<ChildDay> {
+  const query = date === undefined ? "" : `?date=${encodeURIComponent(date)}`;
+
+  return request({
+    path: `/api/v1/parents/children/${encodeURIComponent(childId)}/taps${query}`,
+    schema: childDaySchema,
   });
 }

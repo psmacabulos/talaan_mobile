@@ -682,3 +682,112 @@ group, so TalkBack reads a child in one swipe rather than six.
 status that is merely newer than the app — a future `excused` would make
 children silently vanish from phones already in parents' hands. Two possible
 answers are written up there for the owner to take to the Talaan repository.
+
+## M6 — The feed and a child's day
+
+**Date:** 2026-10-25
+
+### Two tabs, not five
+
+M6's checklist asks for the unread badge "on the feed's tab", and until now the
+app had no tabs at all. The owner's mockup shows five; they chose **two** —
+Home and Notifications. Attendance has no API behind it, Profile is after the
+demo, and a tab leading to "coming later" is worse than no tab. Adding the
+others is additive, and the gate in `src/app/_layout.tsx` still works unchanged
+because `segments[0]` is still `(app)` under `<Tabs>`.
+
+### The refetch storm that would have shipped
+
+`new QueryClient()` has no `staleTime`, so everything defaults to zero, and
+focus tracking is wired. An infinite query in Query v5 refetches **every page
+already loaded**, one after another, whenever the app comes back to the
+foreground.
+
+A parent who had scrolled through five pages would have fired five requests
+each time they opened the app — on mobile data, in a province where that is
+not free. The feed now has `staleTime: 30_000`, matching `/me`, and
+`maxPages: 3`.
+
+The same reasoning kept the badge on its own key. Reading `unreadCount` out of
+the feed's query would have meant mounting the feed — and keeping all its
+pages alive and refetching — for the sake of one number that has to be visible
+on every screen.
+
+### The count cannot be decremented
+
+`unreadCount` stops at 10 on the server: ten means "ten or more". So after
+marking one read, the app has no way to know the real number and cannot
+subtract.
+
+Marking read therefore does two different things on purpose: the **feed** is
+updated in place with `setQueryData` — a read mark only ever travels one way,
+so there is nothing to roll back and no reason to refetch every page to change
+one boolean — and the **badge** is invalidated, because only the server knows
+what the number is now.
+
+Read marks are also shared by a child's guardians: when one parent reads a
+notification it is read for the other too, and their count drops. Another
+reason the app must not invent a number.
+
+### The cursor is the server's, not ours
+
+`nextBefore` is opaque and goes back exactly as it arrived. It is base64, so it
+is URL-encoded on the way out — a raw `+` in a query string arrives as a space,
+and the server answers `400` for a cursor it did not issue rather than quietly
+returning the first page. There is a test for exactly that: `a+b/c=` must
+become `before=a%2Bb%2Fc%3D`.
+
+### Lists that survive a row they cannot read
+
+M4's tolerant children array became a generic `tolerantArray`, now used for
+children, notifications and taps alike. A `kind` the server adds later costs
+one row, not the whole page — and the feed is the screen a parent opens after a
+push, so it failing wholesale would be the worst possible moment.
+
+### What the code review caught, including its own earlier advice
+
+**`maxPages: 3` had to go — and it was the reviewer's own round-1 suggestion.**
+It looked like a sensible cap on a refetch storm. It isn't: without a
+`getPreviousPageParam`, Query drops the *oldest* pages as new ones arrive. So a
+parent scrolling a long feed would watch rows vanish from under their thumb,
+the scroll jump, and those rows never come back.
+
+The storm it was meant to prevent is solved properly by
+`refetchOnWindowFocus: false` on the feed alone. The badge and `/me` still run
+on focus, which is what keeps the token alive and tells a parent something new
+arrived; pulling down is the explicit way to ask for more. Both the reason and
+the abandoned attempt are written into the file, so nobody adds it back.
+
+**Signing out could have looped.** `useUnreadCount()` had no `enabled` guard,
+unlike `useMe(hasToken === true)`. Sign-out calls `queryClient.clear()` while
+the tabs are still mounted, so the badge would refetch — the client sends no
+Authorization header when there is no token — earn a `401`, and the 401 path
+would clear again. Clear, refetch, 401, round and round until the layout
+unmounted. It now takes `hasToken === true`.
+
+**Two date helpers were dead code.** `formatSchoolDate` and `schoolDateOf`
+were written for the feed and never called, so every row said "tapped in at
+7:56 AM" with no day — fine for this morning, useless for last Tuesday. Rows
+not from today now name their day, on the school's calendar: a tap at 00:30 in
+Balanga belongs to that day, not to the previous one in UTC, and there is a
+test for exactly that.
+
+Also: `statusLabel` was narrowed to `Pick<Today, "status" | "flexible">`, since
+those are the only two fields it reads — the child-day screen had been
+inventing null times and a tap count to satisfy a type it didn't need.
+
+### The tab bar had no icons
+
+The owner's first run showed two broken glyphs where the tab icons belong.
+Cause: `tabBarIcon` was never set, so React Navigation fell back to something
+that did not resolve on the device.
+
+Drawn rather than installed. `react-native-svg` is already here for the logo,
+and two shapes — a house and a bell — do not justify an icon-font package:
+those ship whole typefaces, and every one lands in the APK a parent downloads
+over mobile data. They take the tint React Navigation hands them, so the
+active and inactive colours still come from `src/theme`, and both are hidden
+from screen readers because the tab already has a label.
+
+The badge itself was fine and stayed as it was. Its contrast was measured
+rather than assumed: 8.42:1 in dark and 6.10:1 in light, both well past AA.

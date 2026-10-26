@@ -3,7 +3,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getSchools, linkChild } from "@/api/endpoints";
+import { getChildDay, getSchools, linkChild } from "@/api/endpoints";
 import { ApiError } from "@/api/errors";
 import { ME_KEY } from "@/auth/session";
 import { toCalendarDate } from "@/lib/calendar-date";
@@ -59,5 +59,25 @@ export function useLinkChild() {
         void refreshChildren();
       }
     },
+  });
+}
+
+export const CHILD_DAY_KEY = (childId: string, date?: string) =>
+  ["child", childId, "day", date ?? "today"] as const;
+
+/**
+ * Every tap a child made on a day.
+ *
+ * `retry: false` so a `404` — a child who isn't this parent's, or doesn't
+ * exist — is shown at once rather than tried three times. The server answers
+ * `404` for both on purpose: saying "forbidden" would confirm the child is
+ * real.
+ */
+export function useChildDay(childId: string, date?: string) {
+  return useQuery({
+    queryKey: CHILD_DAY_KEY(childId, date),
+    queryFn: () => getChildDay(childId, date),
+    staleTime: 30_000,
+    retry: false,
   });
 }

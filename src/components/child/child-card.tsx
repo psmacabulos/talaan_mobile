@@ -10,7 +10,7 @@
  * somewhere else"). Times are drawn on the **school's** clock, so a parent
  * working abroad sees when their child walked through the gate in Balanga.
  */
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import type { ChildToday } from "@/api/schemas";
 import { notificationSentence, statusLabel } from "@/children/status-words";
@@ -23,7 +23,14 @@ import { StatusPill } from "./status-pill";
 
 const PHOTO_WIDTH = 80;
 
-export function ChildCard({ child }: { child: ChildToday }) {
+export function ChildCard({
+  child,
+  onPress,
+}: {
+  child: ChildToday;
+  /** Opens this child's day. The whole card is the target. */
+  onPress: () => void;
+}) {
   const theme = useTheme();
   const label = statusLabel(child.today);
 
@@ -41,11 +48,13 @@ export function ChildCard({ child }: { child: ChildToday }) {
   const manyTaps = child.today.tapCount > 2;
 
   return (
-    <View
+    <Pressable
       // One swipe per child in TalkBack, rather than six stops for the parts
       // of one card. Android ignores roles inside an accessible group, which
       // is why the name below is no longer marked as a header.
       accessible
+      accessibilityRole="button"
+      onPress={onPress}
       accessibilityLabel={[
         `${child.firstName} ${child.lastName}`,
         strings.child.gradeAndSection(child.gradeLevel, child.section),
@@ -132,7 +141,7 @@ export function ChildCard({ child }: { child: ChildToday }) {
       >
         {notificationSentence(child.school.notificationPreference)}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 

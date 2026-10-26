@@ -28,7 +28,12 @@ export type StatusLabel = {
   tone: StatusName;
 };
 
-export function statusLabel(today: Today): StatusLabel {
+export function statusLabel(
+  // Only these two decide the word. Narrowed so a caller with just a day's
+  // status — the child-day screen — need not invent times and counts it does
+  // not have.
+  today: Pick<Today, "status" | "flexible">,
+): StatusLabel {
   const { status, flexible } = today;
 
   switch (status) {

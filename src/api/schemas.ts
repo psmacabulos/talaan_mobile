@@ -100,15 +100,19 @@ export type ChildToday = z.infer<typeof childTodaySchema>;
  * and `/me` failing takes the entire signed-in app with it. One child the app
  * can't read should cost that child's card, not the parent's session.
  */
-const tolerantChildren = z
-  .array(z.unknown())
-  .optional()
-  .transform((items) =>
-    (items ?? []).flatMap((item) => {
-      const parsed = childTodaySchema.safeParse(item);
-      return parsed.success ? [parsed.data] : [];
-    }),
-  );
+function tolerantArray<T>(schema: z.ZodType<T>) {
+  return z
+    .array(z.unknown())
+    .optional()
+    .transform((items) =>
+      (items ?? []).flatMap((item) => {
+        const parsed = schema.safeParse(item);
+        return parsed.success ? [parsed.data] : [];
+      }),
+    );
+}
+
+const tolerantChildren = tolerantArray(childTodaySchema);
 
 /**
  * `POST /children` → `201 { child: ChildToday }`.
@@ -139,3 +143,61 @@ export const meResponseSchema = z.object({
 });
 
 export type MeResult = z.infer<typeof meResponseSchema>;
+
+/**
+ * One line in the feed: "Juan Cruz tapped in at 7:56 AM".
+ *
+ * `childName` is the full name here; a push uses the first name only
+ * (docs/PRODUCT-RULES.md:24).
+ */
+export const notificationSchema = z.object({
+  id: z.string(),
+  childId: z.string(),
+  childName: z.string(),
+  kind: z.enum(["time_in", "time_out"]),
+  at: z.string(),
+  read: z.boolean(),
+});
+
+export type Notification = z.infer<typeof notificationSchema>;
+
+/**
+ * `GET /notifications` → one page of the feed.
+ *
+ * `unreadCount` **stops at 10**: ten means "ten or more", which is why the
+ * badge reads "9+" from there and why the app can never work the real number
+ * out by subtracting (docs/TALAAN-API.md).
+ *
+ * `nextBefore` is opaque. It is handed back exactly as it arrived and is never
+ * built or read by the app; `null` means this was the last page.
+ */
+export const feedPageSchema = z.object({
+  notifications: tolerantArray(notificationSchema),
+  unreadCount: z.number(),
+  nextBefore: z.string().nullable(),
+});
+
+export type FeedPage = z.infer<typeof feedPageSchema>;
+
+/** One tap at the gate. The server decides which are arrivals. */
+export const tapSchema = z.object({
+  at: z.string(),
+  kind: z.enum(["time_in", "time_out"]),
+});
+
+export type Tap = z.infer<typeof tapSchema>;
+
+/**
+ * `GET /children/:id/taps` → one child's day.
+ *
+ * `status` and `flexible` are the same pair the card on Home uses, so the day
+ * screen can show the same pill and the same weekend words.
+ */
+export const childDaySchema = z.object({
+  date: z.string(),
+  status: z.enum(["present", "late", "absent", "idle"]),
+  flexible: z.boolean(),
+  taps: tolerantArray(tapSchema),
+});
+
+export type ChildDay = z.infer<typeof childDaySchema>;

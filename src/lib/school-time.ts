@@ -19,6 +19,8 @@
  * web app does — the two must keep agreeing, or a parent and a teacher would
  * see different times for the same tap.
  */
+import { strings } from "@/strings";
+
 const SCHOOL_UTC_OFFSET_MINUTES = 8 * 60;
 const MINUTE_MS = 60_000;
 
@@ -46,4 +48,29 @@ export function formatSchoolTime(iso: string): string | undefined {
   const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
 
   return `${hours12}:${String(minutes).padStart(2, "0")} ${period}`;
+}
+
+/** The school's calendar date at that instant: "2026-06-20". */
+export function schoolDateOf(iso: string): string {
+  return onSchoolClock(iso).toISOString().slice(0, 10);
+}
+
+/**
+ * "Monday, October 13" on the school's calendar, from the app's own names.
+ *
+ * The weekday and month come from `src/strings.ts` rather than the phone, for
+ * the same reason the time does: the answer must not change with where the
+ * parent is standing, and it has to be translatable into Filipino later.
+ */
+export function formatSchoolDate(iso: string): string | undefined {
+  const clock = onSchoolClock(iso);
+
+  if (Number.isNaN(clock.getTime())) {
+    return undefined;
+  }
+
+  const weekday = strings.weekdays[clock.getUTCDay()];
+  const month = strings.months[clock.getUTCMonth()];
+
+  return `${weekday}, ${month} ${clock.getUTCDate()}`;
 }
