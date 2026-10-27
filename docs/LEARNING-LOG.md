@@ -21,6 +21,8 @@ Short, plain-language answers to things that came up while building. Organised b
   - [Why Expo Go can't test push](#why-expo-go-cant-test-push)
   - [Why push needs Firebase at all](#why-push-needs-firebase-at-all)
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
+- [Design](#design)
+  - [Is there a Google approval for an app's design?](#is-there-a-google-approval-for-an-apps-design)
 
 ## Setting up the machine
 
@@ -301,3 +303,26 @@ would still be there.
 Huawei sold after 2019, cannot receive push at all. Nothing in this app changes
 that, which is why the demo should not be run on one
 [[what-the-owner-sees-on-the-phone-when-installing-by-hand]].
+
+## Design
+
+### Is there a Google approval for an app's design?
+
+No. Nobody at Google approves how an app looks. Two different things get
+mixed up:
+
+- **Google Play's review** checks policy, not design: what data the app
+  collects and says it collects (the Data safety form), the permissions it
+  asks for, the content, ads, and, for apps with accounts, a way to delete
+  your account. A plain-looking app passes; a beautiful one that hides what it
+  does with children's data doesn't.
+- **Material Design** (`m3.material.io`) is Google's design guidance for
+  Android: how lists, headers, buttons and spacing should behave. Following
+  it makes an app feel at home on Android. Nothing checks it.
+
+What can be checked is **accessibility**: Android's own Accessibility Scanner
+app, TalkBack, the largest font size, contrast measured against WCAG 2.2 AA,
+48dp touch targets. That's the bar this app holds itself to (`CLAUDE.md`, "UX
+quality bar"), and it's what the "Check it on the phone" tables in
+`docs/PLAN.md` test.
+

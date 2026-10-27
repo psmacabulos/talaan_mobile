@@ -948,3 +948,94 @@ style), left alone.
   server first, then the API field.
 - `docs/DESIGN-QUESTIONS.md` #16: the mockup puts every row's time on the
   right; tap rows still say it inside the sentence.
+
+## M6.3a — The notifications, grouped
+
+**Date:** 2026-10-27
+
+The owner asked for the Notifications tab to stop being "just a long list",
+following the mockup, and to be something "Google would approve". There's no
+such approval (`docs/LEARNING-LOG.md`, "Is there a Google approval for an
+app's design?"); the bar used is Material's list guidance plus the app's own
+accessibility rules.
+
+### The owner's three decisions
+
+Asked before planning, since each is theirs to make:
+
+1. **Grouping:** Today, Yesterday, Earlier this week, Earlier this month, then
+   one per month.
+2. **The time on the right** of every row, like the mockup. That changed a
+   wording rule in `docs/PRODUCT-RULES.md` and closed
+   `docs/DESIGN-QUESTIONS.md` #16.
+3. **No filter chips yet.** The feed pages through an opaque cursor, so
+   filtering in the app would show half-empty pages. Requested as
+   `docs/API-REQUESTS.md` #4.
+
+The plan review split the work: grouping here (M6.3a), the icon tiles and
+cards next (M6.3b).
+
+### Two problems the review found in the screen as it was
+
+- **Each row read "today" for itself.** With headers, a header and its rows
+  could disagree around midnight. Now `useSchoolToday`
+  (`src/lib/use-school-today.ts`) holds one value for the screen, read again
+  when the app returns to the foreground and on pull to refresh.
+- **A failed next page said nothing.** The error state was the list's
+  `ListEmptyComponent`, which only shows with no rows. The footer now says
+  "Couldn't load older notifications." with Try again, and the rows above
+  stay.
+
+### Grouping is a pure function
+
+`groupFeed(items, today)` in `src/feed/feed-groups.ts`. Dates are the school's
+calendar dates as `YYYY-MM-DD`, turned into day numbers at UTC midnight, so
+nothing reads the phone's time zone. Weeks start Monday, like the school
+week: on a Monday, last Friday falls under "Earlier this month".
+
+Sections are kept in a `Map` by key, not by "same as the row before", so a
+page boundary or a late row can never make two "Today" sections. A row whose
+time can't be read goes in a last "Date unknown" section. That also fixed a
+latent crash: `schoolDateOf` throws on an invalid time (`toISOString` of an
+invalid date), and every feed row used to call it.
+
+### The words follow the section
+
+`feedWords(item, bucket)` writes the time for the row's section ("7:12 AM",
+"Mon 7:30 AM", "Oct 14, 4:10 PM") and a `spoken` sentence that always names
+the day, since TalkBack users moving row by row can skip the header. Short
+day and month names come from `src/strings.ts`, like the long ones.
+
+### Speed
+
+Sections are recomputed with `useMemo` on the loaded pages and `today` only.
+`FeedRow` is wrapped in `memo`, and gets `markRead.mutate` (stable) rather
+than a new arrow each render, so a new page doesn't redraw every row above it.
+
+### Checks run while building
+
+```bash
+npx tsc --noEmit        # clean
+npx jest                # 17 suites, 244 tests
+npx prettier --write <the changed files>
+```
+
+Prettier also reformatted one older line in `notifications.tsx`
+(`FeedFailure`'s style), in a file this step rewrites most of anyway.
+
+### What the code review caught
+
+- **A request loop while offline.** `loadMore` didn't check
+  `isFetchNextPageError`, and the feed doesn't retry by itself. The footer
+  swapping between the spinner and the error changes the list's length, which
+  fires `onEndReached` again: ask, fail, swap, ask. Now only Try again asks
+  after a failure. Two tests fire the list's end event: one proves it asks
+  when it should, the other that it doesn't after a failure. (React Native
+  Testing Library v14 has no `UNSAFE_getByType`; the list got a `testID` and
+  `fireEvent(…, "endReached")`.)
+- **No year when spoken.** A row from an earlier month read "Monday, October
+  13" to TalkBack, whatever the year. Month sections now say "Monday, October
+  13, 2025" (`formatSchoolDateWithYear`).
+- **Older than this step:** a failed pull to refresh with rows on screen
+  says nothing. Added to M6.3b's tasks.
+

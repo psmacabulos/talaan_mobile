@@ -56,6 +56,49 @@ export function schoolDateOf(iso: string): string {
 }
 
 /**
+ * The same, or undefined for a time the app can't read. `schoolDateOf` throws
+ * on one (`toISOString` of an invalid date), which a list must never do.
+ */
+export function schoolDateOrUndefined(iso: string): string | undefined {
+  return Number.isNaN(Date.parse(iso)) ? undefined : schoolDateOf(iso);
+}
+
+/**
+ * "Monday, October 13, 2025": for a screen reader, where a row from an earlier
+ * month may also be from an earlier year.
+ */
+export function formatSchoolDateWithYear(iso: string): string | undefined {
+  const date = formatSchoolDate(iso);
+  if (date === undefined) return undefined;
+
+  return `${date}, ${onSchoolClock(iso).getUTCFullYear()}`;
+}
+
+/** "Mon", on the school's calendar. */
+export function formatSchoolWeekdayShort(iso: string): string | undefined {
+  const clock = onSchoolClock(iso);
+  if (Number.isNaN(clock.getTime())) return undefined;
+
+  return strings.weekdaysShort[clock.getUTCDay()];
+}
+
+/** "Monday", on the school's calendar. */
+export function formatSchoolWeekday(iso: string): string | undefined {
+  const clock = onSchoolClock(iso);
+  if (Number.isNaN(clock.getTime())) return undefined;
+
+  return strings.weekdays[clock.getUTCDay()];
+}
+
+/** "Oct 14", on the school's calendar. */
+export function formatSchoolDateShort(iso: string): string | undefined {
+  const clock = onSchoolClock(iso);
+  if (Number.isNaN(clock.getTime())) return undefined;
+
+  return `${strings.monthsShort[clock.getUTCMonth()]} ${clock.getUTCDate()}`;
+}
+
+/**
  * "Monday, October 13" on the school's calendar, from the app's own names.
  *
  * The weekday and month come from `src/strings.ts` rather than the phone, for

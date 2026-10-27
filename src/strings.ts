@@ -108,6 +108,23 @@ export const strings = {
     "December",
   ],
 
+  /** Short forms for a feed row's time: "Mon 7:30 AM", "Oct 14, 4:10 PM". */
+  weekdaysShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  monthsShort: [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ],
+
   linkChild: {
     heading: "Link your child",
     subheading:
@@ -228,11 +245,31 @@ export const strings = {
     empty: "Nothing yet.",
     emptyHint:
       "When your child taps their ID card at the gate, it will show up here.",
-    /** docs/PRODUCT-RULES.md:24 — the exact wording of a feed entry. */
-    tappedIn: (childName: string, time: string) =>
+    /**
+     * docs/PRODUCT-RULES.md, "The words to use": a feed row says the sentence,
+     * with the time on the right; a screen reader hears the time in it.
+     */
+    tappedIn: (childName: string) => `${childName} tapped in`,
+    tappedOut: (childName: string) => `${childName} tapped out`,
+    tappedInAt: (childName: string, time: string) =>
       `${childName} tapped in at ${time}`,
-    tappedOut: (childName: string, time: string) =>
+    tappedOutAt: (childName: string, time: string) =>
       `${childName} tapped out at ${time}`,
+    /** The feed's sections, newest first, on the school's calendar. */
+    sectionToday: "Today",
+    sectionYesterday: "Yesterday",
+    sectionThisWeek: "Earlier this week",
+    sectionThisMonth: "Earlier this month",
+    sectionMonth: (month: string, year: number) => `${month} ${year}`,
+    sectionUndated: "Date unknown",
+    /** The time on the right of a row, by section. */
+    weekdayAndTime: (weekday: string, time: string) => `${weekday} ${time}`,
+    dateAndTime: (date: string, time: string) => `${date}, ${time}`,
+    /** The day a screen reader hears, since it may skip the section header. */
+    spokenToday: "today",
+    spokenYesterday: "yesterday",
+    endOfFeed: "That's all your notifications.",
+    olderFailed: "Couldn't load older notifications.",
     /**
      * Another parent account linked one of this parent's children, in the
      * contract's words (docs/TALAAN-API.md, the feed). Without a name when
@@ -243,8 +280,6 @@ export const strings = {
     guardianLinkedNoName: (childName: string) =>
       `A parent account linked to ${childName}.`,
     guardianLinkedAdvice: "If you don't know them, contact the school.",
-    /** "Monday, October 13, 6:12 PM", for a notice from an earlier day. */
-    dayAndTime: (day: string, time: string) => `${day}, ${time}`,
     opensChildDay: (childName: string) => `Opens ${childName}'s day`,
     marksAsRead: "Marks it as read",
     unreadLabel: "Unread",

@@ -8,7 +8,6 @@
 import { render, screen, userEvent } from "@testing-library/react-native";
 
 import type { Notification } from "@/api/schemas";
-import { schoolDateOf } from "@/lib/school-time";
 
 import { FeedRow } from "../feed-row";
 
@@ -23,8 +22,8 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// Today on the school's clock, so neither row names a day.
-const today = schoolDateOf(new Date().toISOString());
+// The section is passed in, so the date itself doesn't matter here.
+const today = "2026-10-22";
 
 const tap: Notification = {
   id: "notification-1",
@@ -46,9 +45,19 @@ const notice: Notification = {
 };
 
 describe("a tap", () => {
+  test("shows the sentence, with the time on the right", async () => {
+    await render(<FeedRow item={tap} bucket="today" onRead={jest.fn()} />);
+
+    expect(screen.getByText("Juan Cruz tapped in")).toBeOnTheScreen();
+    expect(screen.getByText("7:56 AM")).toBeOnTheScreen();
+    expect(screen.getByRole("button").props.accessibilityLabel).toBe(
+      "Unread. Juan Cruz tapped in at 7:56 AM, today",
+    );
+  });
+
   test("marks it read and opens the child's day", async () => {
     const onRead = jest.fn();
-    await render(<FeedRow item={tap} onRead={onRead} />);
+    await render(<FeedRow item={tap} bucket="today" onRead={onRead} />);
 
     await userEvent.setup().press(screen.getByRole("button"));
 
@@ -57,7 +66,7 @@ describe("a tap", () => {
   });
 
   test("says where it goes", async () => {
-    await render(<FeedRow item={tap} onRead={jest.fn()} />);
+    await render(<FeedRow item={tap} bucket="today" onRead={jest.fn()} />);
 
     expect(screen.getByRole("button").props.accessibilityHint).toBe(
       "Opens Juan Cruz's day",
@@ -67,7 +76,7 @@ describe("a tap", () => {
 
 describe("another parent linked a child", () => {
   test("shows the sentence, the advice and the time", async () => {
-    await render(<FeedRow item={notice} onRead={jest.fn()} />);
+    await render(<FeedRow item={notice} bucket="today" onRead={jest.fn()} />);
 
     expect(
       screen.getByText("An account named Ana Santos linked to Juan Cruz."),
@@ -79,16 +88,16 @@ describe("another parent linked a child", () => {
   });
 
   test("is read out in full, once", async () => {
-    await render(<FeedRow item={notice} onRead={jest.fn()} />);
+    await render(<FeedRow item={notice} bucket="today" onRead={jest.fn()} />);
 
     expect(screen.getByRole("button").props.accessibilityLabel).toBe(
-      "Unread. An account named Ana Santos linked to Juan Cruz. If you don't know them, contact the school. 6:12 PM",
+      "Unread. An account named Ana Santos linked to Juan Cruz. If you don't know them, contact the school. 6:12 PM, today",
     );
   });
 
   test("pressing it marks it read and stays on the feed", async () => {
     const onRead = jest.fn();
-    await render(<FeedRow item={notice} onRead={onRead} />);
+    await render(<FeedRow item={notice} bucket="today" onRead={onRead} />);
 
     await userEvent.setup().press(screen.getByRole("button"));
 
@@ -98,7 +107,11 @@ describe("another parent linked a child", () => {
 
   test("once read, it is no longer a button", async () => {
     await render(
-      <FeedRow item={{ ...notice, read: true }} onRead={jest.fn()} />,
+      <FeedRow
+        item={{ ...notice, read: true }}
+        bucket="today"
+        onRead={jest.fn()}
+      />,
     );
 
     expect(screen.queryByRole("button")).toBeNull();

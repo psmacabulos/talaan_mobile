@@ -129,3 +129,36 @@ School" (opening the dialler) or an email link, under the advice.
 
 **Until then.** The advice stays as the contract words it. Nothing in the app
 pretends to have a number.
+
+---
+
+## 4. Filter the feed by child, and by unread
+
+**Found:** 2026-10-27, during M6.3a.
+
+**What happens now.** The owner's design shows chips above the feed: All,
+one per child, and the app would want Unread too. `GET /notifications` has no
+filter: it pages through every notice for every child, newest first, with an
+opaque `nextBefore`.
+
+Filtering in the app would break that paging. A parent tapping "Maria" would
+see whatever of Maria's happened to be in the 30 rows loaded so far, possibly
+none, and the app would have to keep pulling pages it then throws away, on
+mobile data, to find more.
+
+**What we'd like:** two optional query parameters, each narrowing the same
+paged list, with `nextBefore` working as it does now:
+
+```
+GET /api/v1/parents/notifications?childId=student-0001
+GET /api/v1/parents/notifications?unread=true
+GET /api/v1/parents/notifications?childId=student-0001&unread=true
+```
+
+- `childId` must be one of this parent's linked children: anything else is
+  `404`, as the read endpoints already answer.
+- `unreadCount` stays the parent's total, so the badge doesn't change with a
+  filter.
+
+**Until then.** No chips. The feed is in sections by day, week and month
+(M6.3a), which is what keeps it from being one long list.

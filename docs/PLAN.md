@@ -8,9 +8,9 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 40 of 52 tasks, 7 of 10 steps approved.**
+**To the demo: 44 of 60 tasks, 8 of 12 steps approved.**
 
-`███████████████░░░░░` 77%
+`███████████████░░░░░` 75%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
@@ -21,11 +21,13 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M5 | Today's attendance per child | 4/4 | **Approved** |
 | M6 | The notification feed, and a child's day | 4/4 | **Approved** |
 | M6.1 | A child who left and came back reads "Back in …" | 4/4 | **Approved** |
-| M6.2 | "Another parent linked your child" in the feed | 4/4 | Built, awaiting review |
-| M7 | **The phone buzzes when a child taps** | 0/8 | In progress, paused for M6.1 and M6.2 |
+| M6.2 | "Another parent linked your child" in the feed | 4/4 | **Approved** |
+| M6.3a | Notifications grouped: Today, Yesterday, this week, this month, by month | 4/4 | Built, awaiting review |
+| M6.3b | Notification rows with icon tiles, like the mockup | 0/4 | Next |
+| M7 | **The phone buzzes when a child taps** | 0/8 | In progress, paused for M6.1 to M6.3b |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
-M6.1 and M6.2 were added on 2026-10-26, after the plan was written. Each
+M6.1 to M6.3b were added on 2026-10-26 and 27, after the plan was written. Each
 starts with a "Changed by" line saying why.
 
 M7 is the one that matters: everything before it exists so that a tap at the
@@ -313,6 +315,51 @@ Afterwards, ask the principal to remove the throwaway's link from Maria (web
 app), so she doesn't keep an extra guardian.
 
 Commit: `feat(feed): show when another parent links a child`
+- [x] Owner review: I checked it and said "approved"
+
+### Step M6.3a: The notifications, grouped
+
+**Changed by:** the owner, 2026-10-27: "all notifications are just mixed up…
+find a way so it won't end up just a long list". The owner chose the grouping
+and the time on the right (settling `docs/DESIGN-QUESTIONS.md` #16), and
+asked for filter chips to wait for the server (`docs/API-REQUESTS.md` #4).
+Split in two at the review, so each half fits one sitting.
+
+- [x] Sections on the school's calendar: Today, Yesterday, Earlier this week (from Monday), Earlier this month, then one per month; headers stick while their section scrolls and are headings to TalkBack
+- [x] Each row's time on the right, written for its section ("7:12 AM", "Mon 7:30 AM", "Oct 14, 4:10 PM"); a screen reader always hears the time and the day
+- [x] One "today" for the whole screen, read again on return to the app and on pull to refresh
+- [x] The bottom of the list: "That's all your notifications.", or "Couldn't load older notifications." with Try again, keeping the rows above
+Done when: a long feed reads as days and months, not one list, and its end and its failures both say so.
+
+**Check it on the phone** — `npx expo start --clear`, signed in as
+parent-one (who has taps on more than one day).
+
+| Do this | Expect |
+|---|---|
+| Open Notifications | Headers: **Today**, **Yesterday**, **Earlier this week**, **Earlier this month**, then months, only those with rows |
+| Look at a row | "Maria Ramos tapped in" with the time on the right; older sections add the day ("Mon 7:30 AM", "Oct 14, 4:10 PM") |
+| Scroll down slowly | The current section's header stays pinned at the top, solid, rows don't show through it |
+| Scroll to the very bottom | Older ones load by themselves, then "That's all your notifications." |
+| Scroll down, turn on aeroplane mode before the next page loads, keep scrolling | "Couldn't load older notifications." and Try again under the rows. Rows above stay, and the Metro log shows **one** failed request, not a stream of them. Aeroplane mode off, Try again: they load |
+| Pull down to refresh | Refreshes, no duplicated headers |
+| TalkBack, then the reading controls set to Headings, swipe down | Jumps from section header to section header |
+| TalkBack on a row | "Maria Ramos tapped in at 7:12 AM, today" (or the day) |
+| On a Monday | Last Friday is under "Earlier this month", not "Earlier this week" (weeks start Monday) |
+| 200% font at 360pt, and dark mode | The time never squeezes; the sentence wraps instead. Headers readable |
+
+Commit: `feat(feed): group notifications by day, week and month`
+- [ ] Owner review: I checked it and said "approved"
+
+### Step M6.3b: Notification rows with icon tiles
+
+**Changed by:** the owner, 2026-10-27, as the second half of M6.3.
+
+- [ ] An icon tile on each row: an arrow in on the "present" colours for a time in, an arrow out on the "time out" colours for a time out, the person-plus for a link notice
+- [ ] Each section's rows in one card, with hairline dividers; the unread dot beside the time
+- [ ] Contrast tests for every new pair (icon on tile 3:1, dot on tint 3:1, time text 4.5:1), light and dark
+- [ ] A pull to refresh that fails while rows are showing says so (the server's message, Try again). It says nothing today, from before M6.3a
+Done when: the feed looks like the mockup's screen 8, minus the filter chips.
+Commit: `feat(feed): add icon tiles to notification rows`
 - [ ] Owner review: I checked it and said "approved"
 
 ### Step M7: Push
