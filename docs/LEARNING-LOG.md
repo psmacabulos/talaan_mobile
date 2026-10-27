@@ -23,6 +23,7 @@ Short, plain-language answers to things that came up while building. Organised b
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
 - [Design](#design)
   - [Is there a Google approval for an app's design?](#is-there-a-google-approval-for-an-apps-design)
+  - [Why a picture is shrunk to 3 times its size on screen](#why-a-picture-is-shrunk-to-3-times-its-size-on-screen)
 
 ## Setting up the machine
 
@@ -326,3 +327,20 @@ app, TalkBack, the largest font size, contrast measured against WCAG 2.2 AA,
 quality bar"), and it's what the "Check it on the phone" tables in
 `docs/PLAN.md` test.
 
+### Why a picture is shrunk to 3 times its size on screen
+
+Sizes in the app are in **points**, not pixels. A point is the same size to
+the eye on every phone; a sharp phone packs 2 or 3 pixels into each point
+across. So a picture drawn 120 points wide needs at most 360 pixels to look
+crisp on the sharpest screen. Anything bigger is invisible: the phone throws
+the extra away when it draws it.
+
+It isn't free, though. The school picture as exported was 1536 × 1024:
+- **1.5 MB** in the app a parent downloads, often over mobile data. At 360 ×
+  240 it's 105 KB.
+- **About 6 MB of memory** while it's on screen: a phone decodes a picture to
+  4 bytes per pixel, whatever the file size. At 360 × 240 it's about 0.3 MB,
+  which matters on the cheap phones many parents have.
+
+The owner made this a rule (`CLAUDE.md`, "Images are sized for how they're
+shown"). How to do it: `docs/COMMANDS.md`, "Add a picture to the app".

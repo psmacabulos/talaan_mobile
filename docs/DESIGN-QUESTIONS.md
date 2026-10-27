@@ -54,6 +54,10 @@ owner before M6.4a:
 | A settings gear, top right | **Not yet.** It would open nothing. It comes with a settings or Profile screen; Sign out stays at the bottom of Home until then |
 | Icons and the school illustration on the brand sheet | Icons **drawn as code** to match. The illustration from an **exported file** (the sheet is one 1536 × 1024 picture: too small to crop) |
 | "Your children" | "**My children**", and the tab is "**Home**" |
+| The school illustration behind the heading | **Behind, as a background** (the owner, after M6.4b's first build put it beside the words and it didn't blend). It sits in the top-right corner the logo and heading leave empty, so no letter sits on the picture itself, only on its transparent sky; the heading wraps rather than reach it. Left out at large text sizes. Shrunk to 360 × 240 (`CLAUDE.md`, "Images are sized for how they're shown") |
+| The school's name and "Your school sends: …" on each card | **Taken off** (the owner, M6.4b): a parent knows their school, and two children should fit without scrolling. The status pill moves up under the grade and section. What the school sends is planned for Profile |
+| The logo's size | **Bigger** on Home than elsewhere: the mark 52, the wordmark 28. "It is our brand" |
+| A pale shape behind the header | **Left out.** The screen background is enough, and one less colour to get right in dark mode |
 
 ## Resolved — no longer open
 

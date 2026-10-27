@@ -9,11 +9,7 @@
 import type { ChildToday } from "@/api/schemas";
 import { strings } from "@/strings";
 
-import {
-  latestTapWords,
-  notificationSentence,
-  statusLabel,
-} from "../status-words";
+import { latestTapWords, statusLabel } from "../status-words";
 
 type Today = ChildToday["today"];
 
@@ -79,22 +75,6 @@ describe("at a weekend", () => {
     expect(statusLabel(today({ status: "present", flexible: true })).tone).toBe(
       "present",
     );
-  });
-});
-
-describe("what the school sends", () => {
-  test.each([
-    ["off", strings.card.sendsNothing],
-    ["time_in_only", strings.card.sendsTimeIn],
-    ["time_in_and_time_out", strings.card.sendsBoth],
-  ] as const)("%s is said plainly", (preference, sentence) => {
-    expect(notificationSentence(preference)).toBe(sentence);
-  });
-
-  test("a school that sends nothing says so, rather than staying quiet", () => {
-    // A parent whose school has notifications off should find out here, not by
-    // waiting all term for one that never arrives.
-    expect(notificationSentence("off")).toMatch(/doesn't send/i);
   });
 });
 

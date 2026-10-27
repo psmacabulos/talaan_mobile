@@ -52,6 +52,8 @@ Talaan, a Next.js app in the owner's `talaan` repository, is the only backend fo
 
 **Cheap to run, easy to move.** Prefer free tiers and say what anything costs before adding it. Keep every outside service (push, builds, any future one) behind a small module in this codebase, configured only by environment variables, so changing provider means new settings, not new code.
 
+**Images are sized for how they're shown.** Every picture in `assets/` is shrunk to about 3 times the largest size it's drawn at (points × 3, the sharpest phones), never bigger, so the app stays small to download and light on memory. Use macOS's built-in `sips -Z <pixels>`, keep transparency, then look at it on the phone in light and dark: if it looks soft, go up a step rather than accept a blurry picture. Say the size before and after. The full-size original stays in `design/` or git history, never in the app. The app icon and splash keep the sizes Expo asks for. Children's photos come from the server, so their size is the server's job (`docs/API-REQUESTS.md` if they're too big).
+
 **Students are minors.**
 - The token lives only in `expo-secure-store`: never AsyncStorage, never a log. Signing out, and any `401`, clear the token, the cached data and the cached photos.
 - Never log personal data (names, emails, LRNs, birth dates, tokens), not even in development.

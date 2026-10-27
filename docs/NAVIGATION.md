@@ -37,7 +37,8 @@ The mockup has five: Home, Attendance, Children, Notifications, Profile.
 - Material's guidance is three to five bottom tabs. Fewer is easier with one
   hand, and leaves each label room at 200% font on a 360pt screen.
 - **Profile** gets sign out (it's on Home today), the parent's name and email,
-  each school's notification setting (read-only), and later "Delete my
+  each school's notification setting (read-only; since M6.4b it's on no other
+  screen, so a parent whose school sends nothing can only learn it here), and later "Delete my
   account" (Talaan Step 60, which both stores require).
 
 ## 2. Notifications as an inbox

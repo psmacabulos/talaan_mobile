@@ -187,6 +187,24 @@ describe("an older server, without the latest tap", () => {
   });
 });
 
+describe("only what a parent looks for", () => {
+  // The owner, 2026-10-27: a parent knows their school, and two children
+  // should fit on the screen without scrolling.
+  test("has the grade and section, but not the school", async () => {
+    await renderCard({});
+
+    expect(screen.getByText("Grade 7 – Rizal")).toBeOnTheScreen();
+    expect(screen.queryByText(/Balanga City/)).toBeNull();
+    expect(spoken()).not.toContain("Balanga City");
+  });
+
+  test("doesn't say what the school sends", async () => {
+    await renderCard({});
+
+    expect(screen.queryByText(/school sends|doesn't send/i)).toBeNull();
+  });
+});
+
 describe("the times panel", () => {
   const twoTaps: Partial<Today> = {
     status: "present",

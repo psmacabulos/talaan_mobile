@@ -35,13 +35,13 @@ export default function SignedInLayout() {
           backgroundColor: theme.colors.card,
           borderTopColor: theme.colors.border,
         },
-        // React Navigation's own red otherwise, which is not one of ours and
-        // would be the only unthemed colour in the app.
-        // Smaller than React Navigation's default, which is sized for two
-        // digits and looms over a 24-point icon.
         tabBarBadgeStyle: {
+          // React Navigation's own red otherwise, which is not one of ours and
+          // would be the only unthemed colour in the app.
           backgroundColor: theme.colors.destructive,
           color: theme.colors.primaryForeground,
+          // Smaller than React Navigation's default, which is sized for two
+          // digits and looms over a 24-point icon.
           fontSize: 10,
           lineHeight: 14,
           minWidth: 16,
@@ -55,7 +55,9 @@ export default function SignedInLayout() {
         name="home"
         options={{
           title: strings.home.tabLabel,
-          tabBarIcon: ({ color }) => <HomeIcon color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <HomeIcon color={color} focused={focused} />
+          ),
         }}
       />
 
@@ -63,7 +65,9 @@ export default function SignedInLayout() {
         name="notifications"
         options={{
           title: strings.feed.tabLabel,
-          tabBarIcon: ({ color }) => <BellIcon color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <BellIcon color={color} focused={focused} />
+          ),
           // The server stops counting at 10, so 10 means "10 or more".
           tabBarBadge: badgeValue(count),
           // A badge is silent to a screen reader without this.

@@ -98,6 +98,23 @@ Expect `name: 'Bantay Aral'`, `package: 'com.bantayaral.parent'`, and
 | The app loads but text looks wrong | A font didn't load. The splash is hidden either way on purpose, so check the Metro log for a font error |
 | A change doesn't show up | `npx expo start --clear` |
 
+## 5a. Add a picture to the app
+
+Shrink it first, to 3 times the largest size it's drawn at (`CLAUDE.md`,
+"Images are sized for how they're shown"). `sips` comes with macOS; nothing to
+install.
+
+```bash
+sips -g pixelWidth -g pixelHeight -g hasAlpha assets/images/<file>.png   # its size now, and whether it keeps transparency
+sips -Z 360 assets/images/<file>.png                                     # longest side to 360 pixels, overwriting the file
+ls -l assets/images/<file>.png                                           # the size on disk, before and after
+```
+
+`-Z` keeps the shape: a 1536 × 1024 picture becomes 360 × 240. Shrink from the
+original each time, never from a copy already shrunk. If it's committed, git
+still has it: `git show HEAD:assets/images/<file>.png > ~/Desktop/original.png`.
+Then check it on the phone, in light and dark.
+
 ## 6. Later steps
 
 Push, development builds and the installable APK arrive in M7 and M8. Their

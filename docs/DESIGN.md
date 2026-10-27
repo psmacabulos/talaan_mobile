@@ -18,6 +18,7 @@ The owner supplies the app's UI design in `design/` (screens, a Figma link, imag
 5. **Touch targets** at least 44 × 44 points, and 48 on Android.
 6. **Respect the phone:** light and dark follow its setting; font scaling is never turned off (layouts grow with large text); no motion when it asks for reduced motion. Motion is short (100–300 ms) and purposeful.
 7. **The name is Bantay Aral,** on the sign-in screen, the app icon, the splash screen and every notification.
+8. **Pictures are shrunk to about 3 times their shown size** before they go in `assets/` (`CLAUDE.md`, "Images are sized for how they're shown"). The school illustration on Home is shown at 120 × 80 points, so it's 360 × 240 pixels: 105 KB instead of 1.5 MB.
 
 ## Defaults, from the web app
 

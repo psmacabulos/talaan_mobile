@@ -31,6 +31,7 @@ import { useSession } from "@/auth/session-context";
 import { ChildCard } from "@/components/child/child-card";
 import { Button } from "@/components/form/button";
 import { TextLink } from "@/components/form/text-link";
+import { HomeHeader } from "@/components/home/home-header";
 import { Skeleton } from "@/components/skeleton";
 import { strings } from "@/strings";
 import { useTheme } from "@/theme";
@@ -79,17 +80,7 @@ export default function HomeScreen() {
           />
         }
       >
-        <Text
-          accessibilityRole="header"
-          style={{
-            color: theme.colors.foreground,
-            fontFamily: theme.fontFamily.headingBold,
-            fontSize: theme.fontSize.lg,
-            paddingHorizontal: theme.space.sm,
-          }}
-        >
-          {strings.home.heading}
-        </Text>
+        <HomeHeader />
 
         {me.isError && answer !== undefined ? (
           <FailureBanner message={failureMessage} onRetry={() => me.refetch()} />
@@ -233,16 +224,15 @@ function LoadingCards() {
             borderColor: theme.colors.border,
             borderRadius: theme.radius.lg,
             borderWidth: 1,
-            gap: theme.space.base,
+            gap: theme.space.md,
             padding: theme.space.base,
           }}
         >
-          <View style={{ flexDirection: "row", gap: theme.space.base }}>
-            <Skeleton width={80} height={100} radius={theme.radius.base} />
+          <View style={{ flexDirection: "row", gap: theme.space.md }}>
+            <Skeleton width={64} height={80} radius={theme.radius.base} />
             <View style={{ flex: 1, gap: theme.space.sm }}>
               <Skeleton width="70%" height={18} />
               <Skeleton width="50%" height={14} />
-              <Skeleton width="85%" height={14} />
               <Skeleton width={96} height={28} radius={theme.radius.sm} />
             </View>
           </View>

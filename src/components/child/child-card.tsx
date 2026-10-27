@@ -20,16 +20,18 @@
  * Each time has a coloured tile: green for an arrival, blue for leaving (not
  * the design's red, which in this app only ever means Absent), and grey until
  * a time in exists, so a dash never sits beside a reassuring green.
+ *
+ * Nothing else. A parent looks for one thing, whether their child is in and
+ * on time, so the card has the name, the grade and section, the status and
+ * the times, and two fit on a phone without scrolling. The school's name and
+ * what it sends were taken off at the owner's request: a parent knows their
+ * school (2026-10-27).
  */
 import { Fragment, type ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import type { ChildToday } from "@/api/schemas";
-import {
-  latestTapWords,
-  notificationSentence,
-  statusLabel,
-} from "@/children/status-words";
+import { latestTapWords, statusLabel } from "@/children/status-words";
 import { IconTile } from "@/components/icon-tile";
 import {
   ArrowInIcon,
@@ -44,7 +46,8 @@ import { useTheme } from "@/theme";
 import { ChildPhoto } from "./child-photo";
 import { StatusPill } from "./status-pill";
 
-const PHOTO_WIDTH = 80;
+/** 64 × 80: as tall as the name, the grade and the status beside it. */
+const PHOTO_WIDTH = 64;
 
 export function ChildCard({
   child,
@@ -124,7 +127,6 @@ export function ChildCard({
       accessibilityLabel={[
         `${child.firstName} ${child.lastName}`,
         strings.child.gradeAndSection(child.gradeLevel, child.section),
-        child.school.name,
         label.word,
         timeIn ? `${strings.card.timeIn} ${timeIn}` : undefined,
         timeOut ? `${strings.card.timeOut} ${timeOut}` : undefined,
@@ -138,11 +140,11 @@ export function ChildCard({
         borderColor: theme.colors.border,
         borderRadius: theme.radius.lg,
         borderWidth: 1,
-        gap: theme.space.base,
+        gap: theme.space.md,
         padding: theme.space.base,
       }}
     >
-      <View style={{ flexDirection: "row", gap: theme.space.base }}>
+      <View style={{ flexDirection: "row", gap: theme.space.md }}>
         <ChildPhoto child={child} width={PHOTO_WIDTH} />
 
         <View style={{ flex: 1, gap: theme.space.xs }}>
@@ -166,16 +168,6 @@ export function ChildCard({
             {strings.child.gradeAndSection(child.gradeLevel, child.section)}
           </Text>
 
-          <Text
-            style={{
-              color: theme.colors.mutedForeground,
-              fontFamily: theme.fontFamily.body,
-              fontSize: theme.fontSize.sm,
-            }}
-          >
-            {child.school.name}
-          </Text>
-
           <StatusPill label={label} />
         </View>
 
@@ -197,16 +189,6 @@ export function ChildCard({
           {tapsToday}
         </Text>
       ) : null}
-
-      <Text
-        style={{
-          color: theme.colors.mutedForeground,
-          fontFamily: theme.fontFamily.body,
-          fontSize: theme.fontSize.xs,
-        }}
-      >
-        {notificationSentence(child.school.notificationPreference)}
-      </Text>
     </Pressable>
   );
 }

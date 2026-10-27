@@ -7,7 +7,7 @@ What a parent sees, and why. The same words and rules as Talaan's web app, so pa
 - **Time in or time out.** The 1st tap of the day is time in, the 2nd time out, the 3rd time in again, and so on. The server works it out from the day's taps; the app shows the `kind` and `status` it's given.
 - **Duplicate reads.** The same card read again within 2 minutes is one pass through the gate, and is ignored.
 - **Late and absent.** Each school sets its own times. On weekends there's no late or absent.
-- **Who gets notified.** Each school's principal sets one setting for every parent at that school: off, time in only, or time in and time out (`child.school.notificationPreference`). Parents can't change it. Show it on the child's card, for example "Your school sends: time in and time out".
+- **Who gets notified.** Each school's principal sets one setting for every parent at that school: off, time in only, or time in and time out (`child.school.notificationPreference`). Parents can't change it. It's **not** on Home: the owner took it off the card (2026-10-27) as information a parent doesn't need at a glance. It's planned for the Profile tab (`docs/NAVIGATION.md`), worded "Your school sends: time in and time out", "Your school sends: time in", or "Your school doesn't send notifications".
 - **What a parent may see.** Only their own linked children. The server enforces it, so the app never filters anything itself.
 - **Read marks are shared** by a child's guardians: when one parent reads a notification, it's read for the other too.
 - **The tap's time is what matters.** It's saved the moment the card is read. A push may arrive a few minutes late, and always says the real tap time.
@@ -28,7 +28,7 @@ What a parent sees, and why. The same words and rules as Talaan's web app, so pa
 - Grade and section read "Grade 7 – Rizal", with an en dash.
 - A child's card shows the time in. From the second tap on (`tapCount` 2 or more), beside it, the latest tap from `today.latest`: "**Out**" over "4:05 PM" for a `time_out`, "**Back in**" over "7:05 PM" for a `time_in` (side by side since M6.4a, stacked at large text sizes). Never a plain "In": a time in after the first always means the child left and came back, and "In" reads like the arrival. With one tap, nothing more: the latest is the time in already shown. A screen reader hears "Out at 4:05 PM" or "Back in at 7:05 PM". There's no separate "Time out" line (Talaan Step 59.3; an older server without `latest` gets the time in and time out as before). The server decides the kind; the app never works it out.
 - When `tapCount` is more than 2, show "N taps today", with the full list from the taps address. A child can leave and come back.
-- With children at two schools, show each child's school name on their card.
+- A child's card on Home has only what a parent looks for: the photo, the name, "Grade 7 – Rizal", the status, and the times. **No school name**, even with children at two schools: a parent knows their children's schools (the owner, 2026-10-27). Two children fit on a phone without scrolling.
 - The unread count stops at 10 on the server: show "9+" from 10.
 - Never "Absent" on a weekend. Holidays and class suspensions aren't handled yet (Talaan Step 63).
 

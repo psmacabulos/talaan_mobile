@@ -8,9 +8,9 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 48 of 63 tasks, 9 of 13 steps approved** (M6.3b, set aside, not counted).
+**To the demo: 48 of 64 tasks, 10 of 13 steps approved** (M6.3b, set aside, not counted).
 
-`███████████████░░░░░` 76%
+`███████████████░░░░░` 75%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
@@ -24,8 +24,8 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M6.2 | "Another parent linked your child" in the feed | 4/4 | **Approved** |
 | M6.3a | Notifications grouped: Today, Yesterday, this week, this month, by month | 4/4 | **Approved** |
 | M6.3b | Notification rows with icon tiles, like the mockup | 0/4 | Set aside: comes back with Notifications as an inbox (`docs/NAVIGATION.md`) |
-| M6.4a | Home's child card as designed: status icons, the times panel | 4/4 | Built, awaiting review |
-| M6.4b | Home's header and tab icons as designed | 0/3 | Next |
+| M6.4a | Home's child card as designed: status icons, the times panel | 4/4 | **Approved** |
+| M6.4b | Home's header, tab icons, and a card with only what matters | 4/4 | Built, awaiting review |
 | M7 | **The phone buzzes when a child taps** | 0/8 | In progress, paused for the redesign |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
@@ -402,17 +402,44 @@ down after each.
 | While Home first loads | Skeleton cards with a panel bar, standing still |
 
 Commit: `feat(home): restyle the child card to match the design`
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved"
 
 ### Step M6.4b: Home's header and tab icons, as designed
 
-**Changed by:** the owner, 2026-10-27, the second half of M6.4.
+**Changed by:** the owner, 2026-10-27, the second half of M6.4. No gear
+(`docs/DESIGN-QUESTIONS.md`, "The Home design"). The owner made it a rule that
+pictures are shrunk to their shown size (`CLAUDE.md`). After the first review
+the owner asked for more: "The important thing for the parent is the time in
+and out, and whether the child is late." The school's name and what it sends
+come off the card, the logo is bigger, the picture becomes a background, and
+two children fit without scrolling.
 
-- [ ] The header: the logo, "My children" large, "Check who's in school, the moment they tap in."
-- [ ] Tab icons filled when active, outline when not
-- [ ] The school illustration in the header, once the owner's exported file is in `assets/images/` (transparent, about 1080 × 720)
-Done when: Home's top and the tab bar look like the design in light and dark.
-Commit: `feat(home): add the designed header and tab icons`
+- [x] The header: the logo, bigger (mark 52, wordmark 28), "My children" large, "Check who's in school, the moment they tap in." on one line
+- [x] Tab icons filled when active, outline when not
+- [x] The school illustration as a background behind the right of the logo and heading, from the owner's file in `assets/images/`, shrunk from 1536 × 1024 (1.5 MB) to 360 × 240 (105 KB); left out at large text sizes
+- [x] The card: no school name and no "Your school sends" line; the status pill straight under the grade and section; a smaller photo (64 × 80)
+Done when: Home's top and the tab bar look like the design in light and dark, and a parent with two children sees both, times included, without scrolling.
+
+**Check it on the phone** — `npx expo start --clear`, signed in as
+parent-one.
+
+| Do this | Expect |
+|---|---|
+| Open Home | The logo bigger, top left; "My children" large; the school in the top right **behind** the logo's row and beside the heading, like a background; "Check who's in school, the moment they tap in." on **one line** under them |
+| Look at the school picture closely | Sharp, not blurry. If it looks soft, say so: it goes up a size |
+| Where the school sits | Its base level with the bottom of "My children". If it should sit lower or bigger, say so |
+| Dark mode | The words readable; the school has no pale box or halo around it |
+| A card | Photo, name, "Grade 7 – Rizal", then the status pill straight under it. **No school name**, and **no "Your school sends"** line |
+| parent-one with two children (Maria and Carmen) | Both cards, times included, on screen without scrolling. "Link a child" and "Sign out" may be below |
+| The tab bar | Home's house **filled**, the bell an outline; open Notifications and they swap. The badge still sits on the bell's corner |
+| A small phone, or Display size at its largest (360pt) | "My children" on one line at the normal font size |
+| Font size one step up ("Large") | The heading may wrap to two lines; nothing cut off; no letter sitting on the trees or the clouds |
+| Font size at maximum | No school picture; the heading has the full width; the logo's words a size smaller and **never cut off** at the right |
+| Font size between Large and the step before maximum | Look behind "Aral" in the logo: no bit of cloud showing through. If there is, say so |
+| TalkBack, swipe from the top | "Bantay Aral, image", then "My children, heading", then the line. It never stops on the school |
+| Pull down from the top | Still refreshes |
+
+Commit: `feat(home): trim the card and add the designed header and tab icons`
 - [ ] Owner review: I checked it and said "approved"
 
 ### Step M7: Push
@@ -454,6 +481,7 @@ Commit: `chore(release): add the demo build`
 Each becomes its own step when it's due:
 - **Forgot password, from the app,** once Talaan's Step 55.5 adds it. Parents recover their own password, never by asking the school.
 - **Deleting your own account,** with Talaan's Step 60. Both app stores require it before publishing an app that makes accounts.
+- **What each school sends, on the Profile tab.** Since M6.4b it's on no screen, so a parent at a school with notifications off can wait for a push that never comes. The wording is in `docs/PRODUCT-RULES.md`, "Who gets notified".
 - **iOS,** once the owner decides on the Apple Developer account.
 - **Publishing to Google Play:** a privacy policy page (for example on `bantayaral.com`) and the store listing.
 - Per-school colours, the last data shown while offline, and a Filipino translation.

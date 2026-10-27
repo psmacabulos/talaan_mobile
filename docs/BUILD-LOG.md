@@ -1123,3 +1123,166 @@ npx jest                 # 21 suites, 272 tests
 
 Prettier flags twelve older files across `src`; only this step's own lines
 were formatted.
+
+## M6.4b — Home's header and tab icons, as designed
+
+**Date:** 2026-10-27
+
+The second half of M6.4. The owner exported the school illustration on its
+own (`assets/images/illustration-school.png`, 1536 × 1024, transparent), and
+made it a rule that pictures are shrunk to their shown size (`CLAUDE.md`,
+"Images are sized for how they're shown").
+
+### What the review changed in the plan
+
+- **The picture beside the heading, not behind it.** Behind, the words would
+  sit on blue sky in light mode and on a glowing edge in dark mode, with no
+  contrast anyone could promise. Beside, they sit on the screen background.
+- **No picture at large text sizes** (`useLargeText()`, the same 1.3 cut-off
+  as the card's times panel). At 200%, "My children" needs the whole width.
+- **The header scrolls with the cards**, inside the `ScrollView`, so pull to
+  refresh still starts at the top.
+- **Only filled and outline tab icons.** Material's pill behind the active
+  icon was left for later: filled, plus the label and the colour, is already
+  three signals.
+
+### The picture's size
+
+Planned at 132 × 88 points. On a 360-point phone that leaves about 184 points
+for "My children" in Lexend Bold 28, which is about 180 wide: too close, it
+would wrap. At **120 × 80** there are about 196.
+
+Shrunk with macOS's `sips`, which keeps transparency:
+
+```bash
+sips -Z 480 assets/images/illustration-school.png     # first try: 172 KB
+git show HEAD:assets/images/illustration-school.png > <scratchpad>/school-original.png
+sips -Z 360 <scratchpad>/school-original.png --out assets/images/illustration-school.png
+```
+
+The first shrink was to 480, worked out for 132 points. The code review
+noticed the comments disagreed ("about 3 times" and "4 times"): at 120
+points, 480 is 4×, more than the rule allows. It was redone **from the
+committed original**, not from the 480 copy, so it's resampled once. Result:
+360 × 240, **105 KB** (from 1.5 MB), still crisp, edges still transparent.
+
+### `@/assets` doesn't work in Jest
+
+`tsconfig.json` maps `@/assets/*` to `./assets/*`, and Metro follows it. But
+jest-expo maps every `@/(.*)` to `src/$1`, so the test failed with "Could not
+locate module @/assets/images/illustration-school.png mapped as …/src/assets/…".
+The header uses a relative `require("../../../assets/images/…")`, which works
+in both.
+
+### Testing hidden things
+
+The icons and the picture are hidden from screen readers, and React Native
+Testing Library v14 skips hidden elements by default: `getByTestId` didn't
+find them. That's useful in itself. The header test checks that the picture
+is **not** found normally, which means TalkBack can't reach it, and **is**
+found with `{ includeHiddenElements: true }`.
+
+react-native-svg passes colours to its native view processed
+(`{ type: 0, payload: 4279383126 }`), and `fill="none"` as `null`. So the
+icon test compares the fill with the stroke (filled) or checks for `null`
+(outline), rather than comparing with the colour itself.
+
+### What the code review caught
+
+- **The picture's comments disagreed** about its size, which showed it was
+  bigger than the new rule allows. Redone at 360 (above).
+- The `require` moved to a constant beside the picture's size, and the icon
+  test notes why `null` means outline.
+- **Left for the phone:** the picture is centred on the heading and its line.
+  If its base looks better level with the line, that's `alignItems:
+  "flex-end"`.
+
+### Checks run while building
+
+```bash
+npx jest src/components/home src/components/icons   # 8 tests
+npx eslint <the changed files>                      # clean
+npx tsc --noEmit                                    # clean
+npm run check:colors                                # "No colours outside src/theme."
+```
+
+The full suite wasn't run; that's the owner's check.
+
+### The owner's changes after the first build
+
+Before approving, the owner asked for Home to show only what a parent needs:
+"The important thing for the parent is the time in and out, whether the child
+is late or not." So:
+
+- **The card lost the school's name and "Your school sends: …".** The
+  status pill moved up under the grade and section, and the photo went from
+  80 × 100 to 64 × 80, as tall as the three lines beside it.
+  `notificationSentence` and its three strings were removed rather than left
+  unused; the wording is kept in `docs/PRODUCT-RULES.md` for the Profile tab.
+- **The picture became a background.** Beside the words, it squeezed the
+  subtitle into three lines and looked like a separate box. Now it's
+  `position: "absolute"` at the bottom right of the logo-and-heading block,
+  drawn first so the words are on top, and the subtitle runs the full width
+  underneath.
+- **The logo is bigger**: the mark 52 (was 36) and the wordmark at the type
+  scale's 28 (was 22). `Logo` took a `wordmarkSize` prop; its old comment said
+  the wordmark scaled with `size`, which it never did.
+
+### Measuring before placing
+
+Nothing on the phone to look at from here, so the layout was worked out from
+the fonts themselves. No font tool is installed (and adding one needs
+approval), so a short script read each glyph's width from the TTF files'
+`cmap` and `hmtx` tables (scratchpad, not in the repository):
+
+| Text | Font | Width |
+|---|---|---|
+| "Check who's in school, the moment they tap in." | Atkinson 14 | 288 pt |
+| "My children" | Lexend Bold 28 | 167 pt |
+| "BantayAral" | Lexend Bold 28 | 162 pt (+ mark 52 + gap 8 = 222) |
+
+On a 360-point phone the content is 328 wide, so the subtitle fits on one
+line, and the picture (120 wide) starts at 208. The logo's end overlaps it by
+14 points. Reading the PNG's alpha in that corner: **fully transparent**, so
+no letter sits on the drawing.
+
+"My children" is clear up to about 1.2× text. Between 1.25× and 1.29×, just
+under where the picture is hidden, it would reach the left tree (872 of 2205
+pixels there are solid). So the heading has `paddingRight` of the picture's
+width plus 8, and **wraps** instead. At 1.2× and up, the wordmark's end
+passes over a few faint cloud-edge pixels (38 of 8640); left for the phone
+check.
+
+**Two children without scrolling**, in points at normal text size:
+
+| | Before | Now |
+|---|---|---|
+| Header | 132 | 121 |
+| One card | 246 | 188 |
+| Padding + header + two cards | 672 | 545 |
+
+A 360 × 800 phone has roughly 670 between the status bar and the tab bar, so
+both cards fit with room to spare. An old 360 × 640 phone has about 512: the
+second card's times would sit just under the edge. A card with more than two
+taps adds a line (about 30).
+
+### What the second code review caught
+
+- **The bigger logo ran off the screen at large text.** "BantayAral" is one
+  word, so it can't wrap: at 2.0× the wordmark at 28 is 324 points, plus the
+  mark and gap 384, on a 328-point content width. At large text sizes the
+  wordmark is back to 22: 254 + 60 = 314, which fits. Not
+  `maxFontSizeMultiplier`: font scaling is never turned off.
+- **Notifications off shown nowhere** is now in `docs/PLAN.md`, "After the
+  demo", not only in `docs/NAVIGATION.md`.
+- It thought the file was still 480 × 320; `sips` says 360 × 240, so the
+  comment stands.
+
+### Checks run while building
+
+```bash
+npx jest src/components src/children   # 7 suites, 73 tests
+npx eslint <the changed files>         # clean
+npx tsc --noEmit                       # clean
+npm run check:colors                   # "No colours outside src/theme."
+```

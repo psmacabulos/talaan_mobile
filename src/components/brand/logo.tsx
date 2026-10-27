@@ -9,16 +9,18 @@ import { Text, View } from "react-native";
 
 import { WORDMARK } from "@/product";
 import { strings } from "@/strings";
-import { useTheme } from "@/theme";
+import { type FontSize, useTheme } from "@/theme";
 
 import { BantayAralMark } from "./bantay-aral-mark";
 
 type LogoProps = {
-  /** The mark's size in points. The wordmark scales with it. */
+  /** The mark's size in points. */
   size?: number;
+  /** The wordmark's size, from the type scale. */
+  wordmarkSize?: FontSize;
 };
 
-export function Logo({ size = 40 }: LogoProps) {
+export function Logo({ size = 40, wordmarkSize = "lg" }: LogoProps) {
   const theme = useTheme();
 
   return (
@@ -36,15 +38,11 @@ export function Logo({ size = 40 }: LogoProps) {
       <Text
         style={{
           fontFamily: theme.fontFamily.headingBold,
-          fontSize: theme.fontSize.lg,
+          fontSize: theme.fontSize[wordmarkSize],
         }}
       >
-        <Text style={{ color: theme.brand.ink }}>
-          {WORDMARK.first}
-        </Text>
-        <Text style={{ color: theme.brand.greenText }}>
-          {WORDMARK.second}
-        </Text>
+        <Text style={{ color: theme.brand.ink }}>{WORDMARK.first}</Text>
+        <Text style={{ color: theme.brand.greenText }}>{WORDMARK.second}</Text>
       </Text>
     </View>
   );

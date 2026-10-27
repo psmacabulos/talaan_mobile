@@ -107,20 +107,3 @@ export function latestTapWords(
       };
   }
 }
-
-/**
- * What the school sends, said plainly. A parent whose school has notifications
- * off should learn it here rather than by waiting for one that never comes.
- */
-export function notificationSentence(
-  preference: ChildToday["school"]["notificationPreference"],
-): string {
-  switch (preference) {
-    case "off":
-      return strings.card.sendsNothing;
-    case "time_in_only":
-      return strings.card.sendsTimeIn;
-    case "time_in_and_time_out":
-      return strings.card.sendsBoth;
-  }
-}

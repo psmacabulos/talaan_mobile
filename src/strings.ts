@@ -163,6 +163,7 @@ export const strings = {
     /** The tab's name; the screen's own heading is `heading`. */
     tabLabel: "Home",
     heading: "My children",
+    subheading: "Check who's in school, the moment they tap in.",
     noChildren: "No children linked yet.",
     noChildrenHint: "Link a child to see when they arrive at school.",
     addChild: "Link a child",
@@ -223,14 +224,6 @@ export const strings = {
     /** Shown only when there are more than two taps: they left and came back. */
     tapsToday: (count: number) => `${count} taps today`,
     photoOf: (firstName: string) => `${firstName}'s photo`,
-    /**
-     * The principal sets this for every parent at the school and parents
-     * cannot change it (docs/PRODUCT-RULES.md). Saying it on the card is how a
-     * parent knows whether to expect a notification at home time.
-     */
-    sendsNothing: "Your school doesn't send notifications",
-    sendsTimeIn: "Your school sends: time in",
-    sendsBoth: "Your school sends: time in and time out",
   },
 
   feed: {
