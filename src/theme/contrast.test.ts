@@ -83,6 +83,30 @@ describe.each(schemes)("%s theme", (scheme: ColorScheme) => {
     },
   );
 
+  // The tiles beside a child's times: a status colour's `text` as the fill,
+  // the card colour for the icon (src/components/icon-tile.tsx). Icons are
+  // graphics, so 3:1 (WCAG 1.4.11), and the tile must stand out from the
+  // panel it sits on.
+  const tiles: [string, string][] = [
+    ["time in", status[scheme].present.text],
+    ["time out", status[scheme].timeOut.text],
+    ["no time yet", status[scheme].idle.text],
+  ];
+
+  test.each(tiles)("the %s tile's icon is visible", (_name, tile) => {
+    expect(contrastRatio(colors.card, tile)).toBeGreaterThanOrEqual(AA_LARGE);
+  });
+
+  test.each(tiles)("the %s tile stands out from its panel", (_name, tile) => {
+    expect(contrastRatio(tile, colors.muted)).toBeGreaterThanOrEqual(AA_LARGE);
+  });
+
+  test("a time reads on its panel", () => {
+    expect(
+      contrastRatio(colors.foreground, colors.muted),
+    ).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
   test("a main button stands out from the screen", () => {
     expect(
       contrastRatio(colors.primary, colors.background),

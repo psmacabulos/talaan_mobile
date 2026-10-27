@@ -108,9 +108,11 @@ describe("the latest tap", () => {
     kind: "time_in",
   } as const;
 
-  test("an out reads 'Out 4:05 PM', and is spoken with 'at'", () => {
+  test("an out reads 'Out' over '4:05 PM', and is spoken with 'at'", () => {
     expect(latestTapWords(today({ tapCount: 2, latest: out }))).toEqual({
-      text: "Out 4:05 PM",
+      kind: "time_out",
+      label: "Out",
+      time: "4:05 PM",
       spoken: "Out at 4:05 PM",
     });
   });
@@ -119,10 +121,12 @@ describe("the latest tap", () => {
     const words = latestTapWords(today({ tapCount: 13, latest: backIn }));
 
     expect(words).toEqual({
-      text: "Back in 7:05 PM",
+      kind: "time_in",
+      label: "Back in",
+      time: "7:05 PM",
       spoken: "Back in at 7:05 PM",
     });
-    expect(words?.text).not.toMatch(/^In /);
+    expect(words?.label).not.toBe("In");
   });
 
   test("one tap says nothing more: the latest is the time in already shown", () => {

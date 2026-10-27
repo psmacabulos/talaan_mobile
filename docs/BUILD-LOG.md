@@ -1039,3 +1039,87 @@ Prettier also reformatted one older line in `notifications.tsx`
 - **Older than this step:** a failed pull to refresh with rows on screen
   says nothing. Added to M6.3b's tasks.
 
+
+## M6.4a — Home's child card, as designed
+
+**Date:** 2026-10-27
+
+The owner chose to redo the app one tab at a time from a new design, Home
+first (`docs/NAVIGATION.md`), and renamed the tab "Home" and its heading "My
+children" (its own commit, before this step). M6.3b was set aside.
+
+### The owner's decisions
+
+Asked before planning (`docs/DESIGN-QUESTIONS.md`, "The Home design"):
+
+- **Icons as code, art as files.** The brand sheet is one 1536 × 1024 picture;
+  the school illustration on it is about 270 px wide, a third of what a phone
+  needs. Icons are drawn in SVG to match (`src/components/icons/ui-icons.tsx`).
+- **The Out tile is blue.** The design has it red; in this app red means
+  Absent.
+- **No gear yet.** It would open nothing.
+
+### What the review changed in the plan
+
+- **A grey tile until there's a time in.** A green arrow beside "—" reads as
+  good news for a child who hasn't arrived.
+- **A fixed rule for large text.** The two halves stack when
+  `useWindowDimensions().fontScale >= 1.3`, instead of wrapping: a wrapped row
+  strands its vertical divider. At 200%, "10:04 AM" in Lexend bold is wider
+  than half the card.
+- **One `IconTile`** (`src/components/icon-tile.tsx`), so the inbox's tiles
+  later look the same.
+- **Split in two**: the card here, the header and tab icons in M6.4b.
+
+### Tile colours, measured first
+
+Tile fill is a status colour's `text`; the icon is the card colour. Measured
+with the contrast test's formula before writing anything:
+
+| | icon on tile | tile on panel |
+|---|---|---|
+| light: present / time out / idle | 5.38 / 6.16 / 6.18 | 4.61 / 5.28 / 5.30 |
+| dark: present / time out / idle | 9.43 / 8.35 / 8.09 | 8.11 / 7.19 / 6.96 |
+
+All over the 3:1 graphics need. In dark mode that gives light tiles with
+dark icons. These pairs are now in `src/theme/contrast.test.ts`.
+
+### The latest tap became a label and a time
+
+`latestTapWords` returns `{ kind, label, time, spoken }` instead of one
+string, so the card can put "Out" over "4:05 PM". The spoken form is
+unchanged: "Out at 4:05 PM".
+
+### Testing the stacking
+
+The threshold lives in one hook, `useLargeText()` (`src/lib/use-large-text.ts`),
+with the rule as a plain `isLargeText(fontScale)` beside it. The rule is
+tested directly; the card test mocks `@/lib/use-large-text` and checks the
+panel's `flexDirection` both ways.
+
+Two dead ends first. The card test mocked React Native's internal
+`react-native/Libraries/Utilities/useWindowDimensions`: it worked, but the
+review pointed out that path can move between versions. Then a hook test that
+mocked all of `react-native` by copying it: copying trips its deprecation
+getters (`DrawerLayoutAndroid`, `ImageBackground`), and the file ran **zero
+tests** while the suite still said "passed". Caught by running it alone with
+`--verbose`.
+
+### What the code review caught
+
+- **Halves could squash when stacked.** `flex: 1` is right in a row; in a
+  column with no height of its own it can collapse them. Now only in a row.
+- **Keys and test ids from display text.** "Time in" and "Out" could become
+  equal in a translation. Each half has a fixed `id` (`timeIn`, `latest`).
+- **The internal mock**, above.
+
+### Checks run while building
+
+```bash
+npx tsc --noEmit         # clean
+npm run check:colors     # "No colours outside src/theme."
+npx jest                 # 21 suites, 272 tests
+```
+
+Prettier flags twelve older files across `src`; only this step's own lines
+were formatted.

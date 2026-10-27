@@ -216,8 +216,8 @@ export const strings = {
      * in after the first always means the child left and came back, so it is
      * "Back in", never a plain "In" that reads like the arrival.
      */
-    latestOut: (time: string) => `Out ${time}`,
-    latestBackIn: (time: string) => `Back in ${time}`,
+    latestOut: "Out",
+    latestBackIn: "Back in",
     latestOutSpoken: (time: string) => `Out at ${time}`,
     latestBackInSpoken: (time: string) => `Back in at ${time}`,
     /** Shown only when there are more than two taps: they left and came back. */

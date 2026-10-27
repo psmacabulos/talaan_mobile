@@ -13,11 +13,22 @@ import { render, screen } from "@testing-library/react-native";
 
 import type { ChildToday } from "@/api/schemas";
 import { strings } from "@/strings";
+import { status } from "@/theme";
 
 import { ChildCard } from "../child-card";
 
 // The photo reads the token for its header. No photo here, so no token.
 jest.mock("@/api/token", () => ({ getTokenNow: () => null }));
+
+// The phone's text size, which decides whether the times stack.
+let mockLargeText = false;
+jest.mock("@/lib/use-large-text", () => ({
+  useLargeText: () => mockLargeText,
+}));
+
+beforeEach(() => {
+  mockLargeText = false;
+});
 
 type Today = ChildToday["today"];
 
@@ -68,6 +79,14 @@ describe("before any tap", () => {
     expect(screen.getByText(strings.card.noTime)).toBeOnTheScreen();
     expect(screen.queryByText(strings.card.timeOut)).toBeNull();
   });
+
+  test("its tile is grey, not a reassuring green beside a dash", async () => {
+    await renderCard({});
+
+    expect(screen.getByTestId("tile-timeIn")).toHaveStyle({
+      backgroundColor: status.light.idle.text,
+    });
+  });
 });
 
 describe("with one tap", () => {
@@ -80,8 +99,8 @@ describe("with one tap", () => {
     });
 
     expect(screen.getByText("7:12 AM")).toBeOnTheScreen();
-    expect(screen.queryByText(/^Out /)).toBeNull();
-    expect(screen.queryByText(/^Back in /)).toBeNull();
+    expect(screen.queryByText("Out")).toBeNull();
+    expect(screen.queryByText("Back in")).toBeNull();
     expect(screen.queryByText(strings.card.timeOut)).toBeNull();
   });
 });
@@ -99,7 +118,8 @@ describe("in, then out", () => {
     await renderCard(today);
 
     expect(screen.getByText("7:12 AM")).toBeOnTheScreen();
-    expect(screen.getByText("Out 4:05 PM")).toBeOnTheScreen();
+    expect(screen.getByText("Out")).toBeOnTheScreen();
+    expect(screen.getByText("4:05 PM")).toBeOnTheScreen();
     expect(screen.queryByText(strings.card.timeOut)).toBeNull();
   });
 
@@ -131,8 +151,9 @@ describe("in, out, then back in", () => {
     await renderCard(today);
 
     expect(screen.getByText("11:09 AM")).toBeOnTheScreen();
-    expect(screen.getByText("Back in 7:05 PM")).toBeOnTheScreen();
-    expect(screen.queryByText(/^In /)).toBeNull();
+    expect(screen.getByText("Back in")).toBeOnTheScreen();
+    expect(screen.getByText("7:05 PM")).toBeOnTheScreen();
+    expect(screen.queryByText("In")).toBeNull();
   });
 
   test("still says how many taps there were", async () => {
@@ -161,7 +182,45 @@ describe("an older server, without the latest tap", () => {
 
     expect(screen.getByText(strings.card.timeOut)).toBeOnTheScreen();
     expect(screen.getByText("4:05 PM")).toBeOnTheScreen();
-    expect(screen.queryByText("Out 4:05 PM")).toBeNull();
+    expect(screen.queryByText("Out")).toBeNull();
     expect(spoken()).toContain("Time out 4:05 PM");
+  });
+});
+
+describe("the times panel", () => {
+  const twoTaps: Partial<Today> = {
+    status: "present",
+    timeIn: IN_AT_7_12,
+    timeOut: OUT_AT_4_05,
+    tapCount: 2,
+    latest: { at: OUT_AT_4_05, kind: "time_out" },
+  };
+
+  test("sits side by side at normal text sizes", async () => {
+    await renderCard(twoTaps);
+
+    expect(screen.getByTestId("times-panel")).toHaveStyle({
+      flexDirection: "row",
+    });
+  });
+
+  test("stacks at large text sizes, so no time is squeezed", async () => {
+    mockLargeText = true;
+    await renderCard(twoTaps);
+
+    expect(screen.getByTestId("times-panel")).toHaveStyle({
+      flexDirection: "column",
+    });
+  });
+
+  test("an out wears blue, never the red that means Absent", async () => {
+    await renderCard(twoTaps);
+
+    expect(screen.getByTestId("tile-latest")).toHaveStyle({
+      backgroundColor: status.light.timeOut.text,
+    });
+    expect(screen.getByTestId("tile-timeIn")).toHaveStyle({
+      backgroundColor: status.light.present.text,
+    });
   });
 });

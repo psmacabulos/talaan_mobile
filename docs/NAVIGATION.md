@@ -8,6 +8,10 @@ time ins go."
 This is the options and the recommendation. Nothing here is built until the
 owner decides (the table at the end).
 
+**2026-10-27, the owner:** "let's do it one tab at a time", Home first,
+from the new design (Steps M6.4a and M6.4b in `docs/PLAN.md`). The decisions
+below are still open for the other tabs.
+
 ## The idea, in one line
 
 **Notifications is an inbox: what still needs you. Attendance is the record:

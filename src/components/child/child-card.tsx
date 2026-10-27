@@ -10,11 +10,18 @@
  * somewhere else"). Times are drawn on the **school's** clock, so a parent
  * working abroad sees when their child walked through the gate in Balanga.
  *
- * Under the time in, from the second tap on, is the newest tap: "Out 4:05 PM"
- * or "Back in 7:05 PM". A separate time out can't tell those apart, since the
- * server only sends one when the last tap was an out (Talaan Step 59.3). An
- * older server without `latest` gets the time in and time out as before.
+ * The times sit in a panel, as the owner's design has it
+ * (`design/BantayAral Children Dashboard Comparison.png`): the time in, and
+ * beside it, from the second tap on, the newest tap: "Out" over "4:05 PM" or
+ * "Back in" over "7:05 PM". A separate time out can't tell those apart, since
+ * the server only sends one when the last tap was an out (Talaan Step 59.3).
+ * An older server without `latest` gets the time in and time out as before.
+ *
+ * Each time has a coloured tile: green for an arrival, blue for leaving (not
+ * the design's red, which in this app only ever means Absent), and grey until
+ * a time in exists, so a dash never sits beside a reassuring green.
  */
+import { Fragment, type ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import type { ChildToday } from "@/api/schemas";
@@ -23,7 +30,14 @@ import {
   notificationSentence,
   statusLabel,
 } from "@/children/status-words";
+import { IconTile } from "@/components/icon-tile";
+import {
+  ArrowInIcon,
+  ArrowOutIcon,
+  ChevronRightIcon,
+} from "@/components/icons/ui-icons";
 import { formatSchoolTime } from "@/lib/school-time";
+import { useLargeText } from "@/lib/use-large-text";
 import { strings } from "@/strings";
 import { useTheme } from "@/theme";
 
@@ -55,6 +69,42 @@ export function ChildCard({
       ? undefined
       : formatSchoolTime(child.today.timeOut);
   const latest = latestTapWords(child.today);
+
+  const halves: TimeHalfProps[] = [
+    {
+      id: "timeIn",
+      label: strings.card.timeIn,
+      time: timeIn,
+      direction: "in",
+      tile:
+        timeIn === undefined
+          ? theme.status.idle.text
+          : theme.status.present.text,
+    },
+  ];
+  if (latest !== undefined) {
+    halves.push({
+      id: "latest",
+      label: latest.label,
+      time: latest.time,
+      direction: latest.kind === "time_out" ? "out" : "in",
+      tile:
+        latest.kind === "time_out"
+          ? theme.status.timeOut.text
+          : theme.status.present.text,
+    });
+  } else if (!hasLatest) {
+    halves.push({
+      id: "latest",
+      label: strings.card.timeOut,
+      time: timeOut,
+      direction: "out",
+      tile:
+        timeOut === undefined
+          ? theme.status.idle.text
+          : theme.status.timeOut.text,
+    });
+  }
 
   // A child can leave and come back. More than two taps means the times
   // above no longer tell the whole story (docs/PRODUCT-RULES.md).
@@ -128,27 +178,13 @@ export function ChildCard({
 
           <StatusPill label={label} />
         </View>
+
+        <View style={{ justifyContent: "center" }}>
+          <ChevronRightIcon color={theme.colors.mutedForeground} />
+        </View>
       </View>
 
-      <View style={{ flexDirection: "row", gap: theme.space.xl }}>
-        <TimeOfDay label={strings.card.timeIn} time={timeIn} />
-        {hasLatest ? null : (
-          <TimeOfDay label={strings.card.timeOut} time={timeOut} />
-        )}
-      </View>
-
-      {latest ? (
-        <Text
-          style={{
-            color: theme.colors.foreground,
-            // Lexend for every number and time (docs/DESIGN.md).
-            fontFamily: theme.fontFamily.heading,
-            fontSize: theme.fontSize.sm,
-          }}
-        >
-          {latest.text}
-        </Text>
-      ) : null}
+      <TimesPanel halves={halves} />
 
       {tapsToday ? (
         <Text
@@ -164,12 +200,9 @@ export function ChildCard({
 
       <Text
         style={{
-          borderTopColor: theme.colors.border,
-          borderTopWidth: 1,
           color: theme.colors.mutedForeground,
           fontFamily: theme.fontFamily.body,
           fontSize: theme.fontSize.xs,
-          paddingTop: theme.space.md,
         }}
       >
         {notificationSentence(child.school.notificationPreference)}
@@ -178,31 +211,109 @@ export function ChildCard({
   );
 }
 
-/** "Time in" over "7:56 AM", or over a dash when it hasn't happened. */
-function TimeOfDay({ label, time }: { label: string; time?: string }) {
+type TimeHalfProps = {
+  /** Fixed, unlike the label, which a translation may change. */
+  id: "timeIn" | "latest";
+  label: string;
+  /** Undefined until it has happened: a dash. */
+  time?: string;
+  direction: "in" | "out";
+  /** The tile's fill: a status colour's `text`. */
+  tile: string;
+};
+
+/**
+ * The time in and the latest tap, side by side with a divider, or stacked at
+ * large text sizes. A wrapping row would strand its divider, so it's one or
+ * the other.
+ */
+function TimesPanel({ halves }: { halves: TimeHalfProps[] }) {
   const theme = useTheme();
+  const stacked = useLargeText();
 
   return (
-    <View style={{ gap: theme.space.xs }}>
-      <Text
-        style={{
-          color: theme.colors.mutedForeground,
-          fontFamily: theme.fontFamily.body,
-          fontSize: theme.fontSize.xs,
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        style={{
-          color: time ? theme.colors.foreground : theme.colors.mutedForeground,
-          // Lexend for every number and time (docs/DESIGN.md).
-          fontFamily: theme.fontFamily.heading,
-          fontSize: theme.fontSize.md,
-        }}
-      >
-        {time ?? strings.card.noTime}
-      </Text>
+    <View
+      testID="times-panel"
+      style={{
+        backgroundColor: theme.colors.muted,
+        borderRadius: theme.radius.md,
+        flexDirection: stacked ? "column" : "row",
+        gap: theme.space.md,
+        padding: theme.space.md,
+      }}
+    >
+      {halves.map((half, index) => (
+        <Fragment key={half.id}>
+          {index === 0 ? null : (
+            <View
+              style={{
+                backgroundColor: theme.colors.border,
+                ...(stacked ? { height: 1 } : { width: 1 }),
+              }}
+            />
+          )}
+          <TimeHalf {...half} stacked={stacked} />
+        </Fragment>
+      ))}
+    </View>
+  );
+}
+
+/** A tile, then "Time in" over "7:56 AM", or over a dash. */
+function TimeHalf({
+  id,
+  label,
+  time,
+  direction,
+  tile,
+  stacked,
+}: TimeHalfProps & { stacked: boolean }) {
+  const theme = useTheme();
+  const icon: ReactNode =
+    direction === "in" ? (
+      <ArrowInIcon color={theme.colors.card} />
+    ) : (
+      <ArrowOutIcon color={theme.colors.card} />
+    );
+
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        // Halves share a row equally. Stacked, each is its own height: `flex`
+        // in a column with no height of its own can squash them.
+        ...(stacked ? {} : { flex: 1 }),
+        flexDirection: "row",
+        gap: theme.space.md,
+      }}
+    >
+      <IconTile background={tile} testID={`tile-${id}`}>
+        {icon}
+      </IconTile>
+
+      <View style={{ flexShrink: 1, gap: theme.space.xs }}>
+        <Text
+          style={{
+            color: theme.colors.mutedForeground,
+            fontFamily: theme.fontFamily.body,
+            fontSize: theme.fontSize.xs,
+          }}
+        >
+          {label}
+        </Text>
+        <Text
+          style={{
+            color: time
+              ? theme.colors.foreground
+              : theme.colors.mutedForeground,
+            // Lexend for every number and time (docs/DESIGN.md).
+            fontFamily: theme.fontFamily.headingBold,
+            fontSize: theme.fontSize.md,
+          }}
+        >
+          {time ?? strings.card.noTime}
+        </Text>
+      </View>
     </View>
   );
 }

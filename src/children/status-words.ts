@@ -40,7 +40,9 @@ export function statusLabel(
   switch (status) {
     case "present":
       return {
-        word: flexible ? strings.status.presentAtWeekend : strings.status.present,
+        word: flexible
+          ? strings.status.presentAtWeekend
+          : strings.status.present,
         tone: "present",
       };
 
@@ -62,12 +64,18 @@ export function statusLabel(
 
 /** The latest tap as the card shows it, and as a screen reader says it. */
 export type LatestTapWords = {
-  text: string;
+  /** Whether the server counted it as an in or an out. */
+  kind: "time_in" | "time_out";
+  /** "Out" or "Back in", shown over the time. */
+  label: string;
+  /** "4:05 PM", on the school's clock. */
+  time: string;
+  /** "Out at 4:05 PM", for a screen reader. */
   spoken: string;
 };
 
 /**
- * "Out 4:05 PM" or "Back in 7:05 PM", from the second tap on.
+ * "Out" over "4:05 PM", or "Back in" over "7:05 PM", from the second tap on.
  *
  * With one tap the latest is the time in already on the card, so there is
  * nothing more to say. The server decides whether the tap was an in or an out;
@@ -85,12 +93,16 @@ export function latestTapWords(
   switch (latest.kind) {
     case "time_out":
       return {
-        text: strings.card.latestOut(time),
+        kind: latest.kind,
+        label: strings.card.latestOut,
+        time,
         spoken: strings.card.latestOutSpoken(time),
       };
     case "time_in":
       return {
-        text: strings.card.latestBackIn(time),
+        kind: latest.kind,
+        label: strings.card.latestBackIn,
+        time,
         spoken: strings.card.latestBackInSpoken(time),
       };
   }

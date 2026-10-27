@@ -8,9 +8,9 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 44 of 60 tasks, 9 of 12 steps approved.**
+**To the demo: 48 of 63 tasks, 9 of 13 steps approved** (M6.3b, set aside, not counted).
 
-`███████████████░░░░░` 75%
+`███████████████░░░░░` 76%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
@@ -23,12 +23,16 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M6.1 | A child who left and came back reads "Back in …" | 4/4 | **Approved** |
 | M6.2 | "Another parent linked your child" in the feed | 4/4 | **Approved** |
 | M6.3a | Notifications grouped: Today, Yesterday, this week, this month, by month | 4/4 | **Approved** |
-| M6.3b | Notification rows with icon tiles, like the mockup | 0/4 | Next |
-| M7 | **The phone buzzes when a child taps** | 0/8 | In progress, paused for M6.1 to M6.3b |
+| M6.3b | Notification rows with icon tiles, like the mockup | 0/4 | Set aside: comes back with Notifications as an inbox (`docs/NAVIGATION.md`) |
+| M6.4a | Home's child card as designed: status icons, the times panel | 4/4 | Built, awaiting review |
+| M6.4b | Home's header and tab icons as designed | 0/3 | Next |
+| M7 | **The phone buzzes when a child taps** | 0/8 | In progress, paused for the redesign |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
-M6.1 to M6.3b were added on 2026-10-26 and 27, after the plan was written. Each
-starts with a "Changed by" line saying why.
+M6.1 to M6.4b were added on 2026-10-26 and 27, after the plan was written. Each
+starts with a "Changed by" line saying why. On 2026-10-27 the owner chose to
+redo the app one tab at a time, following the new design, starting with Home
+(`docs/NAVIGATION.md`).
 
 M7 is the one that matters: everything before it exists so that a tap at the
 gate can reach a parent's phone. M8 only packages it.
@@ -354,12 +358,61 @@ Commit: `feat(feed): group notifications by day, week and month`
 
 **Changed by:** the owner, 2026-10-27, as the second half of M6.3.
 
+**Set aside** the same day: the owner chose to redo the app one tab at a time
+from the new design, Home first. These tiles come back when Notifications
+becomes an inbox (`docs/NAVIGATION.md`), using the same `IconTile` as Home.
+
 - [ ] An icon tile on each row: an arrow in on the "present" colours for a time in, an arrow out on the "time out" colours for a time out, the person-plus for a link notice
 - [ ] Each section's rows in one card, with hairline dividers; the unread dot beside the time
 - [ ] Contrast tests for every new pair (icon on tile 3:1, dot on tint 3:1, time text 4.5:1), light and dark
 - [ ] A pull to refresh that fails while rows are showing says so (the server's message, Try again). It says nothing today, from before M6.3a
 Done when: the feed looks like the mockup's screen 8, minus the filter chips.
 Commit: `feat(feed): add icon tiles to notification rows`
+- [ ] Owner review: I checked it and said "approved"
+
+### Step M6.4a: Home's child card, as designed
+
+**Changed by:** the owner, 2026-10-27, from
+`design/BantayAral Children Dashboard Comparison.png`. The owner decided: icons
+drawn as code, art as exported files; the Out tile **blue**, not the design's
+red (red means Absent); no settings gear until there's a settings screen.
+Split from M6.4b at the review.
+
+- [x] A status pill with an icon: a tick for Present, a clock for Late, "!" for Absent; "Not yet tapped" stays word-only
+- [x] The times panel: a tile and "Time in" over the time; from the second tap, "Out" (blue tile) or "Back in" (green tile) beside it; a grey tile until there's a time in; stacked at large text sizes
+- [x] A chevron showing the card opens the child's day; the loading skeleton in the new shape
+- [x] Contrast tests for every tile, and tests for the panel, the pill and the stacking
+Done when: the card looks like the design in light and dark, and still reads in one swipe.
+
+**Check it on the phone** — `npx expo start --clear`, signed in as
+parent-one. Make taps with a sticker at `/gate`, 2+ minutes apart, and pull
+down after each.
+
+| Do this | Expect |
+|---|---|
+| A child with no tap yet | "Not yet tapped" pill (no icon), a **grey** tile and "Time in —", nothing on the right |
+| After one tap | Pill **Present** with a tick (or **Late** with a clock), a **green** tile and the time in, nothing on the right |
+| After a second tap | Beside it, a divider, then a **blue** tile and "Out" over that time |
+| After a third tap | The right half says "Back in" with a **green** tile, and "3 taps today" under the panel |
+| A child with no tap after the school marks absences (the server decides when) | **Absent** in red with "!", grey tile, "Time in —" |
+| A chevron on the right of each card | Tapping anywhere on the card opens the child's day |
+| TalkBack on a card | One swipe reads it all: "… Present. Time in 7:12 AM. Out at 4:05 PM" |
+| Settings → font size at maximum, at 360pt | The two halves **stack** with a line between them; no time cut off |
+| Dark mode | Light tiles with dark arrows, readable |
+| While Home first loads | Skeleton cards with a panel bar, standing still |
+
+Commit: `feat(home): restyle the child card to match the design`
+- [ ] Owner review: I checked it and said "approved"
+
+### Step M6.4b: Home's header and tab icons, as designed
+
+**Changed by:** the owner, 2026-10-27, the second half of M6.4.
+
+- [ ] The header: the logo, "My children" large, "Check who's in school, the moment they tap in."
+- [ ] Tab icons filled when active, outline when not
+- [ ] The school illustration in the header, once the owner's exported file is in `assets/images/` (transparent, about 1080 × 720)
+Done when: Home's top and the tab bar look like the design in light and dark.
+Commit: `feat(home): add the designed header and tab icons`
 - [ ] Owner review: I checked it and said "approved"
 
 ### Step M7: Push

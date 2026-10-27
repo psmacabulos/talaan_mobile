@@ -42,6 +42,19 @@ That is everything a parent's phone can ever receive about a child.
 | 16 | 8. Notifications | The time on the right of **every** row | Tap rows say the time inside the sentence ("Juan Cruz tapped in at 7:56 AM", the contract's wording), and the day on the right only when it isn't today. The `guardian_linked` notice (M6.2) has its time on the right, as the mockup does | Keep for now; decide whether tap rows move their time to the right too | after demo | **Time on the right for every row**, in sections (M6.3a). Owner, 2026-10-27 |
 | 15 | 10. Profile | "Notification Settings" as a parent setting | `notificationPreference` is **per school, set by the principal**. Parents can't change it | Read-only: "Your school sends: time in and time out" | after demo | |
 
+## The Home design (2026-10-27)
+
+From `design/BantayAral Children Dashboard Comparison.png`, decided by the
+owner before M6.4a:
+
+| What the design shows | Decision |
+|---|---|
+| "Out" on a **red** tile | **Blue** (`status.timeOut`). Red means Absent everywhere (`docs/DESIGN.md`, rule 2); the arrow and the word say "out" |
+| A green tile beside "Time in" even with no time | **Grey** until there's a time in, so a dash never sits beside a reassuring green |
+| A settings gear, top right | **Not yet.** It would open nothing. It comes with a settings or Profile screen; Sign out stays at the bottom of Home until then |
+| Icons and the school illustration on the brand sheet | Icons **drawn as code** to match. The illustration from an **exported file** (the sheet is one 1536 × 1024 picture: too small to crop) |
+| "Your children" | "**My children**", and the tab is "**Home**" |
+
 ## Resolved — no longer open
 
 | Question | Answer from the contract |

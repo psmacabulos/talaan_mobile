@@ -233,18 +233,21 @@ function LoadingCards() {
             borderColor: theme.colors.border,
             borderRadius: theme.radius.lg,
             borderWidth: 1,
-            flexDirection: "row",
             gap: theme.space.base,
             padding: theme.space.base,
           }}
         >
-          <Skeleton width={80} height={100} radius={theme.radius.base} />
-          <View style={{ flex: 1, gap: theme.space.sm }}>
-            <Skeleton width="70%" height={18} />
-            <Skeleton width="50%" height={14} />
-            <Skeleton width="85%" height={14} />
-            <Skeleton width={96} height={28} radius={theme.radius.sm} />
+          <View style={{ flexDirection: "row", gap: theme.space.base }}>
+            <Skeleton width={80} height={100} radius={theme.radius.base} />
+            <View style={{ flex: 1, gap: theme.space.sm }}>
+              <Skeleton width="70%" height={18} />
+              <Skeleton width="50%" height={14} />
+              <Skeleton width="85%" height={14} />
+              <Skeleton width={96} height={28} radius={theme.radius.sm} />
+            </View>
           </View>
+          {/* The times panel. */}
+          <Skeleton height={64} radius={theme.radius.md} />
         </View>
       ))}
     </View>
