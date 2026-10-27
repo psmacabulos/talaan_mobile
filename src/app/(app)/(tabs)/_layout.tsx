@@ -54,7 +54,7 @@ export default function SignedInLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: strings.home.yourChildren,
+          title: strings.home.tabLabel,
           tabBarIcon: ({ color }) => <HomeIcon color={color} />,
         }}
       />

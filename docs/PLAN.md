@@ -8,7 +8,7 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 44 of 60 tasks, 8 of 12 steps approved.**
+**To the demo: 44 of 60 tasks, 9 of 12 steps approved.**
 
 `███████████████░░░░░` 75%
 
@@ -22,7 +22,7 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M6 | The notification feed, and a child's day | 4/4 | **Approved** |
 | M6.1 | A child who left and came back reads "Back in …" | 4/4 | **Approved** |
 | M6.2 | "Another parent linked your child" in the feed | 4/4 | **Approved** |
-| M6.3a | Notifications grouped: Today, Yesterday, this week, this month, by month | 4/4 | Built, awaiting review |
+| M6.3a | Notifications grouped: Today, Yesterday, this week, this month, by month | 4/4 | **Approved** |
 | M6.3b | Notification rows with icon tiles, like the mockup | 0/4 | Next |
 | M7 | **The phone buzzes when a child taps** | 0/8 | In progress, paused for M6.1 to M6.3b |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
@@ -143,9 +143,9 @@ Done when: a new parent can sign up, sign out and sign in again, and a sign-in s
 
 | Do this | Expect |
 |---|---|
-| Tap **Sign up**, fill it in, submit | Lands on "Your children" |
+| Tap **Sign up**, fill it in, submit | Lands on "My children" |
 | Tap **Sign out** | Straight back to sign-in |
-| Sign in again | Back to "Your children" |
+| Sign in again | Back to "My children" |
 | **Force-close the app and reopen it** | Straight in, no sign-in — this is the one that matters |
 | Sign in with a wrong password | The server's message, and your **email is still filled in** |
 | Aeroplane mode, then cold start | "Can't reach Bantay Aral", **still signed in**, with "Try again" |
@@ -300,7 +300,7 @@ anyone, for that school, LRN and last name; a correct try doesn't count), and
 | Do this | Expect |
 |---|---|
 | Sign in as parent-one | **Maria Ramos** (or Carmen Sison) is on Home. If not, stop: use a child that is |
-| Sign out, sign up a throwaway account (a clearly fake email) | Lands on "Your children", empty |
+| Sign out, sign up a throwaway account (a clearly fake email) | Lands on "My children", empty |
 | Link Maria with her details above | She appears on the throwaway's Home |
 | Sign out, sign in as parent-one, open Notifications | The person icon, "**An account named** (the throwaway's name) **linked to Maria Ramos.**", "If you don't know them, contact the school." under it, and the time on the right. Never "tapped" |
 | Look at the tab | The badge went up by one |
@@ -348,7 +348,7 @@ parent-one (who has taps on more than one day).
 | 200% font at 360pt, and dark mode | The time never squeezes; the sentence wraps instead. Headers readable |
 
 Commit: `feat(feed): group notifications by day, week and month`
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved"
 
 ### Step M6.3b: Notification rows with icon tiles
 

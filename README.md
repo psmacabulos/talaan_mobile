@@ -48,6 +48,7 @@ a parent sees says Bantay Aral.
 | `docs/PRODUCT-RULES.md` | What the server decides, the words to use, the field rules |
 | `docs/DESIGN.md` | How to use the UI design, and the rules that hold regardless |
 | `docs/DESIGN-QUESTIONS.md` | Where the mockup and the server disagree, and what to do |
+| `docs/NAVIGATION.md` | The tabs, Notifications as an inbox, and Attendance: options and decisions |
 | `docs/API-CLIENT.md` | How the app talks to the server: the token, the checking, the errors |
 | `docs/API-REQUESTS.md` | What the app needs from the API that it does not have yet |
 | `docs/AUTH.md` | Signing in: the token, the gate, and what happens when it expires |

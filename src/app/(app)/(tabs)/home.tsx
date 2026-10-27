@@ -88,7 +88,7 @@ export default function HomeScreen() {
             paddingHorizontal: theme.space.sm,
           }}
         >
-          {strings.home.yourChildren}
+          {strings.home.heading}
         </Text>
 
         {me.isError && answer !== undefined ? (

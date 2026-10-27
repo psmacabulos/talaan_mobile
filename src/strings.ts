@@ -160,7 +160,9 @@ export const strings = {
   },
 
   home: {
-    yourChildren: "Your children",
+    /** The tab's name; the screen's own heading is `heading`. */
+    tabLabel: "Home",
+    heading: "My children",
     noChildren: "No children linked yet.",
     noChildrenHint: "Link a child to see when they arrive at school.",
     addChild: "Link a child",

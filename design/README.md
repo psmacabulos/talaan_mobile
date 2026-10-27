@@ -6,7 +6,8 @@ A short index here helps: one line per file or link, saying which screen it show
 
 | File or link | Screen |
 |---|---|
-| `sign-in.png` | Sign in |
-| `home-light.png`, `home-dark.png` | Home, one card per child |
+| `BantayAral Parent App UI Mockup.png` | All ten screens, light only (the first mockup; `docs/DESIGN-QUESTIONS.md` lists where it and the server disagree) |
+| `BantayAral Children Dashboard Comparison.png` | Home, light and dark: the header, the child card, the tab bar (2026-10-27). Its "Your children" is now "My children", and the tab is "Home" |
+| `BantayAral UI Brand Asset Sheet.png` | Logos, app icons, tab, status and UI icons, illustrations, background shapes, as one picture (2026-10-27). The file names on it are labels: the separate files aren't in this folder |
 
 The screens the demo needs (`docs/PLAN.md`): sign in, sign up, link a child, home (each child's day), a child's day (all taps), the notification feed, and the push permission ask. Plus the app icon and splash screen, if the design has its own.
