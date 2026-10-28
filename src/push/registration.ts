@@ -10,6 +10,7 @@
  * didn't register, because permission may have been granted after it checked.
  */
 import { registerPushToken } from "@/api/endpoints";
+import { settleWithin } from "@/lib/settle-within";
 
 import {
   STOP_PUSH_TIMEOUT_MS,
@@ -17,7 +18,6 @@ import {
   getPermission,
   getPushToken,
   pushPlatform,
-  settleWithin,
 } from "./notifications";
 
 let running: Promise<void> | null = null;

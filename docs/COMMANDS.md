@@ -97,11 +97,21 @@ npm run check:colors     # fails if a colour is written outside src/theme
 npm test                 # Jest
 ```
 
-While building one thing, a single file is quicker:
+What "passed" looks like:
+
+| Command | Passed | Failed |
+|---|---|---|
+| `npm run lint` | Only the `> expo lint` and `env:` lines, nothing after | Lines with `error` or `warning`, a file name and a line number |
+| `npm run typecheck` | Only the `> tsc --noEmit` line, nothing after | `src/…ts(12,5): error TS…` |
+| `npm run check:colors` | `No colours outside src/theme.` | The file and line holding a colour |
+| `npm test` | `Test Suites: N passed, N total` and `Tests: N passed, N total` at the end | `failed` in those lines, with a `●` and the test's name above |
+
+While building one thing, a single file or folder is quicker:
 
 ```powershell
-npm test -- src/theme/contrast.test.ts
-npm test -- --watch
+npm test -- src/theme/contrast.test.ts   # one file
+npm test -- src/push                     # every test in a folder
+npm test -- --watch                      # re-runs as you save
 ```
 
 ## 4. Look at the resolved config

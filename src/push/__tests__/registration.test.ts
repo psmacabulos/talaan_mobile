@@ -17,7 +17,7 @@ jest.mock("@/api/endpoints", () => ({
 }));
 
 jest.mock("../notifications", () => ({
-  ...jest.requireActual("../notifications"),
+  STOP_PUSH_TIMEOUT_MS: 3_000,
   ensureAttendanceChannel: jest.fn(),
   getPermission: jest.fn(),
   getPushToken: jest.fn(),

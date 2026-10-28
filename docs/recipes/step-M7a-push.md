@@ -73,7 +73,7 @@ Order matters; each is in `docs/BUILD-LOG.md`, "M7 — Push":
   listener is handed Firebase's token, not Expo's.
 - `stopPushOnThisPhone()`: on Android, `deleteNotificationChannelAsync("attendance")`
   (offline, instant), then `unregisterForNotificationsAsync()` through
-  `settleWithin(…, STOP_PUSH_TIMEOUT_MS)` (3 s), errors swallowed (P-016).
+  `settleWithin(…, STOP_PUSH_TIMEOUT_MS)` (3 s, `src/lib/settle-within.ts`), errors swallowed (P-016).
 
 `AndroidImportance` is a named import: ESLint's `import/namespace` can't see
 it through `* as Notifications`.

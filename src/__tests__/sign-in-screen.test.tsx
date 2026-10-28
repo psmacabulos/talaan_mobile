@@ -31,6 +31,16 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
+// The session's sign-out stops push. Left real, it loads expo-notifications,
+// which warns that push doesn't work in Expo Go.
+jest.mock("@/push/notifications", () => ({
+  stopPushOnThisPhone: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock("@/push/registration", () => ({
+  waitForRegistration: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock("@/api/token", () => ({
   getToken: jest.fn().mockResolvedValue(null),
   setToken: jest.fn().mockResolvedValue(undefined),

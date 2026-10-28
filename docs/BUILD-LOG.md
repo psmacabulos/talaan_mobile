@@ -1390,3 +1390,15 @@ from before this step (checked against `HEAD`).
   code waited for `"undetermined"`. Now reads `granted` and `canAskAgain`
   (P-018). 26 suites, 321 tests after the fix.
 
+- `npm test` printed Expo's `console.warn` "Android Push notifications … was
+  removed from Expo Go" from `registration.test.ts`: its mock spread
+  `jest.requireActual("../notifications")`, which loads the real
+  `expo-notifications`. `settleWithin` moved to `src/lib/settle-within.ts`
+  (with its own test) and the mock lists `STOP_PUSH_TIMEOUT_MS` itself. 27
+  suites, 324 tests, no warnings.
+- The same warning came back from `sign-in-screen.test.tsx`: the screen loads
+  `session.ts`, which loads `push/notifications.ts`. It showed in the owner's
+  full run but not in mine (why is unexplained). Running each file alone found it
+  (`for f in …; do npx jest "$f" | grep -c console.warn; done`): only that
+  file. It now mocks `@/push/notifications` and `@/push/registration`, the same
+  way `session.test.tsx` does.

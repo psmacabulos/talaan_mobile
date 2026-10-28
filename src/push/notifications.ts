@@ -13,6 +13,7 @@ import * as Notifications from "expo-notifications";
 import { AndroidImportance } from "expo-notifications";
 import { Platform } from "react-native";
 
+import { settleWithin } from "@/lib/settle-within";
 import { strings } from "@/strings";
 
 /**
@@ -138,25 +139,6 @@ export async function stopPushOnThisPhone(): Promise<void> {
     Notifications.unregisterForNotificationsAsync(),
     STOP_PUSH_TIMEOUT_MS,
   );
-}
-
-/**
- * Wait for `work` to finish or fail, but never longer than `ms`. Its outcome
- * is ignored either way.
- */
-export function settleWithin(
-  work: Promise<unknown>,
-  ms: number,
-): Promise<void> {
-  return new Promise((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    work
-      .catch(() => {})
-      .finally(() => {
-        clearTimeout(timer);
-        resolve();
-      });
-  });
 }
 
 /** `extra` is loosely typed by Expo, so the value is checked, not trusted. */
