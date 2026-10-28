@@ -24,6 +24,11 @@ const PRODUCT_NAME = "Bantay Aral";
 /** The mark sits on white in both themes — src/theme/colors.ts ICON_BACKGROUND. */
 const ICON_BACKGROUND = "#FFFFFF";
 /**
+ * The circle behind the push icon (on older Android, the app's name too): the
+ * mark's deep blue, src/theme/colors.ts brand.light.parent.
+ */
+const NOTIFICATION_COLOR = "#1149A6";
+/**
  * The owner's EAS project, from `npx eas init` (docs/PUSH.md, Part A). Expo's
  * push service needs it to hand out a push token. Not a secret.
  */
@@ -85,9 +90,16 @@ const config: ExpoConfig = {
         imageWidth: 76,
       },
     ],
-    // Its notification icon and colour come with the real icon in M8; until
-    // then Android draws the app icon's outline.
-    "expo-notifications",
+    // Android draws a push's icon in one colour, from its shape alone, so the
+    // icon is the mark as a white outline. No large icon: it would show the
+    // mark a second time (docs/PUSH.md, "What a push looks like").
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/images/notification-icon.png",
+        color: NOTIFICATION_COLOR,
+      },
+    ],
   ],
 
   experiments: {

@@ -1402,3 +1402,57 @@ from before this step (checked against `HEAD`).
   (`for f in …; do npx jest "$f" | grep -c console.warn; done`): only that
   file. It now mocks `@/push/notifications` and `@/push/registration`, the same
   way `session.test.tsx` does.
+
+## M7c — The Bantay Aral logo on every push
+
+The first real pushes showed Expo's placeholder "^": with no `icon` option,
+`expo-notifications` falls back to the app icon, still Expo's. The owner asked
+for the logo, the child's name without a second "Bantay Aral", and the child's
+photo if it cost nothing.
+
+**What the app can and can't change.** Read in
+`node_modules/expo-notifications`:
+- `plugin/build/withNotifications.d.ts`: options `icon` ("96x96 all-white png
+  with transparency"), `largeIcon` (shown next to the text), `color`.
+- `android/…/ExpoNotificationBuilder.kt`: `setSmallIcon` from the manifest's
+  `default_notification_icon`, else the app icon. A push carrying an image URL
+  is downloaded with a plain `URL(…)`, no `Authorization` header, and used as
+  the large icon.
+
+So the title is the server's (request: `docs/API-REQUESTS.md`, item 5), and a
+child's photo would need a link that works without signing in: not asked for.
+
+**The icon.** The owner had the Talaan session export `design/logo/` from the
+web's vector mark. `design/logo/notification-icon.png` is 96 × 96, one colour
+(255, 255, 255) with alpha. Its shape, decoded with a short Python script in
+the scratchpad (no PIL on this Mac, so a plain PNG reader with `zlib`):
+bounding box x 14–86, y 13–83 (73 × 71), furthest pixel 43.5 px from the
+centre, inside Android 12's 48 px circle, so the rays aren't clipped. Not
+shrunk: Expo asks for 96. The app's own mark (`src/components/brand/mark-shapes.ts`)
+has the same path data as `design/logo/mark.svg`, so no screen changes.
+
+```bash
+cp design/logo/notification-icon.png assets/images/notification-icon.png
+npx expo config --type introspect | grep default_notification
+```
+
+The second shows `expo.modules.notifications.default_notification_icon →
+@drawable/notification_icon` and `default_notification_color →
+@color/notification_icon_color`.
+
+**Options put to the owner.** A: the white mark only. B: plus the full-colour
+mark on a white circle as `largeIcon`. Owner: "lets stick with your plan. I
+want to see it first on the phone" → A. The app icon and splash swap (M8's
+task, offered to save a build) wasn't approved, so they stay placeholders.
+
+**Review fixes.**
+- The comment said the colour also tints the app's name; that's only older
+  Android. Softened.
+- A test that the icon file exists. `fs.existsSync` failed typecheck
+  (`TS2591: Cannot find name 'fs'`: the project has no Node types, and adding
+  `@types/node` is a package). Used `jest.requireActual("./assets/images/notification-icon.png")`
+  instead, which throws "Cannot find module" for a missing file. Checked by
+  running a copy of the test with a wrong path: 1 failed.
+
+27 suites, 325 tests (the existence check is inside the new test), no
+warnings. Lint, typecheck and check:colors pass.

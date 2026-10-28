@@ -9,7 +9,13 @@
  */
 import appConfig from "./app.config";
 import { APP_ID, PRODUCT_NAME } from "./src/product";
-import { ICON_BACKGROUND } from "./src/theme/colors";
+import { brand, ICON_BACKGROUND } from "./src/theme/colors";
+
+function notificationsPlugin() {
+  return appConfig.plugins?.find(
+    (plugin) => Array.isArray(plugin) && plugin[0] === "expo-notifications",
+  );
+}
 
 describe("the app's identity", () => {
   test("the name on the phone is the product name", () => {
@@ -33,10 +39,24 @@ describe("the app's identity", () => {
   });
 
   test("the build carries push and the Firebase project it belongs to", () => {
-    expect(appConfig.plugins).toContain("expo-notifications");
+    expect(notificationsPlugin()).toBeDefined();
     expect(appConfig.android?.googleServicesFile).toBe(
       "./google-services.json",
     );
+  });
+
+  test("a push shows the mark on the brand's blue (M7c)", () => {
+    expect(notificationsPlugin()).toEqual([
+      "expo-notifications",
+      {
+        icon: "./assets/images/notification-icon.png",
+        color: brand.light.parent,
+      },
+    ]);
+    // A wrong path would otherwise only show up as a failed EAS build.
+    expect(() =>
+      jest.requireActual("./assets/images/notification-icon.png"),
+    ).not.toThrow();
   });
 
   test("web is not a target", () => {

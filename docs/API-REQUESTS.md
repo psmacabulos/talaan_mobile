@@ -162,3 +162,41 @@ GET /api/v1/parents/notifications?childId=student-0001&unread=true
 
 **Until then.** No chips. The feed is in sections by day, week and month
 (M6.3a), which is what keeps it from being one long list.
+
+## 5. A push without the title "Bantay Aral"
+
+**Found:** 2026-10-28, by the owner, on the first real pushes after M7a.
+
+**What happens now.** Every push has the title "Bantay Aral" and a body like
+"Juan tapped in at 7:56 AM" (`docs/TALAAN-API.md`, "What a push looks like").
+Android already puts the app's name, Bantay Aral, at the top of every
+notification next to its icon, so the phone shows the name twice:
+
+```
+(icon)  Bantay Aral · now
+        Bantay Aral
+        Juan tapped in at 7:56 AM
+```
+
+With the app closed, Android draws the push from what the server sent, so the
+app can't remove the title itself.
+
+**What we'd like:** no `title` on attendance pushes and link-notice pushes,
+with the body, `data`, sound, priority and channel exactly as now:
+
+```
+(icon)  Bantay Aral · now
+        Juan tapped in at 7:56 AM
+```
+
+On iOS (later), a push with no title shows the app's name in its place, so
+nothing is lost there either.
+
+**Not asked for: the child's photo in the push.** Expo can show a picture in a
+push, but the phone downloads it from a plain link, without the parent's
+token. That needs every child's photo at an address anyone holding the link
+can open: a minor's face, outside the sign-in, and shown on a lock screen.
+Making such links safe (signed, expiring) is new server work. The owner's rule
+(2026-10-28): the photo only if it costs nothing, otherwise the name and time.
+
+**Until then.** Pushes show the name twice. Nothing breaks.

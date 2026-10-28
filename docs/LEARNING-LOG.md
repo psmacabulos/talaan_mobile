@@ -24,6 +24,7 @@ Short, plain-language answers to things that came up while building. Organised b
   - [Which push files go in git, and which never do](#which-push-files-go-in-git-and-which-never-do)
   - [The server is set to send. Why doesn't my phone buzz yet?](#the-server-is-set-to-send-why-doesnt-my-phone-buzz-yet)
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
+  - [Why a push's icon is white, not the colour logo](#why-a-pushs-icon-is-white-not-the-colour-logo)
 - [Design](#design)
   - [Is there a Google approval for an app's design?](#is-there-a-google-approval-for-an-apps-design)
   - [Why a picture is shrunk to 3 times its size on screen](#why-a-picture-is-shrunk-to-3-times-its-size-on-screen)
@@ -392,6 +393,23 @@ a push never arrives later: did this phone register since it last signed in?
 
 Code changes like M7a's reach the phone over Wi-Fi from `npx expo start`. Only
 a change to native code or `app.config.ts` needs a new EAS build.
+
+### Why a push's icon is white, not the colour logo
+
+Asked by the owner, 2026-10-28: "I prefer that you use the full coloured icon …
+is it the same file in dark mode?"
+
+An Android push has two picture spots. The **left** one (also the tiny icon in
+the status bar) is always one colour: Android keeps only the picture's shape
+and paints it, so a colour logo there becomes a white blob. Every Android app
+lives with this, which is why Gmail's and Messenger's push icons are plain
+outlines. The **right** one may be full colour, but it's optional.
+
+So the app's push icon is `assets/images/notification-icon.png`: the mark as a
+white outline, which Android puts in a circle of the mark's blue. It's the same
+file in light and dark mode, because Android does the colouring. The iPhone in
+the mockup shows the colour logo on the left; iPhones allow that, Android
+doesn't. More in `docs/PUSH.md`, "What a push looks like".
 
 ## Design
 

@@ -292,6 +292,42 @@ sequenceDiagram
 **What M7a doesn't do (M7b):** a push that arrives while the app is open isn't
 shown, and tapping a push opens the app where it was, not the feed.
 
+### What a push looks like (M7c)
+
+With the app closed, Android draws the push itself, from two things: the words
+the server sends and an icon built into the app.
+
+```
+┌───────────────────────────────────────────────┐
+│ (A)  Bantay Aral · now                   (B)  │
+│      Bantay Aral        ← the server's title  │
+│      Juan tapped in at 7:56 AM                │
+└───────────────────────────────────────────────┘
+```
+
+| Spot | What Android allows | What the app sets |
+|---|---|---|
+| (A) left, and the status bar | One colour: Android keeps only the picture's shape | `assets/images/notification-icon.png` (96 × 96, the mark as a white outline, from `design/logo/`), in a circle of the mark's blue `#1149A6` |
+| (B) right | Full colour, optional | Nothing: the mark would show twice (owner's choice "A", 2026-10-28). `design/logo/notification-large-icon.png` is ready if that changes |
+| The title and the message | The server's words | Nothing. Talaan is asked to drop the title (`docs/API-REQUESTS.md`, item 5) |
+
+Both come from `app.config.ts`:
+
+```ts
+[
+  "expo-notifications",
+  {
+    icon: "./assets/images/notification-icon.png",
+    color: NOTIFICATION_COLOR, // "#1149A6", checked against src/theme by app.config.test.ts
+  },
+],
+```
+
+The same file is used in light and dark: Android colours it. The icon is built
+into the app, so changing it needs a new development build. A picture of the
+child isn't possible without a photo link that works without signing in
+(`docs/API-REQUESTS.md`, item 5).
+
 ### Quick recipes
 
 | I want to | Do |
@@ -301,6 +337,7 @@ shown, and tapping a push opens the app where it was, not the feed.
 | Turn notifications back on after "Don't allow" | Settings → Apps → Bantay Aral → Notifications |
 | Change the channel's sound or importance | Use a new channel id; the server must send to it too (`docs/API-REQUESTS.md`) |
 | Change anything in `app.config.ts` or add a native package | A new development build (Part D, step 2) |
+| Change the push icon | Replace `assets/images/notification-icon.png` with a 96 × 96 white shape on transparent, keeping about 8 pixels clear at each edge, then a new development build |
 
 ---
 

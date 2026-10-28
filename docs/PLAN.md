@@ -27,6 +27,7 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M6.4a | Home's child card as designed: status icons, the times panel | 4/4 | **Approved** |
 | M6.4b | Home's header, tab icons, and a card with only what matters | 4/4 | Parked: built and committed, its phone check and polish come later |
 | M7a | **The phone buzzes when a child taps**, with the app closed | 7/7 | Built, awaiting review |
+| M7c | The Bantay Aral logo on every push | 3/3 | Built, awaiting review |
 | M7b | A push with the app open, and a tap on one opens the feed | 0/2 | Not started |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
@@ -478,6 +479,42 @@ Expo Go).
 | Lock the phone and tap again | The push shows on the lock screen (or "contents hidden", if the phone is set to hide them) |
 | Leave Home and come back, pull to refresh | No second "Allow" prompt |
 | Sign out, then tap the card at the gate | No push |
+
+- [ ] Owner review: I checked it and said "approved"
+
+### Step M7c: The Bantay Aral logo on every push
+
+**Changed by:** the owner, 2026-10-28, after the first real pushes: "The logo
+is not showing … There is no need to repeat the words Bantay Aral on every
+children tap." Pushes showed Expo's placeholder "^". Android draws a push's
+small icon in one colour from its shape alone, so the mark goes in as a white
+outline in a circle of the mark's blue. The owner chose that alone ("A"), with
+no full-colour large icon, and kept the app icon and splash for M8.
+
+- [x] `assets/images/notification-icon.png`, from `design/logo/` (96 × 96, the mark as a white outline)
+- [x] `expo-notifications` given that icon and the mark's blue `#1149A6`, checked against `src/theme` by `app.config.test.ts`
+- [x] The second "Bantay Aral" (the push's title) asked of Talaan: `docs/API-REQUESTS.md`, item 5. The child's photo isn't asked for (it needs a photo link that works without signing in)
+Done when: a push shows the Bantay Aral mark, not Expo's "^".
+Commit: `feat(push): show the Bantay Aral logo on every push`
+
+**Check it on the phone.** This one needs a **new development build**: the
+icon is built into the app.
+
+```bash
+eas build --profile development --platform android
+```
+
+Answer **n** to "Install and run the Android build on an emulator?", open the
+link on the phone, install the APK over the old one. Then
+`npx expo start --dev-client --clear` and open **Bantay Aral**.
+
+| Do this | Expect |
+|---|---|
+| Swipe the app away, then tap the child's card at the gate | The push has the Bantay Aral mark, white in a blue circle, not the "^". The sun's three rays are whole, not cut off |
+| Pull the shade down further to expand it | The same mark, sharp |
+| Look at the status bar before opening it | A small white Bantay Aral outline |
+| Phone in dark mode, tap again | The same mark, still clearly visible |
+| Read the words | Still "Bantay Aral" twice until Talaan drops the title (`docs/API-REQUESTS.md`, item 5). Not this step's to fix |
 
 - [ ] Owner review: I checked it and said "approved"
 
