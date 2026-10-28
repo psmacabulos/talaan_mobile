@@ -12,6 +12,12 @@ owner decides (the table at the end).
 from the new design (Steps M6.4a and M6.4b in `docs/PLAN.md`). The decisions
 below are still open for the other tabs.
 
+**2026-10-28, with Talaan:** section 2's inbox is replaced. Notifications
+becomes **today only**, decided by the server, with a per-parent "seen" time
+for the badge (`docs/API-REQUESTS.md`, 2 and 6). `read` stays shared, and the
+unread filter is dropped (4). Section 3 stands: the day view now, the month
+list after Talaan's Step 63.1 (`docs/PLAN.md`, "Waiting on the server").
+
 ## The idea, in one line
 
 **Notifications is an inbox: what still needs you. Attendance is the record:

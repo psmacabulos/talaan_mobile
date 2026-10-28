@@ -31,6 +31,9 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M7b | A push with the app open, and a tap on one opens the feed | 0/2 | Not started |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
+Work that waits on Talaan is planned under "Waiting on the server", below
+the demo script, and is not counted here.
+
 M6.1 to M6.4b were added on 2026-10-26 and 27, after the plan was written. Each
 starts with a "Changed by" line saying why. On 2026-10-27 the owner chose to
 redo the app one tab at a time, following the new design, starting with Home
@@ -545,6 +548,53 @@ Commit: `chore(release): add the demo build`
 5. Tap Jose's sticker at the gate. The phone shows "Jose tapped in at …". A push may take a few minutes when the server is busy: the time it shows is always the real tap time.
 6. Open the app. Home shows Jose present, with his time in. The feed shows the notification. Open it, and it's read.
 7. Tap again after 2 minutes: "Jose tapped out at …".
+
+## Waiting on the server
+
+Planned 2026-10-28, from the owner's decisions on `docs/API-REQUESTS.md` (the
+reasons are in Talaan's `docs/PARENT-APP-REQUESTS.md`). **Nothing here is
+built yet.** Each starts only when the owner says that Talaan step is
+deployed. First, the owner gives a fresh copy of Talaan's
+`docs/PARENT-API.md` as `docs/TALAAN-API.md`; the exact fields come from
+there, not from this plan. Then each goes through the usual plan, review and
+approval, one at a time.
+
+**Order matters for one of them.** Once 59.7 makes the list today only, a
+parent can no longer see yesterday's taps in Notifications. The Attendance day
+view (below) needs no server change, so it should be in parents' hands
+**before** 59.7 goes live, or the history has no home for a while.
+
+### After Talaan 59.6: one "Bantay Aral", and statuses that never change
+
+The push loses its title and the status values become a promise. Both need
+almost nothing from the app.
+- [ ] `docs/TALAAN-API.md` refreshed. The comment in `src/api/schemas.ts` on dropping an unreadable child says the values are now fixed in `/api/v1`, and why the drop stays (a malformed answer)
+- [ ] On the phone: a gate tap shows "Bantay Aral" once, then "Juan tapped in at 7:56 AM"
+Done when: a push shows the name once.
+
+### After Talaan 59.7: a badge that clears, and today's list
+
+- [ ] Opening Notifications calls `POST /notifications/seen` once each time the tab comes into view, then refetches the badge. The badge keeps showing `unreadCount`, which the server now counts as "newer than seen and still unread"
+- [ ] The list shows what the server sends: today's notices, plus any unread link notice from an earlier day, which shows its date so it doesn't read as today's
+- [ ] The week and month sections (M6.3a) and the paging (`nextBefore`) go, if the new contract drops them. A new empty state for a day with no taps yet
+- [ ] "Mark all as read" decided with the owner first: with a seen time, the badge no longer needs it, and it still clears the other parent's marks (`read` is shared)
+Done when: opening the bell clears the badge on this phone only, and the other parent still sees their badge.
+
+### After Talaan 59.8: the Report button
+
+- [ ] A link notice (`guardian_linked`) with `reportedAt: null` has a **Report** button: at least 48 points high, labelled for the screen reader, disabled while sending. It calls `POST /notifications/:id/report`
+- [ ] The advice changes in `src/strings.ts` from "If you don't know them, contact the school." to "If you don't know them, tap Report and we'll look into it." Once reported (`reportedAt` set): "Reported. We'll check this link.", and no button. `docs/PRODUCT-RULES.md` changes with it
+- [ ] An error shows the server's message with Try again. A second report changes nothing on the server, so a retry is safe
+- [ ] Whether Report asks "Are you sure?" first, decided with the owner
+- [ ] `403 link_blocked` needs nothing: the app already shows the server's message as it is
+Done when: a parent reports a link notice, the wording changes, and the super admin gets the email.
+
+### Attendance: a day view now, a month after Talaan 63.1
+
+From `docs/NAVIGATION.md`, section 3.
+- [ ] **A day view (no server change):** an Attendance tab with the child, "‹ Monday, October 26 ›", that day's status and its taps, from `GET /children/:id/taps?date=`, which already answers any past day. Ship it before 59.7 goes live (above)
+- [ ] **The month list, after Talaan 63.1:** one row per school day from `GET /children/:id/attendance?from=&to=`. Not before: 63.1 waits for the school calendar, so a holiday never shows as Absent. How a day before the child was added shows is Talaan's open question for 63.1
+Done when: a parent can find any past day's taps after the list became today only.
 
 ## After the demo
 

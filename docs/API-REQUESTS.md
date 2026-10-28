@@ -6,11 +6,42 @@ takes these to the Talaan repository, where each becomes a step there
 
 Nothing here blocks the demo (M1 to M8) unless it says so.
 
+## Decisions
+
+The owner took requests 1 to 5 to Talaan on 2026-10-28. The reasons are in
+the Talaan repository, `docs/PARENT-APP-REQUESTS.md`. The app work each one
+needs is planned in `docs/PLAN.md`, "Waiting on the server".
+
+**None of this is live yet.** The app keeps relying only on
+`docs/TALAAN-API.md` until the owner says a server step is deployed. That
+file is then refreshed from Talaan's `docs/PARENT-API.md`, and the app step
+starts.
+
+| # | Request | Decision | Server step |
+|---|---|---|---|
+| 1 | A new attendance `status` would hide a child | **Taken, as a promise:** no new values in `/api/v1`, no `statusLabel` | 59.6 |
+| 2 | "Seen" separate from "read" | **Taken:** a per-parent seen time | 59.7 |
+| 3 | A way to contact the school | **Replaced** by a Report button on a link notice | 59.8 |
+| 4 | Filter the feed by child and by unread | **Dropped:** a today-only list is short enough | — |
+| 5 | A push without the title "Bantay Aral" | **Taken:** no title on any push | 59.6 |
+| — | The child's photo in a push | **Not asked for, agreed** | — |
+| 6 | The notification list shows today only | **Taken** (the owner's own decision) | 59.7 |
+| 7 | A range of days, for an attendance month | **Planned**, after the school calendar | 63.1 |
+
 ---
 
 ## 1. A new attendance `status` would hide a child completely
 
 **Found:** 2026-10-25, during M5.
+
+**Decided 2026-10-28: taken, as a promise (server Step 59.6).** `today.status`
+and a day's status (`present`, `late`, `absent`, `idle`), a tap's `kind`
+(`time_in`, `time_out`) and `school.notificationPreference` never gain a value
+in `/api/v1`: a new value means `/api/v2`. No `statusLabel`. A new
+notification `kind` can still appear, so the app keeps hiding kinds it doesn't
+know, and keeps dropping a child it can't read. Holidays (Talaan Step 63,
+later) arrive as `flexible: true` plus a new optional field, so the app's
+"Came in" / "No tap" wording already covers them.
 
 **What happens now.** `/me` answers with `children`, and each child's
 `today.status` is one of `present`, `late`, `absent`, `idle`. The app checks
@@ -49,6 +80,12 @@ children "disappearing" from the app.
 ## 2. "Seen" and "read" need to be different things
 
 **Asked for:** 2026-10-26, by the owner, after using the feed.
+
+**Decided 2026-10-28: taken (server Step 59.7).** A per-parent "seen" time,
+set by `POST /api/v1/parents/notifications/seen`. The badge (`unreadCount`)
+counts notifications newer than seen **and** still unread, so one the parent
+opened from its push doesn't count. `read` stays shared by a child's
+guardians. In the same step the list becomes today only (request 6).
 
 **What they want**, and it is the right instinct — it is how Facebook, Gmail
 and every notification bell a parent already knows behaves:
@@ -95,9 +132,25 @@ saying out loud to the owner before anyone uses it as a shortcut.
 
 ---
 
-## 3. A way for a parent to contact the school
+## 3. A way for a parent to contact the school: replaced by a Report button
 
 **Found:** 2026-10-26, during M6.2.
+
+**Decided 2026-10-28: replaced (server Step 59.8).** The owner dropped school
+contact details: a number only helps if someone at the school answers, and
+nobody there is set up to. The person who can act is the super admin, who
+already removes a wrong link. So a link notice gets a **Report** button:
+
+- `POST /api/v1/parents/notifications/:id/report`: only on a `guardian_linked`
+  notice this parent received, once. A second report changes nothing.
+- The notice's JSON gains `reportedAt` (`null` until reported).
+- The advice becomes "If you don't know them, tap Report and we'll look into
+  it." Once reported: "Reported. We'll check this link."
+- The server emails the super admin, with no names in the email.
+- `403 link_blocked` loses "Contact your child's school." and becomes "This
+  child can't be linked to your account."
+
+The rest of this entry is the original request, kept for the record.
 
 **What happens now.** When another parent account links a child, the feed
 says "If you don't know them, contact the school." (docs/TALAAN-API.md, the
@@ -132,9 +185,13 @@ pretends to have a number.
 
 ---
 
-## 4. Filter the feed by child, and by unread
+## 4. Filter the feed by child, and by unread: dropped
 
 **Found:** 2026-10-27, during M6.3a.
+
+**Decided 2026-10-28: dropped.** Filters only matter on a long list. Once the
+list is today only (request 6), it's a handful of lines for two or three
+children. No chips.
 
 **What happens now.** The owner's design shows chips above the feed: All,
 one per child, and the app would want Unread too. `GET /notifications` has no
@@ -163,9 +220,16 @@ GET /api/v1/parents/notifications?childId=student-0001&unread=true
 **Until then.** No chips. The feed is in sections by day, week and month
 (M6.3a), which is what keeps it from being one long list.
 
+---
+
 ## 5. A push without the title "Bantay Aral"
 
 **Found:** 2026-10-28, by the owner, on the first real pushes after M7a.
+
+**Decided 2026-10-28: taken (server Step 59.6).** No `title` key on any push.
+Body, `data`, sound, channel `attendance` and priority stay the same. The
+photo stays out of the push, as agreed below. Nothing changes in the app: the
+second "Bantay Aral" simply stops arriving.
 
 **What happens now.** Every push has the title "Bantay Aral" and a body like
 "Juan tapped in at 7:56 AM" (`docs/TALAAN-API.md`, "What a push looks like").
@@ -200,3 +264,48 @@ Making such links safe (signed, expiring) is new server work. The owner's rule
 (2026-10-28): the photo only if it costs nothing, otherwise the name and time.
 
 **Until then.** Pushes show the name twice. Nothing breaks.
+
+---
+
+## 6. The notification list shows today only
+
+**Decided:** 2026-10-28, by the owner, in Talaan's Step 59.7. Not a request
+from the app, but the app must follow it.
+
+**What changes.** The bell says what happened today; the record of past days
+moves to an Attendance tab. The server decides what's in the list, for both
+the list and `unreadCount`, so the badge never counts something the list
+doesn't show:
+
+- **Today's taps**, on the school's clock.
+- **Any `guardian_linked` notice still unread, whatever its day.** It's a
+  safety warning and must not disappear at midnight.
+
+A time out at 5 PM first looked at the next morning is gone from the list by
+then. Accepted: the push already reached the phone, and Attendance will show
+it.
+
+**What it means for the app** (`docs/PLAN.md`, "Waiting on the server"): the
+feed's sections by week and month (M6.3a) and its paging have nothing left to
+do. The exact shape of the answer comes with the refreshed
+`docs/TALAAN-API.md`.
+
+---
+
+## 7. A range of days, for an attendance month
+
+**Decided:** 2026-10-28, planned as Talaan's Step 63.1.
+
+**What exists now.** `GET /api/v1/parents/children/:id/taps?date=YYYY-MM-DD`
+answers any past day: its status, `flexible`, and every tap with its kind. A
+one-day screen can be built against it today.
+
+**What a month needs.** One request for a range,
+`GET /api/v1/parents/children/:id/attendance?from=&to=` (about a month at
+most), each day's status, time in, latest tap and tap count. Without it a
+month is about 22 requests on mobile data.
+
+**Why it waits.** It comes after Talaan's school calendar (Step 63), so a
+holiday or typhoon suspension never shows as Absent. A month of false Absents
+would alarm parents. **Don't build the month view until then.**
+
