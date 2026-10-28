@@ -1,7 +1,8 @@
-# Push notifications: the setup
+# Push notifications
 
-Everything the owner does by hand before M7's code can work. Roughly half an
-hour, all free, no card.
+Parts A to E are everything the owner does by hand before M7's code can work.
+Roughly half an hour, all free, no card. "How the app's push works", after
+them, is the code (M7a).
 
 **Why Firebase is involved at all** is explained in `docs/LEARNING-LOG.md`,
 "Why push needs Firebase at all". The short version: Android gives every app
@@ -62,8 +63,10 @@ Read these twice before starting.
    > `eas init` normally writes the ID into `app.json`. This project uses
    > `app.config.ts`, which it cannot edit, so the ID is added by hand. Tell
    > Claude the ID and it goes into `app.config.ts` under
-   > `extra.eas.projectId`. A project ID is not a secret — it is safe to paste
-   > in chat, unlike the access token below.
+   > `extra.eas.projectId`. Run `npx eas init` again afterwards: it then asks
+   > for `owner` (your Expo username), which goes in `app.config.ts` too. A
+   > third run says "Project already linked" with no warning. Neither value is
+   > a secret — both are safe to paste in chat, unlike the access token below.
 
 ---
 
@@ -120,10 +123,15 @@ Expo needs a key proving it may send notifications as our app.
 3. Click **Generate new private key**, then **Generate key** in the dialog.
 4. A `.json` file downloads. **This one is a password.** Anyone holding it can
    send notifications as Bantay Aral.
-   - Put it somewhere outside this project, or in the project root where
-     `.gitignore` already blocks `*-service-account*.json`.
+   - Its name looks like `bantayaral-58731-firebase-adminsdk-fbsvc-….json`.
+     `.gitignore` blocks `*-firebase-adminsdk-*.json`; check with
+     `git status` that it isn't listed before going on.
    - Never email it, never paste it in chat, never commit it.
-5. Back in the terminal:
+   - Once uploaded (step 5), move it out of this project, for example to
+     `~/Documents/secrets/`. Expo keeps its own copy.
+5. `eas credentials` needs `eas.json`, which is in the project since Part C
+   (it was planned for Part D, and the command failed without it). Back in the
+   terminal:
 
    ```powershell
    npx eas credentials
@@ -140,6 +148,12 @@ Expo needs a key proving it may send notifications as our app.
 
    If it finds the JSON file in the project folder it offers it — press **Y**.
 
+   > Choosing **production** here doesn't tie the key to production builds.
+   > Expo stores the FCM key against the package name, `com.bantayaral.parent`,
+   > which every profile shares, so the development build uses it too. To see
+   > it: `eas credentials` → Android → development, and the same key is listed
+   > under "Push Notifications (FCM V1)".
+
 ---
 
 ## Part D — the development build
@@ -147,11 +161,40 @@ Expo needs a key proving it may send notifications as our app.
 Expo Go cannot receive push on Android, so from here the app runs as a real
 APK on your phone. This is also the rehearsal for M8's demo build.
 
-1. Claude adds an `eas.json` with a `development` profile.
+1. **Before the first build.** A build bakes in every native package and
+   every setting in `app.config.ts`. JavaScript changes after it arrive over
+   Wi-Fi, but a native change means another build (15 a month). So all of
+   this is in place first:
+
+   | What | Done by | How |
+   |---|---|---|
+   | `expo-dev-client` and `expo-notifications` | Claude, 2026-10-28 | `npx expo install expo-dev-client expo-notifications` |
+   | `expo-notifications` in `app.config.ts` → `plugins` | Claude | edited by hand |
+   | `android.googleServicesFile` in `app.config.ts` | Claude | edited by hand |
+   | `eas.json`, `development` profile | Claude, in Part C | written by hand |
+   | `google-services.json` uploaded to EAS | **you** | the command below |
+
+   `.gitignore` keeps `google-services.json` off GitHub, and EAS only uploads
+   what git would, so the build server needs its own copy. In the project
+   folder:
+
+   ```bash
+   eas env:set --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json --visibility secret --environment development --environment preview --environment production
+   ```
+
+   Then check it's there:
+
+   ```bash
+   eas env:list --environment development
+   ```
+
+   It should list `GOOGLE_SERVICES_JSON`. During a build, EAS writes the file
+   on its server and puts its path in that variable; `app.config.ts` reads it.
+
 2. Build it:
 
    ```powershell
-   npx eas build --profile development --platform android
+   eas build --profile development --platform android
    ```
 
    The first build asks a few questions (it offers to make a keystore — say
@@ -195,6 +238,69 @@ EXPO_ACCESS_TOKEN=<from expo.dev → Account settings → Access tokens>
 > of date — the server moved and now answers at `https://bantayaral.com`
 > (`docs/PROBLEMS-LOG.md`, P-007). Ask him where it runs and how to set
 > environment variables there.
+
+---
+
+## How the app's push works (M7a)
+
+Done by the owner on 2026-10-28: Parts A to E. Everything below is code.
+
+```mermaid
+sequenceDiagram
+    participant Home
+    participant Shell as AppShell<br/>usePushRegistration
+    participant Reg as registration.ts
+    participant N as notifications.ts<br/>(expo-notifications)
+    participant API as Talaan
+
+    Note over Shell: signed in, app start,<br/>every return, address change
+    Shell->>Reg: registerThisPhone()
+    Reg->>N: ensureAttendanceChannel()
+    Reg->>N: getPermission()
+    alt granted
+        Reg->>N: getPushToken()
+        Reg->>API: POST /push-tokens { token, platform }
+    end
+    Note over Home: has a child, in front
+    Home->>N: askForPushPermissionOnce():<br/>channel, then the system prompt
+    Home->>Reg: registerThisPhone() if allowed
+```
+
+| File | Its job |
+|---|---|
+| `src/push/notifications.ts` | The only file that imports `expo-notifications`. Channel, permission, the push address, stopping push. Every function fails soft: a phone that can't do push gets `null`, never a crash |
+| `src/push/registration.ts` | `registerThisPhone()`: channel → permission → address → `POST`. One run at a time, shared by every caller |
+| `src/push/use-push-registration.ts` | Mounted once in `src/app/_layout.tsx`. Runs registration while signed in: at start, on every return to the foreground (TanStack's `focusManager`, the same signal as `/me`), and when the phone's address changes |
+| `src/push/ask-permission.ts` | Asks "Allow notifications?" at most once per app session, while Android still lets the app ask (`canAskAgain`, not `status`: P-018) |
+| `src/push/use-ask-permission.ts` | Used on Home: asks once the parent has a child and Home is the screen in front |
+| `src/api/endpoints.ts` | `registerPushToken({ token, platform })` |
+| `src/auth/session.ts` | Sign-out waits for a running registration, then calls `stopPushOnThisPhone()`: deletes the channel (works offline) and drops the Firebase token (3 seconds at most). P-016 |
+
+**Rules the code keeps**
+- The channel comes first. The server sends to `attendance`, and Android drops
+  a push for a channel the phone doesn't have. Android 13 also shows the
+  permission prompt only once a channel exists.
+- The push address is never logged. With it, anyone can send this parent a
+  notification.
+- The address the token listener hands over is Firebase's, not Expo's, so it
+  is ignored and the Expo one asked for again.
+- Failures are quiet. The next return to the app tries again.
+- The channel's lock-screen setting isn't set: the phone's own setting decides
+  (owner decision, 2026-10-28). Android fixes it when the channel is first
+  made, so changing it later means a new channel id.
+
+**What M7a doesn't do (M7b):** a push that arrives while the app is open isn't
+shown, and tapping a push opens the app where it was, not the feed.
+
+### Quick recipes
+
+| I want to | Do |
+|---|---|
+| See whether this phone registered | The server's log: `POST /api/v1/parents/push-tokens` → `204` after sign-in |
+| Be asked "Allow?" again | Settings → Apps → Bantay Aral → Storage → Clear storage (signs you out too), or uninstall and reinstall the build |
+| Turn notifications back on after "Don't allow" | Settings → Apps → Bantay Aral → Notifications |
+| Change the channel's sound or importance | Use a new channel id; the server must send to it too (`docs/API-REQUESTS.md`) |
+| Change anything in `app.config.ts` or add a native package | A new development build (Part D, step 2) |
 
 ---
 

@@ -290,4 +290,9 @@ export const strings = {
     tappedOut: "Tapped out",
     back: "Back",
   },
+
+  push: {
+    /** The channel's name in Android's settings for this app. */
+    channelName: "Attendance",
+  },
 } as const;

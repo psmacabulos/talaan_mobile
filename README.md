@@ -52,7 +52,7 @@ a parent sees says Bantay Aral.
 | `docs/API-CLIENT.md` | How the app talks to the server: the token, the checking, the errors |
 | `docs/API-REQUESTS.md` | What the app needs from the API that it does not have yet |
 | `docs/AUTH.md` | Signing in: the token, the gate, and what happens when it expires |
-| `docs/PUSH.md` | The Expo and Firebase setup for notifications, step by step |
+| `docs/PUSH.md` | Push notifications: the Expo and Firebase setup step by step, and how the app's push code works |
 | `docs/SERVER.md` | Which server to talk to, the demo data, testing a real push |
 | `docs/COMMANDS.md` | Every command, grouped by task |
 | `docs/BUILD-LOG.md` | How each step was actually built |

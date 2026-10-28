@@ -53,8 +53,38 @@ The phone and the computer must be on the same Wi-Fi. If the QR code times out,
 it's almost always Windows Firewall blocking Node — allow it on private
 networks.
 
-**Expo Go can't receive push notifications** (`docs/LEARNING-LOG.md`). That's
-M7's job and needs a development build.
+**Expo Go can't receive push notifications** (`docs/LEARNING-LOG.md`). Since
+M7 the app runs as a development build instead.
+
+## 2a. The development build (since M7)
+
+The **Bantay Aral** app on the phone, installed from an EAS build, replaces
+Expo Go. It loads the code from the laptop the same way.
+
+```bash
+npx expo start --dev-client --clear   # then open Bantay Aral on the phone, not Expo Go
+```
+
+Since `expo-dev-client` is installed, plain `npx expo start` assumes the
+development build too. Press `s` in the terminal to switch to Expo Go.
+
+**When you need a new build** (15 a month on the free plan): only after a
+native change, meaning a new package with native code, or anything in
+`app.config.ts`. Code changes in `src/` never need one.
+
+```bash
+eas build --profile development --platform android   # builds on Expo's servers, 10–20 min
+```
+
+It asks "Install and run the Android build on an emulator?": answer **n**.
+Open the link it prints on the phone, download the APK, install it.
+
+| Push setup | Command |
+|---|---|
+| See what EAS will build with | `eas config --platform android --profile development` |
+| See the uploaded files and variables | `eas env:list --environment development` |
+| Upload `google-services.json` again (after changing Firebase) | `eas env:set --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json --visibility secret --environment development --environment preview --environment production` |
+| See or change the Firebase key Expo sends with | `eas credentials` → Android → development |
 
 ## 3. The checks
 

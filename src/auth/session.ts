@@ -33,6 +33,8 @@ import {
 } from "@/api/endpoints";
 import { clearPhotoCache } from "@/api/photo-cache";
 import { clearToken, setToken } from "@/api/token";
+import { stopPushOnThisPhone } from "@/push/notifications";
+import { waitForRegistration } from "@/push/registration";
 
 import { deviceLabel } from "./device-label";
 import { useSession } from "./session-context";
@@ -136,6 +138,11 @@ export function useSignOut() {
         // with no signal is signed out on that phone, and must not be shown
         // an error for something that worked.
       } finally {
+        // That 30-day copy includes the push address, so a phone signed out
+        // offline would keep showing children's names (P-016). A registration
+        // still running could undo the stop, so it finishes first.
+        await waitForRegistration();
+        await stopPushOnThisPhone();
         await forgetSession(queryClient, setHasToken);
       }
     },

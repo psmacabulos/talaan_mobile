@@ -25,6 +25,20 @@ describe("the app's identity", () => {
     expect(appConfig.scheme).toBe("bantayaral");
   });
 
+  test("push has an EAS project to get a token from (M7)", () => {
+    expect(appConfig.extra?.eas?.projectId).toBe(
+      "c5d60aa1-0647-4286-a029-161cd424ee2d",
+    );
+    expect(appConfig.owner).toBe("pmacabulos");
+  });
+
+  test("the build carries push and the Firebase project it belongs to", () => {
+    expect(appConfig.plugins).toContain("expo-notifications");
+    expect(appConfig.android?.googleServicesFile).toBe(
+      "./google-services.json",
+    );
+  });
+
   test("web is not a target", () => {
     expect(appConfig.platforms).toEqual(["android", "ios"]);
   });

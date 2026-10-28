@@ -33,6 +33,7 @@ import { Button } from "@/components/form/button";
 import { TextLink } from "@/components/form/text-link";
 import { HomeHeader } from "@/components/home/home-header";
 import { Skeleton } from "@/components/skeleton";
+import { useAskForPushPermission } from "@/push/use-ask-permission";
 import { strings } from "@/strings";
 import { useTheme } from "@/theme";
 
@@ -52,6 +53,10 @@ export default function HomeScreen() {
   // pending for ever, so the moment signing out flips `hasToken` to false this
   // screen would freeze with no way out (docs/PROBLEMS-LOG.md, P-009).
   const answer = me.data;
+
+  // Asks to allow notifications once there's a child to be notified about.
+  useAskForPushPermission((answer?.children.length ?? 0) > 0);
+
   const failureMessage =
     me.error instanceof ApiError ? me.error.message : strings.errors.unexpected;
 

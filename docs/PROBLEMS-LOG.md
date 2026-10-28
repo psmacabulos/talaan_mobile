@@ -755,3 +755,237 @@ the feed and never treat it as a tap.
 A kind still unknown is still dropped while the badge counts it. "Mark all as
 read" clears that, and the exhaustive switch means it only lasts until the app
 learns the kind.
+
+---
+
+## P-014 — the Firebase private key wasn't ignored by git
+
+- **Date:** 2026-10-27
+- **Where:** M7, `docs/PUSH.md` Part C, after downloading the service account key
+- **Tag:** Security
+- **Impact:** a `git add .` would have committed a key that lets anyone send
+  notifications as Bantay Aral, to every parent, and the repository is on
+  GitHub. Caught before any commit; the key never left the laptop.
+- **Status:** Fixed
+
+**Symptom**
+
+No error. `git status` listed the key as a new file, ready to add:
+
+```
+?? bantayaral-58731-firebase-adminsdk-fbsvc-a91045bfab.json
+```
+
+**Cause**
+
+`.gitignore` blocked `*-service-account*.json`, a name guessed before the key
+existed. Firebase names it `<project>-firebase-adminsdk-<id>.json`, which that
+pattern doesn't match. `google-services.json` was matched correctly.
+
+**Options weighed**
+
+1. Ignore every `*.json` in the root. Rejected: `package.json`, `eas.json` and
+   `tsconfig.json` live there and must be committed.
+2. Add Firebase's real naming pattern.
+
+**Solution**
+
+Option 2: `.gitignore` now also blocks `*-firebase-adminsdk-*.json`, checked
+with `git check-ignore -v`. `docs/PUSH.md` Part C now names the real file, says
+to check `git status`, and says to move the key out of the project once it's
+uploaded to Expo.
+
+---
+
+## P-015 — `eas credentials` failed: no `eas.json`
+
+- **Date:** 2026-10-27
+- **Where:** M7, `docs/PUSH.md` Part C step 5
+- **Tag:** Other
+- **Status:** Fixed
+
+**Symptom**
+
+```
+❯ eas credentials
+✔ Select platform › Android
+eas.json could not be found at /Users/pmacabulos/Documents/talaan_parents_app/eas.json. Learn more at https://expo.fyi/eas-json
+    Error: credentials command failed.
+```
+
+**Cause**
+
+`docs/PUSH.md` planned `eas.json` for Part D (the development build), but
+`eas credentials` in Part C already needs it: credentials hang off a build
+profile.
+
+**Solution**
+
+`eas.json` added in Part C with the two profiles the guide uses: `development`
+(a dev client APK, installed by hand) and `production`. `appVersionSource` is
+`local`, so the version stays the `versionCode` written in `app.config.ts`.
+Checked with `eas config --platform android --profile production`.
+`docs/PUSH.md` now says so in Part C and Part D.
+
+---
+
+## P-016 — signing out with no signal left the phone getting pushes
+
+- **Date:** 2026-10-28
+- **Where:** M7a, found in the plan review and the code review, before the phone check
+- **Tag:** Security
+- **Impact:** for up to 30 days after an offline sign-out, the phone would
+  keep showing "Juan tapped in at 7:56 AM" with nobody signed in: on a shared
+  or handed-on phone, a child's name and movements to whoever holds it.
+- **Status:** Fixed in code; not yet checked on the phone
+
+**Symptom**
+
+None visible: found by reading the code. `useSignOut` (`src/auth/session.ts`)
+signs out locally even when `POST /logout` fails, which is right. But the
+server only removes the push address when that request arrives, and a sign-in
+left unused is cleared after 30 days.
+
+```
+Phone (offline)                     Talaan                   Expo / FCM
+signs out ──X── POST /logout        still has the address
+token, cache, photos cleared        a tap at the gate ──────► push ──► phone shows it
+```
+
+**Options weighed**
+
+1. Accept it: rare, and expires. Rejected: the people involved are minors.
+2. Drop the Firebase token (`unregisterForNotificationsAsync`). Kills the
+   address, but needs the internet: offline, the case this is for, it most
+   likely fails, and awaited it could hang the sign-out.
+3. Delete the `attendance` channel. Local, instant, works offline: Expo
+   doesn't show a push sent to a channel the phone doesn't have. The next
+   sign-in makes it again.
+4. 2 and 3 together, with 2 limited to 3 seconds.
+
+**Solution**
+
+Option 4, in `stopPushOnThisPhone()` (`src/push/notifications.ts`). Sign-out
+also waits, at most 3 seconds, for a registration already running
+(`waitForRegistration()`, `src/push/registration.ts`), since one could make the
+channel again just after it was deleted. A registration that sends its `POST`
+after sign-out carries no token, gets `401`, and changes nothing on the server.
+
+**Still uncertain:** that a push to a deleted channel isn't shown is Expo's
+documented behaviour, not yet seen on the owner's phone. M7a's phone check
+includes "sign out, then tap: no push". Also checking it in airplane mode
+would cover the offline case.
+
+---
+
+## P-017 — "Custom sound 'default' not found in native app"
+
+- **Date:** 2026-10-28
+- **Where:** M7a, first run on the owner's phone
+- **Tag:** Other
+- **Status:** Fixed in code; the phone needs its app storage cleared once
+
+**Symptom**
+
+In the `npx expo start` terminal, once for every registration run (start, and
+each return to the app):
+
+```
+ERROR  expo-notifications: Custom sound 'default' not found in native app. Make sure the sound file (e.g. 'custom_sound.wav') is included in the expo-notifications config plugin sounds array in app config.
+```
+
+**Cause**
+
+`ensureAttendanceChannel()` passed `sound: "default"`, read as "use the
+default sound". In a channel's settings `sound` is a **file name**, and
+expo-notifications' Android code says so:
+
+```java
+// AndroidXNotificationsChannelManager.createSoundUriFromArguments
+if (!args.containsKey(SOUND_KEY)) {
+  return Settings.System.DEFAULT_NOTIFICATION_URI;   // the default is... the default sound
+}
+String filename = args.getString(SOUND_KEY);
+if (filename == null) return null;                    // null means no sound
+return mSoundResolver.resolve(filename);              // anything else: a bundled file
+```
+
+(The push the *server* sends has `sound: "default"`, where it does mean the
+phone's sound. Same word, different meaning: the mix-up came from there.)
+
+The channel was still created, but with a sound that doesn't exist, and
+Android never lets an app change a channel's sound afterwards. Deleting and
+re-creating the channel doesn't help either: Android brings a deleted channel
+back with its old settings when the same id is used again.
+
+**Options weighed**
+
+1. A new channel id (`attendance_v2`). Rejected: the server sends to
+   `attendance` (docs/TALAAN-API.md:223).
+2. Fix the code and clear the one affected phone's app storage, which removes
+   its channels for good. Only the owner's phone has the bad channel.
+
+**Solution**
+
+Option 2. `sound` removed from the channel settings, and a test checks it
+stays out. On the phone: Settings → Apps → Bantay Aral → Storage → **Clear
+storage** (this signs the app out), then sign in again.
+
+---
+
+## P-018 — never asked to allow notifications, so no push arrived
+
+- **Date:** 2026-10-28
+- **Where:** M7a, the owner's phone (Android 13 or newer), signed in with a child already linked
+- **Tag:** Other
+- **Status:** Fixed in code; waiting for the owner's phone check
+
+**Symptom**
+
+No error. Home never showed "Allow Bantay Aral to send you notifications?".
+A tap at the gate updated Home's times a few seconds later, but the phone
+didn't buzz.
+
+**Cause**
+
+`askForPushPermissionOnce()` only asked when Expo's `status` was
+`"undetermined"`. On Android 13 and newer, Expo never reports that for a
+permission that was never asked. Android has no "not asked yet" state, so it
+reports `"denied"` and tells the cases apart only with `canAskAgain`
+(`NotificationPermissionsModule.kt`, `getPermissionsWithPromiseImplApi33`):
+
+```kotlin
+val status = when {
+  areAllDenied -> PermissionsStatus.DENIED.status   // never asked lands here
+  !areEnabled -> PermissionsStatus.DENIED.status
+  areAllGranted -> PermissionsStatus.GRANTED.status
+  else -> PermissionsStatus.UNDETERMINED.status
+}
+```
+
+So the app never asked, permission was never granted, and registration
+stopped before sending the phone's address. The server had nowhere to send
+the push. The tests didn't catch it because they were written against the
+documented meaning of `"undetermined"`, not against what Android returns.
+
+```
+Home ─► getPermissionStatus() = "denied" (never asked) ─► not "undetermined": don't ask
+Shell ─► registerThisPhone() ─► not granted ─► no POST /push-tokens
+Gate tap ─► Talaan: no address for this phone ─► push: sent 0
+```
+
+**Options weighed**
+
+1. Ask whenever not granted. Rejected: it would also call the prompt after a
+   parent refused twice, when Android silently shows nothing.
+2. Ask when not granted **and** `canAskAgain`. Android allows the prompt
+   twice; after a second "Don't allow", `canAskAgain` turns false.
+
+**Solution**
+
+Option 2. `getPermission()` in `src/push/notifications.ts` returns
+`{ granted, canAsk }` built from Expo's `granted` and `canAskAgain`; nothing
+reads `status` any more. Registration needs `granted`; the prompt needs
+`canAsk`. Tests now use the real Android shape:
+`{ status: "denied", granted: false, canAskAgain: true }`.
+

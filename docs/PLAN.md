@@ -1,6 +1,6 @@
 # Build plan
 
-Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box isn't ticked (`CLAUDE.md`, "One step at a time"). Each step's "Commit:" line is a suggestion; the owner makes the commit.
+Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box isn't ticked, skipping any the owner set aside or parked (`CLAUDE.md`, "One step at a time"). Each step's "Commit:" line is a suggestion; the owner makes the commit.
 
 **The server:** Talaan's live server on Heroku (`https://bantayaral.herokuapp.com`), over HTTPS, deployed through Talaan's Step 54.1. Talaan on the owner's Mac is the fallback (`docs/SERVER.md`).
 
@@ -8,9 +8,9 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 48 of 64 tasks, 10 of 13 steps approved** (M6.3b, set aside, not counted).
+**To the demo: 48 of 60 tasks, 10 of 12 steps approved** (M6.3b and M6.4b, set aside, not counted).
 
-`███████████████░░░░░` 75%
+`████████████████░░░░` 80%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
@@ -25,8 +25,9 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M6.3a | Notifications grouped: Today, Yesterday, this week, this month, by month | 4/4 | **Approved** |
 | M6.3b | Notification rows with icon tiles, like the mockup | 0/4 | Set aside: comes back with Notifications as an inbox (`docs/NAVIGATION.md`) |
 | M6.4a | Home's child card as designed: status icons, the times panel | 4/4 | **Approved** |
-| M6.4b | Home's header, tab icons, and a card with only what matters | 4/4 | Built, awaiting review |
-| M7 | **The phone buzzes when a child taps** | 0/8 | In progress, paused for the redesign |
+| M6.4b | Home's header, tab icons, and a card with only what matters | 4/4 | Parked: built and committed, its phone check and polish come later |
+| M7a | **The phone buzzes when a child taps**, with the app closed | 7/7 | Built, awaiting review |
+| M7b | A push with the app open, and a tap on one opens the feed | 0/2 | Not started |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
 M6.1 to M6.4b were added on 2026-10-26 and 27, after the plan was written. Each
@@ -440,19 +441,51 @@ parent-one.
 | Pull down from the top | Still refreshes |
 
 Commit: `feat(home): trim the card and add the designed header and tab icons`
+
+**Parked** by the owner, 2026-10-27: "We can stop on the header or tab for
+now … the important thing to finish now is the push notifications." The code
+is committed (`be8aa0c`) and its tests pass; the phone check above hasn't been
+done. It comes back in the polish phase ("After the demo").
+
 - [ ] Owner review: I checked it and said "approved"
 
-### Step M7: Push
-- [ ] The owner's free Expo account and EAS project id, and a free Firebase project with an Android app `com.bantayaral.parent`: give the owner the exact clicks
-- [ ] A development build installed on the phone (Expo Go can't receive push on Android)
-- [ ] The Android channel `attendance` ("Attendance") created before the token is registered
-- [ ] Permission asked right after the first child is linked, never on first launch
-- [ ] The Expo push token registered after sign-in, on every app start, and whenever it changes
-- [ ] In the foreground: shown in the app, home and feed refreshed. Tapping a push opens the feed at that notification
-- [ ] A link notice's push ("A new parent account was linked to Juan", Talaan Step 55.2) opens the feed like any other, and is never treated as a tap (`docs/PROBLEMS-LOG.md`, P-013)
-- [ ] The live server switched to send for real: `PUSH_SENDER=expo` and `EXPO_ACCESS_TOKEN`, set by the owner on Heroku (`docs/SERVER.md`, "Testing a real push")
+### Step M7a: Push, with the app closed
+
+Split from M7 on 2026-10-28 to keep each step reviewable in one sitting: M7a
+makes the phone buzz with the app closed, M7b handles a push while the app is
+open and what a tap on one opens.
+
+- [x] The owner's free Expo account and EAS project id, and a free Firebase project with an Android app `com.bantayaral.parent`: give the owner the exact clicks (`docs/PUSH.md`, Parts A to C)
+- [x] A development build installed on the phone (Expo Go can't receive push on Android)
+- [x] The Android channel `attendance` ("Attendance") created before the token is registered
+- [x] Permission asked once a child is linked, never on first launch. Asked on Home, so parents who linked before M7 are asked too
+- [x] The Expo push token registered after sign-in, on every app start, every return to the foreground, and whenever it changes
+- [x] Signing out stops pushes on this phone, even with no signal (found in the plan review)
+- [x] The live server switched to send for real: `PUSH_SENDER=expo` and `EXPO_ACCESS_TOKEN`, set by the owner (2026-10-28)
 Done when: a tap at `/gate` for a linked child buzzes the phone, with the app closed.
 Commit: `feat(push): get a push when a child taps in or out`
+
+**Check it on the phone.** No new build: the code reaches the phone over
+Wi-Fi. `npx expo start --dev-client --clear`, then open **Bantay Aral** (not
+Expo Go).
+
+| Do this | Expect |
+|---|---|
+| Sign in as a parent with a linked child | Home asks "Allow Bantay Aral to send you notifications?" once |
+| Tap **Allow** | Nothing else visible. The server's log shows one `POST /api/v1/parents/push-tokens` answering `204` |
+| Settings → Apps → Bantay Aral → Notifications | An "Attendance" category |
+| Swipe the app away, then tap the child's card at the gate | Within seconds: "Bantay Aral · Juan tapped in at 7:56 AM", with a sound |
+| Lock the phone and tap again | The push shows on the lock screen (or "contents hidden", if the phone is set to hide them) |
+| Leave Home and come back, pull to refresh | No second "Allow" prompt |
+| Sign out, then tap the card at the gate | No push |
+
+- [ ] Owner review: I checked it and said "approved"
+
+### Step M7b: Push, with the app open
+- [ ] In the foreground: shown in the app, home and feed refreshed. Tapping a push opens the feed at that notification
+- [ ] A link notice's push ("A new parent account was linked to Juan", Talaan Step 55.2) opens the feed like any other, and is never treated as a tap (`docs/PROBLEMS-LOG.md`, P-013)
+Done when: a push arriving with the app open shows and refreshes Home, and tapping any push opens the feed at it.
+Commit: `feat(push): show pushes in the app and open the feed from one`
 - [ ] Owner review: I checked it and said "approved"
 
 ### Step M8: The demo build
@@ -481,6 +514,7 @@ Commit: `chore(release): add the demo build`
 Each becomes its own step when it's due:
 - **Forgot password, from the app,** once Talaan's Step 55.5 adds it. Parents recover their own password, never by asking the school.
 - **Deleting your own account,** with Talaan's Step 60. Both app stores require it before publishing an app that makes accounts.
+- **Polish Home (M6.4b, parked):** run its phone check, then fix what it finds: the picture's place and size, the logo at large text, two children without scrolling on a small phone. Then the other tabs, one at a time (`docs/NAVIGATION.md`).
 - **What each school sends, on the Profile tab.** Since M6.4b it's on no screen, so a parent at a school with notifications off can wait for a push that never comes. The wording is in `docs/PRODUCT-RULES.md`, "Who gets notified".
 - **iOS,** once the owner decides on the Apple Developer account.
 - **Publishing to Google Play:** a privacy policy page (for example on `bantayaral.com`) and the store listing.

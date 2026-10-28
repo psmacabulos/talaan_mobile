@@ -51,3 +51,4 @@ example
 google-services.json
 google-services*.json
 *-service-account*.json
+*-firebase-adminsdk-*.json

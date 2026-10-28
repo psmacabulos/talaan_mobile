@@ -15,11 +15,14 @@ Short, plain-language answers to things that came up while building. Organised b
   - [What the owner sees on the phone when installing by hand](#what-the-owner-sees-on-the-phone-when-installing-by-hand)
   - [Google's developer verification, and why it matters by 2027](#googles-developer-verification-and-why-it-matters-by-2027)
   - [Expo Go runs one SDK, and the store copy lags](#expo-go-runs-one-sdk-and-the-store-copy-lags)
+  - [Installing a package, and what a config plugin is](#installing-a-package-and-what-a-config-plugin-is)
 - [Talking to the server](#talking-to-the-server)
   - [What EXPO_PUBLIC_API_URL should be](#what-expo_public_api_url-should-be)
 - [Push notifications](#push-notifications)
   - [Why Expo Go can't test push](#why-expo-go-cant-test-push)
   - [Why push needs Firebase at all](#why-push-needs-firebase-at-all)
+  - [Which push files go in git, and which never do](#which-push-files-go-in-git-and-which-never-do)
+  - [The server is set to send. Why doesn't my phone buzz yet?](#the-server-is-set-to-send-why-doesnt-my-phone-buzz-yet)
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
 - [Design](#design)
   - [Is there a Google approval for an app's design?](#is-there-a-google-approval-for-an-apps-design)
@@ -182,6 +185,49 @@ Expo Go is already there.
 runtime, so it never consults Expo Go and never cares which SDK the stores are
 on.
 
+### Installing a package, and what a config plugin is
+
+**Installing.** For anything made for Expo, use `npx expo install`, not
+`npm install`:
+
+```bash
+npx expo install expo-dev-client expo-notifications
+```
+
+It runs `npm install` for you, but first picks the version that matches this
+project's SDK (58). Plain `npm install` takes the newest version, which may
+expect a different SDK and break the build. It changes `package.json` and
+`package-lock.json`, nothing else; `git diff` shows it.
+
+**A config plugin** is a small piece of code that comes *inside* a package.
+You don't install it separately: installing `expo-notifications` brought its
+plugin with it. Its job is to change the Android (and iOS) project files while
+EAS builds the app: for push, it adds the Firebase setup and the permission to
+show notifications.
+
+Listing the package's name in `app.config.ts` is how you switch it on:
+
+```ts
+plugins: [
+  "expo-router",
+  ["expo-splash-screen", { /* its settings */ }],
+  "expo-notifications",          // ← switched on, default settings
+],
+```
+
+A name alone means default settings; a `[name, { … }]` pair passes settings.
+Some packages, like `expo-dev-client`, switch theirs on by themselves when
+installed, so they need no line. To see which plugins actually run:
+
+```bash
+npx expo config --type prebuild
+```
+
+**Why it matters for builds:** a plugin only runs during a build. Changing
+`plugins`, or installing a package with native code, does nothing to the app
+on your phone until the next `eas build`. Plain JavaScript changes don't need
+a build; they arrive from `npx expo start`.
+
 ## Talking to the server
 
 ### What EXPO_PUBLIC_API_URL should be
@@ -304,6 +350,48 @@ would still be there.
 Huawei sold after 2019, cannot receive push at all. Nothing in this app changes
 that, which is why the demo should not be run on one
 [[what-the-owner-sees-on-the-phone-when-installing-by-hand]].
+
+### Which push files go in git, and which never do
+
+The test is one question: **could someone who has this file act as us?**
+
+| File | What it is | In git? |
+|---|---|---|
+| `eas.json` | build settings: which profiles exist, APK or not | **Yes.** No secrets, and EAS needs it on every machine that builds |
+| `app.config.ts` (project ID, owner) | names our Expo project | **Yes.** A name, not a key |
+| `google-services.json` | tells the app which Firebase project it belongs to | Ignored for now; Part D decides how the build gets it |
+| `…-firebase-adminsdk-….json` | a private key that can **send** pushes as Bantay Aral | **Never.** Upload it to Expo, then move it out of the project |
+| `EXPO_ACCESS_TOKEN` | lets a server use our Expo account | **Never.** Typed on the server only |
+
+The difference is identifying versus authorising. An ID only says "this is
+our project". A key or token lets whoever holds it act as us. Anything that
+authorises stays out of git for good, because GitHub keeps history: deleting
+the file in a later commit leaves it readable in the old one, and the only
+real fix is to revoke the key and make a new one.
+
+Before committing after any setup step, look at `git status` and read every
+`??` line. That's how the Firebase key was caught
+(`docs/PROBLEMS-LOG.md`, P-014).
+
+### The server is set to send. Why doesn't my phone buzz yet?
+
+Because the server sends to **addresses**, and it only knows a phone's
+address once the app has sent it. Four things have to be in place, and each
+one only works if the ones before it are there too:
+
+| | What | Whose |
+|---|---|---|
+| 1 | Expo and Firebase know about the app (project id, FCM key) | the owner, `docs/PUSH.md` Parts A to C |
+| 2 | The app on the phone can receive push: a development build, not Expo Go | an EAS build, Part D |
+| 3 | The parent allowed notifications, and the app sent the phone's address (`POST /push-tokens`) | the app's code, M7a |
+| 4 | The server sends for real (`PUSH_SENDER=expo`) instead of only logging | the server's settings, Part E |
+
+With 1, 2 and 4 done but not 3, the server has a tap, a parent, and nowhere to
+send it: its log says `push: sent 0`. That's also the first thing to check if
+a push never arrives later: did this phone register since it last signed in?
+
+Code changes like M7a's reach the phone over Wi-Fi from `npx expo start`. Only
+a change to native code or `app.config.ts` needs a new EAS build.
 
 ## Design
 

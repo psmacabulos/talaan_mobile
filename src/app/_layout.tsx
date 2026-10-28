@@ -32,6 +32,7 @@ import { clearPhotoCache } from "@/api/photo-cache";
 import { onSignedOut } from "@/api/session";
 import { startFocusTracking } from "@/auth/focus";
 import { SessionProvider, useSession } from "@/auth/session-context";
+import { usePushRegistration } from "@/push/use-push-registration";
 import { useTheme } from "@/theme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -84,6 +85,9 @@ function AppShell() {
   // Tells the query cache when the app returns to the foreground, which is
   // what keeps the 30-day token alive (src/auth/focus.ts).
   useEffect(() => startFocusTracking(), []);
+
+  // Sends this phone's push address while signed in (src/push).
+  usePushRegistration();
 
   // The API client clears the token the moment the server says `unauthorized`
   // (src/api/session.ts). All that is left is to drop everything fetched with

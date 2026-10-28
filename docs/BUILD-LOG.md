@@ -1286,3 +1286,107 @@ npx eslint <the changed files>         # clean
 npx tsc --noEmit                       # clean
 npm run check:colors                   # "No colours outside src/theme."
 ```
+
+## M7 — Push
+
+### Setting up the accounts (docs/PUSH.md, Parts A to C)
+
+- `npx eas init` can't write to `app.config.ts` (a dynamic config). It asked
+  for two values, one run after the other: `extra.eas.projectId`, then
+  `owner`. Both written into `app.config.ts` by hand; the third run said
+  "Project already linked" with no warning.
+- `eas credentials` failed with "eas.json could not be found": `docs/PUSH.md`
+  planned `eas.json` for Part D. Added in Part C (P-015).
+- The Firebase service account key wasn't matched by `.gitignore` (P-014).
+  Added `*-firebase-adminsdk-*.json`.
+- The FCM key was uploaded under the `production` profile. That's fine: Expo
+  stores it per package name, which every profile shares.
+
+### Native setup before the first build (Part D)
+
+```bash
+npx expo install expo-dev-client expo-notifications
+#   expo-dev-client ~58.0.16, expo-notifications ~58.1.6, +12 dependencies
+#   touched only package.json and package-lock.json
+npx expo config --type prebuild   # expo-dev-client applies its plugin by itself
+```
+
+- `app.config.ts`: `"expo-notifications"` in `plugins` (default settings;
+  the notification icon comes with M8's real icon), and
+  `android.googleServicesFile` from the EAS file variable
+  `GOOGLE_SERVICES_JSON`, falling back to `./google-services.json` locally.
+- `android.permissions` stays `[]`: `expo-notifications`'s own Android
+  manifest declares `POST_NOTIFICATIONS` and `RECEIVE_BOOT_COMPLETED`, and the
+  build merges them in.
+- `eas.json`: each profile names its EAS environment, so the build gets the
+  right variables.
+- Uploading `google-services.json` with `eas env:set` was refused to Claude
+  (it writes to the owner's Expo account), so the owner runs it.
+- `npm audit` after the install: 4 high, all in packages already there
+  (`@expo/cli`, `expo`, `node-forge`, `zod`), none from the two new ones.
+- The development build installed and signed in on the owner's phone. The
+  `eas build` tip about `eas build:dev` (reuses a cached build) noted for later.
+
+### The code (M7a)
+
+Planned and reviewed before building. M7 was split into M7a (push with the app
+closed) and M7b (app open, tap opens the feed). The review's fixes, all taken:
+re-ask the Expo address on a token change (the listener hands over Firebase's);
+one shared run at module level; ask at most once per session and only when Home
+is in front; check `projectId` is a string; use `focusManager` rather than a
+second AppState listener; settle lock-screen visibility now (owner: the phone
+decides); stop push on sign-out, since an offline sign-out left the address
+live for up to 30 days.
+
+Files: `src/push/{notifications,registration,ask-permission,use-push-registration,use-ask-permission}.ts`,
+`registerPushToken` in `src/api/endpoints.ts`, `stopPushOnThisPhone()` in
+`useSignOut`, `strings.push.channelName`, Home and `AppShell` wiring.
+
+Errors hit:
+
+- `npx eslint`: `'AndroidImportance' not found in imported namespace
+  'Notifications'  import/namespace`. TypeScript was happy; ESLint can't follow
+  the `export *` chain. Fixed with a named import.
+- Hook tests: `renderHook` returned nothing useful and `rerender is not a
+  function`. RNTL 14 made `renderHook`, `rerender`, `unmount` and `act` async.
+  Awaited them.
+- "Once per session" test: `jest.isolateModulesAsync` + `import()` →
+  `A dynamic import callback was invoked without --experimental-vm-modules`.
+  `jest.isolateModules` + `requireActual` on the hook → `Invalid hook call`
+  (a second React). Moved the flag and logic into `src/push/ask-permission.ts`,
+  a plain function, tested in isolation; the hook only gates on children and
+  focus.
+
+The code review found two should-fixes, both taken (P-016): dropping the
+Firebase token needs the internet, so offline it most likely fails and could
+hang the sign-out. Sign-out now deletes the `attendance` channel first (works
+offline) and gives Firebase 3 seconds at most. It also waits, 3 seconds at
+most, for a registration already running, which could otherwise make the
+channel again. A test's `new Promise((resolve) => setImmediate(resolve))`
+failed typecheck (`'(value: unknown) => void' is not assignable to '() =>
+void'`); `new Promise<void>` fixed it.
+
+### Checks run while building
+
+```bash
+npx jest src/push                 # 5 suites
+npx jest                          # 26 suites, 317 tests
+npm run lint                      # clean
+npm run typecheck                 # clean
+npm run check:colors              # "No colours outside src/theme."
+```
+
+`npx prettier --check` flags `src/app/(app)/(tabs)/home.tsx`, but on lines
+from before this step (checked against `HEAD`).
+
+### On the owner's phone
+
+- `ERROR expo-notifications: Custom sound 'default' not found in native app`
+  on every registration run: `sound: "default"` is a file name in channel
+  settings. Removed; the phone's storage cleared once to drop the bad channel
+  (P-017).
+- No permission prompt for a parent with a child already linked, and no push:
+  on Android 13+ Expo reports a never-asked permission as `"denied"`, and the
+  code waited for `"undetermined"`. Now reads `granted` and `canAskAgain`
+  (P-018). 26 suites, 321 tests after the fix.
+

@@ -76,6 +76,22 @@ export async function signIn(input: SignInInput): Promise<AuthResult> {
   });
 }
 
+/**
+ * This phone's push address (M7). One per sign-in: a new address replaces the
+ * old, so sending it again on every app start is safe and is what keeps it
+ * current after a reinstall (docs/TALAAN-API.md:221).
+ */
+export async function registerPushToken(input: {
+  token: string;
+  platform: "android" | "ios";
+}): Promise<void> {
+  await requestNoContent({
+    method: "POST",
+    path: "/api/v1/parents/push-tokens",
+    body: input,
+  });
+}
+
 /** Revokes this phone's token on the server, and removes its push address. */
 export async function signOut(): Promise<void> {
   await requestNoContent({ method: "POST", path: "/api/v1/parents/logout" });

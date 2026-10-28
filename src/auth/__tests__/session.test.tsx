@@ -17,6 +17,8 @@ import { Text } from "react-native";
 import { signOut as signOutRequest } from "@/api/endpoints";
 import { clearToken } from "@/api/token";
 import { Button } from "@/components/form/button";
+import { stopPushOnThisPhone } from "@/push/notifications";
+import { waitForRegistration } from "@/push/registration";
 
 import { useSignOut } from "../session";
 import { SessionProvider, useSession } from "../session-context";
@@ -27,6 +29,14 @@ jest.mock("@/api/endpoints", () => ({
   signIn: jest.fn(),
   signUp: jest.fn(),
   getSchools: jest.fn().mockResolvedValue([]),
+}));
+
+jest.mock("@/push/notifications", () => ({
+  stopPushOnThisPhone: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock("@/push/registration", () => ({
+  waitForRegistration: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock("@/api/token", () => ({
@@ -110,6 +120,27 @@ describe("signing out", () => {
     // that this phone forgot, and that the parent is not shown an error.
     expect(await screen.findByText("hasToken:false")).toBeTruthy();
     expect(clearTokenMock).toHaveBeenCalled();
+  });
+
+  test("stops pushes on this phone even when the server cannot be reached", async () => {
+    signOutMock.mockRejectedValue(new Error("no internet"));
+
+    const user = userEvent.setup();
+    await renderProbe();
+    await screen.findByText("hasToken:true");
+
+    await user.press(screen.getByRole("button", { name: "Sign out" }));
+    await screen.findByText("hasToken:false");
+
+    // The server would keep this phone's push address for up to 30 days, and
+    // a signed-out phone must not keep showing children's names.
+    expect(stopPushOnThisPhone).toHaveBeenCalled();
+    // A registration still running could make the channel again afterwards.
+    expect(
+      jest.mocked(waitForRegistration).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(stopPushOnThisPhone).mock.invocationCallOrder[0],
+    );
   });
 });
 
