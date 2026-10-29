@@ -14,10 +14,14 @@
  */
 import { Stack } from "expo-router";
 
+import { usePushEvents } from "@/push/use-push-events";
 import { useTheme } from "@/theme";
 
 export default function SignedInLayout() {
   const theme = useTheme();
+
+  // A push arriving refreshes the screens; tapping one opens the feed at it.
+  usePushEvents();
 
   return (
     <Stack

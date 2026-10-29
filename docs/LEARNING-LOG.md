@@ -17,6 +17,7 @@ Short, plain-language answers to things that came up while building. Organised b
   - [Expo Go runs one SDK, and the store copy lags](#expo-go-runs-one-sdk-and-the-store-copy-lags)
   - [Installing a package, and what a config plugin is](#installing-a-package-and-what-a-config-plugin-is)
   - [Does every build mean installing it again?](#does-every-build-mean-installing-it-again)
+  - [What getting onto the Play Store needs](#what-getting-onto-the-play-store-needs)
 - [Talking to the server](#talking-to-the-server)
   - [What EXPO_PUBLIC_API_URL should be](#what-expo_public_api_url-should-be)
 - [Push notifications](#push-notifications)
@@ -245,6 +246,33 @@ But a new build is rare. Code in `src/` comes to the phone over Wi-Fi from
 needs one: `app.config.ts`, a picture built into the app (like M7c's push
 icon), or a new package with native code (`docs/COMMANDS.md`, 2a). Once the
 app is on Google Play, parents' phones update by themselves.
+
+### What getting onto the Play Store needs
+
+Asked by the owner, 2026-10-29: "How far are we in registering the app for
+the playstore?"
+
+Not started, on purpose: it's after the demo (`docs/PLAN.md`, "After the
+demo"). What it takes:
+
+- **Done already:** the app's permanent ID, `com.bantayaral.parent` (M1).
+- **The owner's:** a Google Play developer account (US$25, once), with
+  identity verification. Personal or organisation is hard to change, and the
+  developer name shows on the listing.
+- **Talaan's:** a privacy policy page (for example on `bantayaral.com`), and
+  deleting your own account from inside the app (Talaan's Step 60), which
+  both stores require of an app that makes accounts.
+- **The app's:** a store build (`.aab`, not the `.apk` installed by hand), and
+  the listing: screenshots, description, the "Data safety" form, content
+  rating.
+- **Closed testing:** as understood on 2026-10-29, a new *personal* account
+  must run a closed test with at least 12 testers for 14 days before going
+  public; an *organisation* account skips it but needs a D-U-N-S number
+  (free, can take weeks). Google changes this, so check the Play Console
+  when signing up.
+
+The accounts are worth starting early: their waiting happens outside the
+code.
 
 ## Talking to the server
 

@@ -15,6 +15,8 @@
  * (`src/components/feed/feed-row.tsx`). Read marks for taps are shared by a
  * child's guardians, so the other parent's badge drops too — which is the
  * server's business, not something the app works out.
+ *
+ * A tapped push opens this tab at its row (`src/feed/use-focus-row.ts`).
  */
 import { useMemo } from "react";
 import { ActivityIndicator, SectionList, Text, View } from "react-native";
@@ -27,6 +29,7 @@ import { FeedSectionHeader } from "@/components/feed/feed-section-header";
 import { TextLink } from "@/components/form/text-link";
 import { Skeleton } from "@/components/skeleton";
 import { groupFeed } from "@/feed/feed-groups";
+import { useFocusRow } from "@/feed/use-focus-row";
 import { useSchoolToday } from "@/lib/use-school-today";
 import { strings } from "@/strings";
 import { useTheme } from "@/theme";
@@ -44,6 +47,7 @@ export default function NotificationsScreen() {
     [pages, today],
   );
   const hasAny = sections.length > 0;
+  const { listRef, onScrollToIndexFailed } = useFocusRow(sections, feed);
 
   const loadMore = () => {
     // All three matter: `hasNextPage` stops an endless tail, and
@@ -100,8 +104,10 @@ export default function NotificationsScreen() {
       </View>
 
       <SectionList
+        ref={listRef}
         testID="feed-list"
         sections={sections}
+        onScrollToIndexFailed={onScrollToIndexFailed}
         keyExtractor={(item) => item.id}
         renderItem={({ item, section }) => (
           <FeedRow

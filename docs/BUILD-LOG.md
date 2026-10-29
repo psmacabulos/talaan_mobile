@@ -1456,3 +1456,86 @@ task, offered to save a build) wasn't approved, so they stay placeholders.
 
 27 suites, 325 tests (the existence check is inside the new test), no
 warnings. Lint, typecheck and check:colors pass.
+
+## M7b — A push with the app open, and a tap opens the feed
+
+Before M7b, a push sent while the app was open didn't show at all, and
+tapping any push opened the app wherever it was.
+
+**What `expo-notifications` 58.1.6 offers**, read in
+`node_modules/expo-notifications/build/`:
+- `Notifications.types.d.ts`: the handler's answer is `shouldShowBanner`,
+  `shouldShowList`, `shouldPlaySound`, `shouldSetBadge` (`shouldShowAlert` is
+  deprecated). Its comment: on Android, `shouldPlaySound: false` stops the
+  banner dropping down.
+- `NotificationsEmitter.d.ts`: `addNotificationReceivedListener`,
+  `addNotificationResponseReceivedListener`, `getLastNotificationResponse()`
+  (synchronous now) and `clearLastNotificationResponse()`.
+
+All JavaScript over native code already in the development build, so no new
+build: `npx expo start --clear` is enough.
+
+**Owner decisions (2026-10-29):** with the app open, a push shows as Android's
+own banner, not a custom in-app one; tapping a push marks it read.
+
+**The plan's review** (`app-architect`, two rounds) found three real bugs in
+the first draft:
+- The child's day was to be refreshed with `CHILD_DAY_KEY(childId)`, which is
+  `["child", id, "day", "today"]` (`src/children/use-children.ts`), so a day
+  opened with a date wouldn't match. Added `CHILD_KEY(childId)` =
+  `["child", id]` and built `CHILD_DAY_KEY` on it.
+- A tap from the background goes to the listener and stays Expo's "last
+  response", so after sign-out and sign-in the remounted hook would have
+  replayed it. Every tap is now cleared at Expo and its id remembered.
+- `focus` could stay set when the row was never found, so a later pull to
+  refresh would scroll. It's cleared once a fetch after the tap ends.
+
+Round 2 added: `dismissAll()` before `navigate()` so a child's day open on top
+doesn't leave a second tabs screen (`dismissTo` replaces the current screen
+when it can't find the href, `expo-router/build/global-state/router.d.ts:56`),
+and marking read before refetching, so the row doesn't come back unread.
+
+**Scrolling to a row.** `SectionList.scrollToLocation` turns `itemIndex` into
+a flat index counting each section's header as item 0
+(`node_modules/@react-native/virtualized-lists/Lists/VirtualizedSectionList.js:140`),
+so the hook passes `itemIndex + 1`. Rows have no fixed height, so a row not
+drawn yet fails once (`onScrollToIndexFailed`); it's tried once more after
+100 ms, then left. `viewPosition: 0.5` keeps it clear of the sticky header.
+
+**Errors hit while writing the tests**
+- `ReferenceError: The module factory of jest.mock() is not allowed to
+  reference any out-of-scope variables. Invalid variable access: router`.
+  Jest hoists `jest.mock` above the file's variables, so it only allows names
+  starting with `mock`. Renamed to `mockRouter`.
+- The rename with `sed -i '' 's/\brouter\b/mockRouter/g'` changed nothing:
+  macOS's BSD `sed` has no `\b`. `perl -pi -e` has it, but also turned
+  `"expo-router"` into `"expo-mockRouter"` (`Cannot find module
+  'expo-mockRouter'`). Fixed that one line by hand.
+- `src/__tests__/notifications-screen.test.tsx` mocks `expo-router` with only
+  `useRouter: () => ({ push })`; the screen now also needs
+  `useLocalSearchParams` and `setParams`, so both were added to the mock.
+
+Targeted runs while building: `npx jest src/push/__tests__/notifications.test.ts`
+(24 passed), `src/push/__tests__/use-push-events.test.tsx` (8),
+`src/feed/__tests__/use-focus-row.test.tsx` (7),
+`src/feed/__tests__/feed-groups.test.ts` (18),
+`src/__tests__/notifications-screen.test.tsx` (6).
+
+**The code review** (same agent) found nothing blocking. Fixed: the retry
+tried the same row 100 ms later, which usually fails the same way; it now
+first jumps to `index × averageItemLength` (`getScrollResponder().scrollTo`)
+so the list draws the row. Noted, not fixed: a push tapped while linking a
+child closes the form, and an old feed fetches once before the read mark
+(`docs/PUSH.md`, "Known trade-offs").
+
+**The owner's typecheck** failed once:
+
+```
+src/feed/use-focus-row.ts:15:28 - error TS2724: '"react-native"' has no exported member named 'SectionListScrollParams'. Did you mean 'SectionListProps'?
+```
+
+The name came from older React Native typings. In 0.88 it exists only inside
+`types_generated/Libraries/Lists/SectionList.d.ts:20` (an alias); the
+package root exports it as `ScrollToLocationParamsType`
+(`types_generated/index.d.ts:78`). Renamed in the hook and the recipe
+(P-020).

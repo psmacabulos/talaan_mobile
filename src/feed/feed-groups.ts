@@ -112,3 +112,19 @@ export function groupFeed(items: Notification[], today: string): FeedSection[] {
     ...all.filter((section) => section.bucket === "undated"),
   ];
 }
+
+/** Where a notification sits in the sections, or `null` if it isn't there. */
+export function locateInSections(
+  sections: FeedSection[],
+  id: string,
+): { sectionIndex: number; itemIndex: number } | null {
+  for (const [sectionIndex, section] of sections.entries()) {
+    const itemIndex = section.data.findIndex((item) => item.id === id);
+
+    if (itemIndex !== -1) {
+      return { sectionIndex, itemIndex };
+    }
+  }
+
+  return null;
+}

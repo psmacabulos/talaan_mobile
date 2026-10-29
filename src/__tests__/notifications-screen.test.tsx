@@ -24,7 +24,8 @@ import { schoolDateOf } from "@/lib/school-time";
 import { strings } from "@/strings";
 
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: jest.fn() }),
+  useLocalSearchParams: () => ({}),
+  useRouter: () => ({ push: jest.fn(), setParams: jest.fn() }),
 }));
 
 jest.mock("@/feed/use-feed", () => ({

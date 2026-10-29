@@ -32,10 +32,15 @@ import { clearPhotoCache } from "@/api/photo-cache";
 import { onSignedOut } from "@/api/session";
 import { startFocusTracking } from "@/auth/focus";
 import { SessionProvider, useSession } from "@/auth/session-context";
+import { showPushesWhileOpen } from "@/push/notifications";
 import { usePushRegistration } from "@/push/use-push-registration";
 import { useTheme } from "@/theme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// Before any push can arrive: without it, one sent while the app is open
+// doesn't show at all.
+showPushesWhileOpen();
 
 const queryClient = new QueryClient();
 

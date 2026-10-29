@@ -1049,3 +1049,38 @@ A first guess, that Expo's push service turns a missing title into the text
 
 Option 1, chosen by the owner on 2026-10-29 and written up as
 `docs/API-REQUESTS.md`, request 8. Nothing changes in the app.
+
+## P-020 — typecheck: no `SectionListScrollParams` in React Native 0.88
+
+- **Date:** 2026-10-29
+- **Where:** M7b, `src/feed/use-focus-row.ts`, the owner's `npm run typecheck`
+- **Tag:** Other
+- **Status:** Fixed; waiting for the owner's typecheck
+
+**Symptom**
+
+```
+src/feed/use-focus-row.ts:15:28 - error TS2724: '"react-native"' has no exported member named 'SectionListScrollParams'. Did you mean 'SectionListProps'?
+```
+
+**Cause**
+
+I used the type's name from older React Native typings without checking this
+version's. React Native 0.88 generates its types from the source: the name
+`SectionListScrollParams` is only an alias inside
+`types_generated/Libraries/Lists/SectionList.d.ts:20`, not exported from
+`react-native` itself. The tests didn't catch it: Jest strips types without
+checking them.
+
+**Options weighed**
+
+1. Import from the inner file path. Rejected: a deep import breaks on the next
+   React Native upgrade.
+2. Use the name the package root exports, `ScrollToLocationParamsType`
+   (`types_generated/index.d.ts:78`).
+
+**Solution**
+
+Option 2, in `src/feed/use-focus-row.ts` and the recipe. Lesson: check a type
+name in `node_modules/react-native/types_generated/index.d.ts` before using
+it.

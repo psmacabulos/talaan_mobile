@@ -289,8 +289,8 @@ sequenceDiagram
   (owner decision, 2026-10-28). Android fixes it when the channel is first
   made, so changing it later means a new channel id.
 
-**What M7a doesn't do (M7b):** a push that arrives while the app is open isn't
-shown, and tapping a push opens the app where it was, not the feed.
+M7b adds what happens when a push arrives with the app open, and when one is
+tapped: "A push with the app open, and a tap (M7b)", below.
 
 ### What a push looks like (M7c)
 
@@ -328,6 +328,88 @@ into the app, so changing it needs a new development build. A picture of the
 child isn't possible without a photo link that works without signing in
 (`docs/API-REQUESTS.md`, item 5).
 
+### A push with the app open, and a tap (M7b)
+
+Two moments, both handled in JavaScript on top of the native code already in
+the build, so no new build was needed.
+
+**A push arrives while the app is open.** Expo shows nothing in that case
+unless the app says how. `showPushesWhileOpen()` says: a banner, in the list,
+with sound, no app-icon badge, so it looks exactly like one with the app
+closed. It's called once, at the top of `src/app/_layout.tsx`. Then the screens
+catch up: Home (`/me`), the badge, the feed and that child's day are asked for
+again.
+
+**The parent taps a push.** With the app open, in the background, or closed.
+It's marked read (`POST /notifications/:id/read`), since they've seen it, then
+the Notifications tab opens with `?focus=<notificationId>` and scrolls to that
+row. A link notice works the same way and never opens a child's day: it isn't
+a tap (P-013).
+
+```mermaid
+sequenceDiagram
+    participant Phone as Android
+    participant N as notifications.ts
+    participant E as use-push-events.ts<br/>(signed-in layout)
+    participant API as Talaan
+    participant Feed as notifications.tsx<br/>+ use-focus-row.ts
+
+    alt arrives, app open
+        Phone->>N: received
+        N->>E: onPushReceived(data)
+        E->>API: refetch /me, unread, feed, child's day
+    else tapped (open, background or closed)
+        Phone->>N: response (or the launch response)
+        N->>N: forget it at Expo, skip an id already handled
+        N->>E: onPushTapped(data)
+        E->>Feed: dismiss a child's day, navigate /notifications?focus=id
+        E->>API: POST /notifications/:id/read
+        E->>API: then refetch everything
+        Feed->>Feed: row found: scroll to it, centred<br/>not found after a fetch: stay at the top
+    end
+```
+
+| File | Its job |
+|---|---|
+| `src/push/notifications.ts` | `showPushesWhileOpen()`, `onPushReceived()`, `onPushTapped()`. Checks each push's `data` with Zod: `{ notificationId, childId }`, anything else ignored. Unreadable data still opens the feed, at the top |
+| `src/push/use-push-events.ts` | Mounted in `src/app/(app)/_layout.tsx`: refreshes on arrival; on a tap, opens the feed, marks it read, then refreshes |
+| `src/feed/use-focus-row.ts` | Scrolls the feed to `focus`, then clears it |
+| `src/feed/feed-groups.ts` | `locateInSections()`: which section and row a notification is in |
+
+**Rules the code keeps**
+- **Mounted in the signed-in layout, not the app shell.** On a cold start from
+  a push, the shell's gate first moves the parent from "/" to Home. A hook in
+  the shell could navigate to the feed at the same moment and lose the race.
+  In the signed-in layout it only runs once the gate is done, and never while
+  signed out.
+- **A tap is handled once.** Expo can report the tap that opened the app both
+  as the "last response" and to the listener, and keeps the last response
+  until told to forget it. So every tap is forgotten at once
+  (`clearLastNotificationResponse()`) and its id remembered: signing out and
+  back in can't replay an old tap.
+- **Read mark first, then refetch.** A feed fetched before the read mark lands
+  would show the row unread again.
+- **A child's day open on top is closed first** (`dismissAll()`), so Back from
+  the feed goes Home, not to a second set of tabs.
+- **The feed isn't paged through to find a row.** If it's not in the rows
+  already loaded, the feed stays at the top. A fresh push is almost always the
+  first row under Today anyway.
+- **`focus` is always cleared**, once the row is found, or once a fetch after
+  the tap ends without it. Left set, a later pull to refresh would jump the
+  list.
+- **`itemIndex + 1`.** A `SectionList` counts each section's header as its
+  item 0 (`VirtualizedSectionList.js`, `scrollToLocation`).
+- **A row not drawn yet** fails to scroll the first time (rows have no fixed
+  height). The list jumps to about where it should be (`index ×
+  averageItemLength`), which makes it draw the row, then tries once more.
+
+**Known trade-offs**
+- Tapping a push while linking a child closes the half-filled form
+  (`dismissAll()`), against the "never lose what was typed" rule. Accepted for
+  now: it's a deliberate tap. Waiting on the owner's call.
+- If the cached feed is older than 30 seconds, opening it fetches once before
+  the read mark and once after: the row shows unread for a moment, then read.
+
 ### Quick recipes
 
 | I want to | Do |
@@ -337,6 +419,8 @@ child isn't possible without a photo link that works without signing in
 | Turn notifications back on after "Don't allow" | Settings → Apps → Bantay Aral → Notifications |
 | Change the channel's sound or importance | Use a new channel id; the server must send to it too (`docs/API-REQUESTS.md`) |
 | Change anything in `app.config.ts` or add a native package | A new development build (Part D, step 2) |
+| Open the feed somewhere from code | `router.navigate({ pathname: "/notifications", params: { focus: id } })`: scrolls to that notification if it's loaded |
+| Test a tap from closed | Swipe the app away, make a tap at the gate, tap the push: the feed opens at that row |
 | Change the push icon | Replace `assets/images/notification-icon.png` with a 96 × 96 white shape on transparent, keeping about 8 pixels clear at each edge, then a new development build |
 
 ---

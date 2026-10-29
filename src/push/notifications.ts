@@ -12,6 +12,7 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { AndroidImportance } from "expo-notifications";
 import { Platform } from "react-native";
+import { z } from "zod";
 
 import { settleWithin } from "@/lib/settle-within";
 import { strings } from "@/strings";
@@ -105,6 +106,94 @@ export function pushPlatform(): PushPlatform | null {
  */
 export function onPushTokenChange(onChange: () => void): () => void {
   const subscription = Notifications.addPushTokenListener(() => onChange());
+  return () => subscription.remove();
+}
+
+/**
+ * What every push carries besides its words (docs/TALAAN-API.md:225), a tap
+ * and a link notice alike. Checked like any answer from the server: a push
+ * whose data can't be read still opens the feed, just not at a row.
+ */
+const pushDataSchema = z.object({
+  notificationId: z.string(),
+  childId: z.string(),
+});
+
+export type PushData = z.infer<typeof pushDataSchema>;
+
+function pushDataOf(notification: Notifications.Notification): PushData | null {
+  const parsed = pushDataSchema.safeParse(notification.request.content.data);
+  return parsed.success ? parsed.data : null;
+}
+
+/**
+ * Show a push that arrives while the app is open, the same way Android shows
+ * one when it's closed: a banner, in the list, with sound. Without this,
+ * Expo shows nothing while the app is in front. Called once, at start.
+ *
+ * The sound matters on Android: without it the banner doesn't drop down.
+ */
+export function showPushesWhileOpen(): void {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
+
+/** Calls `onReceive` for each push that arrives while the app is open. */
+export function onPushReceived(
+  onReceive: (data: PushData | null) => void,
+): () => void {
+  const subscription = Notifications.addNotificationReceivedListener(
+    (notification) => onReceive(pushDataOf(notification)),
+  );
+  return () => subscription.remove();
+}
+
+/**
+ * The last tap handed on, by the push's own id. Module state, so a screen
+ * that mounts again (signing out and back in) can't hand on the same tap.
+ */
+let lastTapId: string | null = null;
+
+/**
+ * Calls `onTap` when the parent taps a push: one that opened the app from
+ * closed (handed on at once, if not handed on before), and each one after.
+ *
+ * Expo can report the tap that opened the app both ways, and keeps it as the
+ * "last response" until told to forget it, so every tap is forgotten once
+ * read and skipped if it was already handed on.
+ */
+export function onPushTapped(
+  onTap: (data: PushData | null) => void,
+): () => void {
+  const handle = (response: Notifications.NotificationResponse) => {
+    Notifications.clearLastNotificationResponse();
+
+    const id = response.notification.request.identifier;
+    if (id === lastTapId) {
+      return;
+    }
+    lastTapId = id;
+    onTap(pushDataOf(response.notification));
+  };
+
+  const subscription =
+    Notifications.addNotificationResponseReceivedListener(handle);
+
+  try {
+    const launch = Notifications.getLastNotificationResponse();
+    if (launch !== null) {
+      handle(launch);
+    }
+  } catch {
+    // A phone that can't do push has no tap to hand on.
+  }
+
   return () => subscription.remove();
 }
 

@@ -62,8 +62,11 @@ export function useLinkChild() {
   });
 }
 
+/** Everything cached about one child, whatever the day. */
+export const CHILD_KEY = (childId: string) => ["child", childId] as const;
+
 export const CHILD_DAY_KEY = (childId: string, date?: string) =>
-  ["child", childId, "day", date ?? "today"] as const;
+  [...CHILD_KEY(childId), "day", date ?? "today"] as const;
 
 /**
  * Every tap a child made on a day.

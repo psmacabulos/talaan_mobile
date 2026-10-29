@@ -28,7 +28,7 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M6.4b | Home's header, tab icons, and a card with only what matters | 4/4 | Parked: built and committed, its phone check and polish come later |
 | M7a | **The phone buzzes when a child taps**, with the app closed | 7/7 | **Approved** |
 | M7c | The Bantay Aral logo on every push | 3/3 | **Approved** |
-| M7b | A push with the app open, and a tap on one opens the feed | 0/2 | Not started |
+| M7b | A push with the app open, and a tap on one opens the feed | 2/2 | Built, awaiting review |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
 Work that waits on Talaan is planned under "Waiting on the server", below
@@ -522,10 +522,29 @@ link on the phone, install the APK over the old one. Then
 - [x] Owner review: I checked it and said "approved" (2026-10-28)
 
 ### Step M7b: Push, with the app open
-- [ ] In the foreground: shown in the app, home and feed refreshed. Tapping a push opens the feed at that notification
-- [ ] A link notice's push ("A new parent account was linked to Juan", Talaan Step 55.2) opens the feed like any other, and is never treated as a tap (`docs/PROBLEMS-LOG.md`, P-013)
+- [x] In the foreground: shown in the app, home and feed refreshed. Tapping a push opens the feed at that notification
+- [x] A link notice's push ("A new parent account was linked", Talaan Step 55.2) opens the feed like any other, and is never treated as a tap (`docs/PROBLEMS-LOG.md`, P-013)
 Done when: a push arriving with the app open shows and refreshes Home, and tapping any push opens the feed at it.
 Commit: `feat(push): show pushes in the app and open the feed from one`
+
+Owner decisions (2026-10-29): with the app open, Android's own banner, not an
+in-app one; tapping a push marks it read. How it works: `docs/PUSH.md`, "A
+push with the app open, and a tap (M7b)".
+
+No new build: `npx expo start --dev-client --clear`, then open Bantay Aral on
+the phone.
+
+| Do this on the phone | You should see |
+|---|---|
+| App open on Home, tap a child in at the gate (or **Record time in**) | A banner drops down with sound, **Katrina** over "Tapped in at …". Home's times update within seconds, and the bell's badge goes up |
+| Tap that banner | The Notifications tab opens with that row in view, and it turns read (no dot). The badge drops |
+| Swipe the app away, make a tap, tap the push | The app opens on Notifications, at that row, read |
+| Press Home (app in the background), make a tap, tap the push | The same |
+| Open a child's day, make a tap, tap the push, then press Back once | Notifications, then Back lands on **Home**, not on another list |
+| Sign out, sign back in | Home, as usual. The list does **not** open by itself |
+| A link notice's push (link a child from a second account) | Opens Notifications, never a child's day |
+| Font size at maximum, small phone | The tapped row sits fully in view, not under the "Today" header |
+| TalkBack on, app open, make a tap | The banner is read out |
 - [ ] Owner review: I checked it and said "approved"
 
 ### Step M8: The demo build

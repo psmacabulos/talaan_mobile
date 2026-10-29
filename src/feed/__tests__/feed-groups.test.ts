@@ -4,7 +4,7 @@
  */
 import type { Notification } from "@/api/schemas";
 
-import { bucketOf, groupFeed } from "../feed-groups";
+import { bucketOf, groupFeed, locateInSections } from "../feed-groups";
 
 // Wednesday, October 28, 2026. That week's Monday is October 26.
 const WEDNESDAY = "2026-10-28";
@@ -122,5 +122,27 @@ describe("the sections", () => {
 
   test("nothing in, nothing out", () => {
     expect(groupFeed([], WEDNESDAY)).toEqual([]);
+  });
+});
+
+describe("finding a notification in the sections", () => {
+  const sections = groupFeed(
+    [
+      tapOn("2026-10-28", "today-1"),
+      tapOn("2026-10-27", "yesterday-1", "16:00"),
+      tapOn("2026-10-27", "yesterday-2"),
+    ],
+    WEDNESDAY,
+  );
+
+  test("gives its section and its place in it", () => {
+    expect(locateInSections(sections, "yesterday-2")).toEqual({
+      sectionIndex: 1,
+      itemIndex: 1,
+    });
+  });
+
+  test("is null for one that isn't loaded", () => {
+    expect(locateInSections(sections, "older")).toBeNull();
   });
 });
