@@ -21,7 +21,7 @@ What a parent sees, and why. The same words and rules as Talaan's web app, so pa
 | `absent` | Absent | (can't happen) |
 | `idle` | Not yet tapped | No tap |
 
-- A feed entry reads "**{childName} tapped in**", or "tapped out", with its time on the right, written for its section: "7:56 AM" under Today and Yesterday, "Mon 7:56 AM" under Earlier this week, "Oct 14, 7:56 AM" further back. A screen reader hears it whole, with the day: "Juan Cruz tapped in at 7:56 AM, today" (changed by the owner in M6.3a; it used to be one sentence with the time in it). A push uses the child's first name only: "Juan tapped in at 7:56 AM".
+- A feed entry reads "**{childName} tapped in**", or "tapped out", with its time on the right, written for its section: "7:56 AM" under Today and Yesterday, "Mon 7:56 AM" under Earlier this week, "Oct 14, 7:56 AM" further back. A screen reader hears it whole, with the day: "Juan Cruz tapped in at 7:56 AM, today" (changed by the owner in M6.3a; it used to be one sentence with the time in it). A push uses the child's first name only, as its title: "Juan" over "Tapped in at 7:56 AM".
 - The feed is in sections, on the school's calendar: Today, Yesterday, Earlier this week (weeks start Monday), Earlier this month, then one per month ("September 2026").
 - When another parent account links a child (`guardian_linked`, Talaan Step 55.2), the feed says "An account named Ana Santos linked to Juan Cruz.", or "A parent account linked to Juan Cruz." without a name, then "If you don't know them, contact the school." It has its own icon and its time on the right, an earlier day's notice shows the day **and** the time, and pressing it marks it read without leaving the feed. It's never worded as a tap. A kind the app doesn't know is never shown at all, rather than shown as a tap.
 - The first tab is **Home**, and its heading is "**My children**", never "Your children" (the owner, 2026-10-27).
@@ -59,7 +59,7 @@ The same rules and messages as the server's own checks (Talaan's `src/features/p
 
 ## Notifications and push
 
-- A push: title "Bantay Aral", body "Juan tapped in at 7:56 AM", `data: { notificationId, childId }`, Android channel `attendance`.
+- A push: title the child's first name, body the rest: "Juan" over "Tapped in at 7:56 AM", "Tapped out at 4:12 PM", or "A new parent account was linked". `data: { notificationId, childId }`, Android channel `attendance`. Never "Bantay Aral" as the title (Android already shows it at the top), and never no title (folded pushes then showed "null", `docs/PROBLEMS-LOG.md`, P-019).
 - **Create the Android channel `attendance` (name "Attendance") before registering the push token.** Android doesn't show a push sent to a channel the phone doesn't have.
 - **Ask for permission at a moment that explains itself:** right after the parent links their first child ("Get a notification when Jose taps in or out?"), never on first launch.
 - Register the token after sign-in, on every app start, and whenever Expo gives a new one. Sending the same token again is cheap.

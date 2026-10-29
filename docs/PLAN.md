@@ -566,11 +566,13 @@ view (below) needs no server change, so it should be in parents' hands
 
 ### After Talaan 59.6: one "Bantay Aral", and statuses that never change
 
-The push loses its title and the status values become a promise. Both need
-almost nothing from the app.
-- [ ] `docs/TALAAN-API.md` refreshed. The comment in `src/api/schemas.ts` on dropping an unreadable child says the values are now fixed in `/api/v1`, and why the drop stays (a malformed answer)
-- [ ] On the phone: a gate tap shows "Bantay Aral" once, then "Juan tapped in at 7:56 AM"
-Done when: a push shows the name once.
+The push's title becomes the child's first name (first dropped, then put back
+as the name: `docs/API-REQUESTS.md`, 5 and 8), and the status values become a
+promise. Both need almost nothing from the app.
+- [x] `docs/TALAAN-API.md` refreshed (2026-10-29)
+- [ ] The comment in `src/api/schemas.ts` on dropping an unreadable child says the values are now fixed in `/api/v1`, and why the drop stays (a malformed answer)
+- [x] On the phone: a gate tap shows "Bantay Aral" once at the top, then **Juan** over "Tapped in at 7:56 AM". Two taps close together fold into "**Katrina** Tapped in at 8:55 AM" lines, with no "null" (checked by the owner, 2026-10-29)
+Done when: a push shows "Bantay Aral" once and never "null".
 
 ### After Talaan 59.7: a badge that clears, and today's list
 

@@ -27,7 +27,7 @@ starts.
 | — | The child's photo in a push | **Not asked for, agreed** | — |
 | 6 | The notification list shows today only | **Taken** (the owner's own decision) | 59.7 |
 | 7 | A range of days, for an attendance month | **Planned**, after the school calendar | 63.1 |
-| 8 | The child's first name as the push title | Not yet taken to Talaan | — |
+| 8 | The child's first name as the push title | **Taken**, replaces 5's "no title" | 59.6 |
 
 ---
 
@@ -232,6 +232,9 @@ Body, `data`, sound, channel `attendance` and priority stay the same. The
 photo stays out of the push, as agreed below. Nothing changes in the app: the
 second "Bantay Aral" simply stops arriving.
 
+**Changed 2026-10-29:** a missing title showed as "null" in folded pushes, so
+the title came back as the child's first name (request 8).
+
 **What happens now.** Every push has the title "Bantay Aral" and a body like
 "Juan tapped in at 7:56 AM" (`docs/TALAAN-API.md`, "What a push looks like").
 Android already puts the app's name, Bantay Aral, at the top of every
@@ -316,6 +319,10 @@ would alarm parents. **Don't build the month view until then.**
 
 **Found:** 2026-10-29, by the owner, on the first pushes after Talaan's Step
 59.6 (request 5). Details in `docs/PROBLEMS-LOG.md`, P-019.
+
+**Decided 2026-10-29: taken (server Step 59.6, Talaan commit `cad6b63`).**
+Exactly the table below; `docs/TALAAN-API.md` is refreshed. Nothing changes in
+the app.
 
 **What happens now.** Pushes have no title, as request 5 asked. One push on
 its own looks right. But when two or more are showing, Android folds them

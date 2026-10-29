@@ -300,8 +300,8 @@ the server sends and an icon built into the app.
 ```
 ┌───────────────────────────────────────────────┐
 │ (A)  Bantay Aral · now                   (B)  │
-│      Bantay Aral        ← the server's title  │
-│      Juan tapped in at 7:56 AM                │
+│      Juan               ← the server's title  │
+│      Tapped in at 7:56 AM                     │
 └───────────────────────────────────────────────┘
 ```
 
@@ -309,7 +309,7 @@ the server sends and an icon built into the app.
 |---|---|---|
 | (A) left, and the status bar | One colour: Android keeps only the picture's shape | `assets/images/notification-icon.png` (96 × 96, the mark as a white outline, from `design/logo/`), in a circle of the mark's blue `#1149A6` |
 | (B) right | Full colour, optional | Nothing: the mark would show twice (owner's choice "A", 2026-10-28). `design/logo/notification-large-icon.png` is ready if that changes |
-| The title and the message | The server's words | Nothing. Talaan is asked to drop the title (`docs/API-REQUESTS.md`, item 5) |
+| The title and the message | The server's words: the child's first name, then the rest | Nothing. Changed by Talaan in Step 59.6 (`docs/API-REQUESTS.md`, items 5 and 8) |
 
 Both come from `app.config.ts`:
 

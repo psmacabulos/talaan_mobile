@@ -995,7 +995,7 @@ reads `status` any more. Registration needs `granted`; the prompt needs
 - **Date:** 2026-10-29
 - **Where:** M7, the owner's phone, the first pushes after Talaan's Step 59.6 removed the title (`docs/API-REQUESTS.md`, 5)
 - **Tag:** Other
-- **Status:** Open, asked of Talaan (`docs/API-REQUESTS.md`, 8)
+- **Status:** Fixed (Talaan commit `cad6b63`); checked on the owner's phone, 2026-10-29
 
 **Symptom**
 
