@@ -16,8 +16,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ActivityIndicator, Text, View } from "react-native";
 
 import { ApiError } from "@/api/errors";
 import {
@@ -28,6 +27,7 @@ import { useLinkChild, useSchools } from "@/children/use-children";
 import { Button } from "@/components/form/button";
 import { DateField } from "@/components/form/date-field";
 import { Field } from "@/components/form/field";
+import { FormScreen } from "@/components/form/form-screen";
 import { SelectField } from "@/components/form/select-field";
 import { TextLink } from "@/components/form/text-link";
 import { strings } from "@/strings";
@@ -77,190 +77,178 @@ export default function LinkChildScreen() {
   }));
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["top", "bottom"]}
-    >
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          gap: theme.space.xl,
-          padding: theme.space.xl,
-        }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={{ gap: theme.space.xs }}>
+    <FormScreen>
+      <View style={{ gap: theme.space.xs }}>
+        <Text
+          accessibilityRole="header"
+          style={{
+            color: theme.colors.foreground,
+            fontFamily: theme.fontFamily.headingBold,
+            fontSize: theme.fontSize.xl,
+          }}
+        >
+          {strings.linkChild.heading}
+        </Text>
+        <Text
+          style={{
+            color: theme.colors.mutedForeground,
+            fontFamily: theme.fontFamily.body,
+            fontSize: theme.fontSize.base,
+          }}
+        >
+          {strings.linkChild.subheading}
+        </Text>
+      </View>
+
+      {schools.isError ? (
+        // The form cannot be filled in without the list, so say so rather
+        // than showing an empty picker.
+        <View style={{ alignItems: "center", gap: theme.space.base }}>
           <Text
-            accessibilityRole="header"
+            accessibilityLiveRegion="polite"
             style={{
-              color: theme.colors.foreground,
-              fontFamily: theme.fontFamily.headingBold,
-              fontSize: theme.fontSize.xl,
+              color: theme.colors.destructive,
+              fontFamily: theme.fontFamily.body,
+              fontSize: theme.fontSize.base,
+              textAlign: "center",
             }}
           >
-            {strings.linkChild.heading}
+            {schools.error instanceof ApiError
+              ? schools.error.message
+              : strings.linkChild.schoolsFailed}
           </Text>
+          <TextLink
+            label={strings.errors.tryAgain}
+            onPress={() => schools.refetch()}
+          />
+        </View>
+      ) : schools.data === undefined ? (
+        <View style={{ alignItems: "center", paddingVertical: theme.space.xl }}>
+          <ActivityIndicator color={theme.colors.primary} />
+        </View>
+      ) : (
+        <View style={{ gap: theme.space.base }}>
+          <Controller
+            control={control}
+            name="schoolId"
+            render={({ field }) => (
+              <SelectField
+                label={strings.linkChild.schoolLabel}
+                placeholder={strings.linkChild.schoolPlaceholder}
+                sheetTitle={strings.linkChild.schoolPickerTitle}
+                options={schoolOptions}
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.schoolId?.message}
+                disabled={link.isPending}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="lrn"
+            render={({ field }) => (
+              <Field
+                label={strings.linkChild.lrnLabel}
+                placeholder={strings.linkChild.lrnPlaceholder}
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={errors.lrn?.message}
+                keyboardType="number-pad"
+                editable={!link.isPending}
+              />
+            )}
+          />
+
           <Text
             style={{
               color: theme.colors.mutedForeground,
               fontFamily: theme.fontFamily.body,
-              fontSize: theme.fontSize.base,
+              fontSize: theme.fontSize.xs,
             }}
           >
-            {strings.linkChild.subheading}
+            {strings.linkChild.lrnHint}
           </Text>
-        </View>
 
-        {schools.isError ? (
-          // The form cannot be filled in without the list, so say so rather
-          // than showing an empty picker.
-          <View style={{ alignItems: "center", gap: theme.space.base }}>
+          <Controller
+            control={control}
+            name="lastName"
+            render={({ field }) => (
+              <Field
+                label={strings.linkChild.lastNameLabel}
+                placeholder={strings.linkChild.lastNamePlaceholder}
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={errors.lastName?.message}
+                autoCapitalize="words"
+                editable={!link.isPending}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="birthDate"
+            render={({ field }) => (
+              <DateField
+                label={strings.linkChild.birthDateLabel}
+                placeholder={strings.linkChild.birthDatePlaceholder}
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.birthDate?.message}
+                disabled={link.isPending}
+              />
+            )}
+          />
+        </View>
+      )}
+
+      {formError === undefined ? null : (
+        <View style={{ gap: theme.space.xs }}>
+          <Text
+            accessibilityLiveRegion="polite"
+            style={{
+              color: theme.colors.destructive,
+              fontFamily: theme.fontFamily.body,
+              fontSize: theme.fontSize.sm,
+            }}
+          >
+            {formError}
+          </Text>
+          {showWhatToCheck ? (
             <Text
               accessibilityLiveRegion="polite"
-              style={{
-                color: theme.colors.destructive,
-                fontFamily: theme.fontFamily.body,
-                fontSize: theme.fontSize.base,
-                textAlign: "center",
-              }}
-            >
-              {schools.error instanceof ApiError
-                ? schools.error.message
-                : strings.linkChild.schoolsFailed}
-            </Text>
-            <TextLink
-              label={strings.errors.tryAgain}
-              onPress={() => schools.refetch()}
-            />
-          </View>
-        ) : schools.data === undefined ? (
-          <View style={{ alignItems: "center", paddingVertical: theme.space.xl }}>
-            <ActivityIndicator color={theme.colors.primary} />
-          </View>
-        ) : (
-          <View style={{ gap: theme.space.base }}>
-            <Controller
-              control={control}
-              name="schoolId"
-              render={({ field }) => (
-                <SelectField
-                  label={strings.linkChild.schoolLabel}
-                  placeholder={strings.linkChild.schoolPlaceholder}
-                  sheetTitle={strings.linkChild.schoolPickerTitle}
-                  options={schoolOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={errors.schoolId?.message}
-                  disabled={link.isPending}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="lrn"
-              render={({ field }) => (
-                <Field
-                  label={strings.linkChild.lrnLabel}
-                  placeholder={strings.linkChild.lrnPlaceholder}
-                  value={field.value}
-                  onChangeText={field.onChange}
-                  onBlur={field.onBlur}
-                  error={errors.lrn?.message}
-                  keyboardType="number-pad"
-                  editable={!link.isPending}
-                />
-              )}
-            />
-
-            <Text
               style={{
                 color: theme.colors.mutedForeground,
-                fontFamily: theme.fontFamily.body,
-                fontSize: theme.fontSize.xs,
-              }}
-            >
-              {strings.linkChild.lrnHint}
-            </Text>
-
-            <Controller
-              control={control}
-              name="lastName"
-              render={({ field }) => (
-                <Field
-                  label={strings.linkChild.lastNameLabel}
-                  placeholder={strings.linkChild.lastNamePlaceholder}
-                  value={field.value}
-                  onChangeText={field.onChange}
-                  onBlur={field.onBlur}
-                  error={errors.lastName?.message}
-                  autoCapitalize="words"
-                  editable={!link.isPending}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="birthDate"
-              render={({ field }) => (
-                <DateField
-                  label={strings.linkChild.birthDateLabel}
-                  placeholder={strings.linkChild.birthDatePlaceholder}
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={errors.birthDate?.message}
-                  disabled={link.isPending}
-                />
-              )}
-            />
-          </View>
-        )}
-
-        {formError === undefined ? null : (
-          <View style={{ gap: theme.space.xs }}>
-            <Text
-              accessibilityLiveRegion="polite"
-              style={{
-                color: theme.colors.destructive,
                 fontFamily: theme.fontFamily.body,
                 fontSize: theme.fontSize.sm,
               }}
             >
-              {formError}
+              {strings.linkChild.checkTheseAgain}
             </Text>
-            {showWhatToCheck ? (
-              <Text
-                accessibilityLiveRegion="polite"
-                style={{
-                  color: theme.colors.mutedForeground,
-                  fontFamily: theme.fontFamily.body,
-                  fontSize: theme.fontSize.sm,
-                }}
-              >
-                {strings.linkChild.checkTheseAgain}
-              </Text>
-            ) : null}
-          </View>
-        )}
-
-        <View style={{ gap: theme.space.md }}>
-          <Button
-            label={strings.linkChild.submit}
-            busyLabel={strings.linkChild.submitting}
-            busy={link.isPending}
-            disabled={schools.data === undefined}
-            onPress={onSubmit}
-          />
-
-          <View style={{ alignItems: "center" }}>
-            <TextLink
-              label={strings.linkChild.cancel}
-              onPress={() => router.back()}
-            />
-          </View>
+          ) : null}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      )}
+
+      <View style={{ gap: theme.space.md }}>
+        <Button
+          label={strings.linkChild.submit}
+          busyLabel={strings.linkChild.submitting}
+          busy={link.isPending}
+          disabled={schools.data === undefined}
+          onPress={onSubmit}
+        />
+
+        <View style={{ alignItems: "center" }}>
+          <TextLink
+            label={strings.linkChild.cancel}
+            onPress={() => router.back()}
+          />
+        </View>
+      </View>
+    </FormScreen>
   );
 }

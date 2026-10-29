@@ -41,6 +41,8 @@ to. Every section ends with a link back here.
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
   - [Why a push's icon is white, not the colour logo](#why-a-pushs-icon-is-white-not-the-colour-logo)
   - [Why folded pushes said "null"](#why-folded-pushes-said-null)
+- [Forms and the keyboard](#forms-and-the-keyboard)
+  - [Why the keyboard covered the sign-up form](#why-the-keyboard-covered-the-sign-up-form)
 - [Pictures in the app](#pictures-in-the-app)
   - [Why a picture is shrunk to 3 times its size on screen](#why-a-picture-is-shrunk-to-3-times-its-size-on-screen)
 
@@ -642,6 +644,27 @@ AM"). Full story in
 [PROBLEMS-LOG.md, P-019](PROBLEMS-LOG.md#p-019--a-push-with-no-title-shows-null-when-pushes-are-bundled),
 and the request in
 [API-REQUESTS.md, 8](API-REQUESTS.md#8-the-childs-first-name-as-the-push-title).
+
+[↑ Contents](#contents)
+
+## Forms and the keyboard
+
+### Why the keyboard covered the sign-up form
+
+On older Android, opening the keyboard made the whole app shorter, so a
+scrolling form ended just above the keyboard and you could scroll to any
+field. Android 15 and newer draw apps **edge to edge**: the app keeps the full
+screen, the keyboard is drawn on top of it, and the app is only told how tall
+the keyboard is. An app that doesn't use that number has its bottom fields
+hidden, and can't scroll to them, because as far as the form knows they're
+already on screen.
+
+The fix is React Native's `KeyboardAvoidingView`: it adds empty space at the
+bottom the height of the keyboard, so the form above it gets shorter, and
+Android scrolls the field you're typing in back into view. Every form uses it
+through one shared frame, [`src/components/form/form-screen.tsx`](../src/components/form/form-screen.tsx),
+so a new form gets it by using `<FormScreen>` instead of its own
+`ScrollView`. The full story: [P-021](PROBLEMS-LOG.md#p-021--the-keyboard-covers-the-field-being-typed-in).
 
 [↑ Contents](#contents)
 

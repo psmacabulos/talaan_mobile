@@ -47,7 +47,7 @@ Phone (demo APK) ── HTTPS ──► Talaan, https://bantayaral.com
 | Do | You should see |
 |---|---|
 | Open Bantay Aral | The Bantay Aral logo on the splash, whole, then sign-in. No developer menu, no Expo launcher |
-| **Sign up** with the new email | Each field is checked as you type; then Home, with no children yet |
+| **Sign up** with the new email | Each field is checked as you type, and the field you're typing in stays above the keyboard; then Home, with no children yet |
 | **Link a child:** the test student's school, LRN, last name and birth date | The child appears on Home |
 | **Allow notifications** when asked | Android's own "Allow Bantay Aral to send you notifications?", once. On Android 12 and older there's no prompt: notifications are on from the start |
 | Keep the app open on Home. Make a tap for the child | A banner drops down with sound; Home's time updates; the bell's badge goes up |

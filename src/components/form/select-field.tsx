@@ -11,7 +11,14 @@
  * the current choice rather than just a list of names.
  */
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Keyboard,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { strings } from "@/strings";
@@ -67,7 +74,11 @@ export function SelectField({
         accessibilityValue={{ text: chosen?.label ?? placeholder }}
         accessibilityState={{ disabled, expanded: open }}
         disabled={disabled}
-        onPress={() => setOpen(true)}
+        onPress={() => {
+          // A text field's keyboard would otherwise stay up over the picker.
+          Keyboard.dismiss();
+          setOpen(true);
+        }}
         style={({ pressed }) => ({
           backgroundColor: theme.colors.card,
           borderColor: error ? theme.colors.destructive : theme.colors.border,

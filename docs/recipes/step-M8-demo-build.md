@@ -119,11 +119,42 @@ eas build --profile preview --platform android
 
 Uninstall the development build, open the printed link on the phone, install.
 
+## 5b. Forms above the keyboard (P-021)
+
+Found while testing sign-up for the demo. Under Android's edge to edge the
+window no longer shrinks for the keyboard, so each form needs to make room
+itself.
+
+```
+SafeAreaView (top, bottom)
+└─ KeyboardAvoidingView  behavior="padding", flex 1   ← padding = keyboard height
+   └─ ScrollView         the forms' old contentContainerStyle
+```
+
+1. Create `src/components/form/form-screen.tsx`: `FormScreen({ centered,
+   children })`, the tree above. `centered` sets
+   `justifyContent: "center"`, as sign-in and sign-up had.
+   The `KeyboardAvoidingView` goes **inside** `SafeAreaView`, so the padding
+   doesn't count the navigation bar twice.
+2. In `src/app/(auth)/sign-in.tsx` and `sign-up.tsx`, replace the
+   `SafeAreaView` + `ScrollView` pair with `<FormScreen centered>`; in
+   `src/app/(app)/link-child.tsx`, with `<FormScreen>`. Drop the now-unused
+   `ScrollView` and `SafeAreaView` imports.
+3. Test, `src/components/form/__tests__/form-screen.test.tsx`: fire a
+   `layout` event on `testID="form-screen"` (it needs `persist: () => {}`),
+   emit `keyboardWillShow` / `keyboardWillHide` through `DeviceEventEmitter`,
+   and expect `paddingBottom` to follow. Check it fails with
+   `enabled={false}`.
+4. In `src/components/form/select-field.tsx` and `date-field.tsx`, call
+   `Keyboard.dismiss()` before `setOpen(true)`, so the keyboard from the last
+   text field doesn't stay up over the picker.
+
 ## 6. Docs
 
 `docs/DEMO.md` (new: the two-part demo), `docs/SERVER.md` (Heroku → 
 `bantayaral.com`), `docs/COMMANDS.md` 2b, `docs/PLAN.md` (M8 ticks and phone
-checks; the old script replaced by a pointer), P-007 closed.
+checks; the old script replaced by a pointer), P-007 closed, P-021 added,
+and a learning-log entry for the keyboard.
 
 ## 7. Check it
 

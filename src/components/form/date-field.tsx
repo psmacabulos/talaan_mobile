@@ -24,7 +24,7 @@
 import { useState } from "react";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Pressable, Text, View } from "react-native";
+import { Keyboard, Pressable, Text, View } from "react-native";
 
 import { strings } from "@/strings";
 import { useTheme } from "@/theme";
@@ -81,7 +81,11 @@ export function DateField({
         accessibilityValue={{ text: value ? readableDate(value) : placeholder }}
         accessibilityState={{ disabled }}
         disabled={disabled}
-        onPress={() => setOpen(true)}
+        onPress={() => {
+          // A text field's keyboard would otherwise stay up over the picker.
+          Keyboard.dismiss();
+          setOpen(true);
+        }}
         style={({ pressed }) => ({
           backgroundColor: theme.colors.card,
           borderColor: error ? theme.colors.destructive : theme.colors.border,

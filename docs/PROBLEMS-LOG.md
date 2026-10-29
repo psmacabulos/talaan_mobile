@@ -1084,3 +1084,75 @@ checking them.
 Option 2, in `src/feed/use-focus-row.ts` and the recipe. Lesson: check a type
 name in `node_modules/react-native/types_generated/index.d.ts` before using
 it.
+
+---
+
+## P-021 — the keyboard covers the field being typed in
+
+- **Date:** 2026-10-29
+- **Where:** sign-up on the owner's Android phone; the same on sign-in and
+  linking a child
+- **Tag:** Other
+- **Status:** Fixed; waiting for the owner's check on the phone
+
+**Symptom**
+
+Signing up as a new parent: at the password fields the keyboard opens over
+them, so the parent can't see what they type. Scrolling up doesn't help: the
+form is already as far up as it goes.
+
+**Cause**
+
+All three forms were a `SafeAreaView` holding a `ScrollView`, with nothing
+that reacts to the keyboard. That used to be enough on Android, which shrank
+the whole window when the keyboard opened (`adjustResize`), and the
+`ScrollView` with it. Android 15 and newer draw apps edge to edge, and Expo
+turns that on for every Android version: the window stays full height, the
+keyboard is drawn on top, and the app is only told how tall it is. The
+`ScrollView` still thinks it reaches the bottom of the screen, so the fields
+behind the keyboard are "on screen" as far as it knows, and there is nothing
+left to scroll.
+
+```
+Before (edge to edge)            After
+┌──────────────┐                 ┌──────────────┐
+│ ScrollView   │                 │ ScrollView   │ ← shorter: ends at the
+│  …           │                 │  Password ▌  │   keyboard, and Android
+│  Password ▌  │ ← under the     ├──────────────┤   scrolls the field into
+├──────────────┤   keyboard      │ padding =    │   view
+│   keyboard   │                 │   keyboard   │
+└──────────────┘                 └──────────────┘
+```
+
+**Options weighed**
+
+1. React Native's own `KeyboardAvoidingView`, `behavior="padding"`: adds
+   padding the height of the keyboard, so the `ScrollView` above it gets
+   shorter, and Android's `ScrollView` scrolls the focused field back into
+   view when it shrinks. No new package, no new build needed for it.
+2. `react-native-keyboard-controller` (`KeyboardAwareScrollView`): smoother,
+   follows the keyboard frame by frame, and Expo's keyboard guide points to
+   it for long forms. Rejected for now: a new native package means owner
+   approval and a new development build, for a demo the built-in one covers.
+   Worth revisiting if a field still ends up hidden on some phone.
+
+**Solution**
+
+Option 1, once, in a shared frame: `src/components/form/form-screen.tsx`
+(`SafeAreaView` → `KeyboardAvoidingView` → `ScrollView`). Sign-in, sign-up and
+linking a child all use it, so a future form gets it by using it too. The
+`KeyboardAvoidingView` sits inside the safe area so its padding is the
+keyboard alone, not the keyboard plus the navigation bar. Test:
+`src/components/form/__tests__/form-screen.test.tsx`, which fails with the
+padding turned off.
+
+Also from the code review: the school list and the birth-date picker now close
+the keyboard when they open (`Keyboard.dismiss()` in
+`src/components/form/select-field.tsx` and `date-field.tsx`). Before, typing
+the last name and then tapping "Birth date" left the keyboard up over the
+picker.
+
+Known limit: Android scrolls the field's own box into view, not the error
+line under it, so a "too short" message can sit behind the keyboard until the
+parent closes it or scrolls. Left as is unless the phone shows it's a
+problem.

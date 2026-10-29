@@ -8,7 +8,7 @@ Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box 
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 50 of 60 tasks, 11 of 12 steps approved** (M6.3b and M6.4b, set aside, not counted).
+**To the demo: 51 of 61 tasks, 11 of 12 steps approved** (M6.3b and M6.4b, set aside, not counted).
 
 `█████████████████░░░` 83%
 
@@ -29,7 +29,7 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M7a | **The phone buzzes when a child taps**, with the app closed | 7/7 | **Approved** |
 | M7c | The Bantay Aral logo on every push | 3/3 | **Approved** |
 | M7b | A push with the app open, and a tap on one opens the feed | 2/2 | **Approved** |
-| M8 | An installable build, and the demo run | 2/4 | Built; waiting for the owner's build and demo run |
+| M8 | An installable build, and the demo run | 3/5 | Built; waiting for the owner's build and demo run |
 
 Work that waits on Talaan is planned under "Waiting on the server", below
 the demo script, and is not counted here.
@@ -553,6 +553,7 @@ the phone.
 - [x] The app icon and splash screen from the logo, on white. The name Bantay Aral was already the app's name (M1); the splash shows the mark only, since Android 12+ shows a round icon there
 - [ ] An installable Android build pointing at the live server over HTTPS: the `preview` profile is ready in `eas.json`; the owner runs `eas build --profile preview --platform android`
 - [ ] `docs/DEMO.md` run from start to finish, both parts, on the APK
+- [x] Forms keep the field being typed in above the keyboard: found on sign-up while testing (P-021), fixed for sign-in, sign-up and linking a child
 Done when: the owner runs the demo script on a real phone without help.
 Commit: `chore(release): add the demo build`
 
@@ -566,6 +567,8 @@ parent first, then their own account) and uses any test student.
 | Android 13+: Settings → Wallpaper → Themed icons on | A one-colour outline of the mark |
 | Phone in dark mode | The same icon, still white behind the mark |
 | Force-stop, then open it | The splash: the mark on white, whole, not cut off at a circle's edge |
+| Sign up, tap the last field (Confirm password) | It moves up above the keyboard; you can see what you type, and scroll the whole form with the keyboard open |
+| Link a child: type the last name, then tap Birth date (and School) | The keyboard closes; the picker isn't covered |
 | Turn on airplane mode, pull to refresh on Home | "Can't reach Bantay Aral right now." with Try again |
 | `docs/DEMO.md`, parts 1 and 2 | Every row as written |
 

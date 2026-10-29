@@ -17,8 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Text, View } from "react-native";
 
 import { ApiError } from "@/api/errors";
 import { signUpFormSchema, type SignUpForm } from "@/auth/form-schemas";
@@ -28,6 +27,7 @@ import { useSignUp } from "@/auth/session";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/form/button";
 import { Field } from "@/components/form/field";
+import { FormScreen } from "@/components/form/form-screen";
 import { TextLink } from "@/components/form/text-link";
 import { strings } from "@/strings";
 import { useTheme } from "@/theme";
@@ -95,209 +95,196 @@ export default function SignUpScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["top", "bottom"]}
-    >
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          gap: theme.space.xl,
-          justifyContent: "center",
-          padding: theme.space.xl,
-        }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={{ alignItems: "center" }}>
-          <Logo size={48} />
-        </View>
+    <FormScreen centered>
+      <View style={{ alignItems: "center" }}>
+        <Logo size={48} />
+      </View>
 
-        <View style={{ gap: theme.space.xs }}>
-          <Text
-            accessibilityRole="header"
-            style={{
-              color: theme.colors.foreground,
-              fontFamily: theme.fontFamily.headingBold,
-              fontSize: theme.fontSize.xl,
-            }}
-          >
-            {strings.signUp.heading}
-          </Text>
-          <Text
-            style={{
-              color: theme.colors.mutedForeground,
-              fontFamily: theme.fontFamily.body,
-              fontSize: theme.fontSize.base,
-            }}
-          >
-            {strings.signUp.subheading}
-          </Text>
-        </View>
-
-        <View style={{ gap: theme.space.base }}>
-          <Controller
-            control={control}
-            name="firstName"
-            render={({ field }) => (
-              <Field
-                label={strings.signUp.firstNameLabel}
-                placeholder={strings.signUp.firstNamePlaceholder}
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                error={errors.firstName?.message}
-                autoCapitalize="words"
-                autoComplete="given-name"
-                editable={!signUp.isPending}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="lastName"
-            render={({ field }) => (
-              <Field
-                label={strings.signUp.lastNameLabel}
-                placeholder={strings.signUp.lastNamePlaceholder}
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                error={errors.lastName?.message}
-                autoCapitalize="words"
-                autoComplete="family-name"
-                editable={!signUp.isPending}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="mobile"
-            render={({ field }) => (
-              <Field
-                label={strings.signUp.mobileLabel}
-                placeholder={strings.signUp.mobilePlaceholder}
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                error={errors.mobile?.message}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-                editable={!signUp.isPending}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="email"
-            render={({ field }) => (
-              <Field
-                label={strings.signUp.emailLabel}
-                placeholder={strings.signUp.emailPlaceholder}
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                error={errors.email?.message}
-                keyboardType="email-address"
-                autoComplete="email"
-                textContentType="emailAddress"
-                editable={!signUp.isPending}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="password"
-            render={({ field }) => (
-              <Field
-                label={strings.signUp.passwordLabel}
-                placeholder={strings.signUp.passwordPlaceholder}
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                error={errors.password?.message}
-                secureTextEntry
-                autoComplete="new-password"
-                textContentType="newPassword"
-                editable={!signUp.isPending}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <Field
-                label={strings.signUp.confirmPasswordLabel}
-                placeholder={strings.signUp.confirmPasswordPlaceholder}
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                error={errors.confirmPassword?.message}
-                secureTextEntry
-                autoComplete="new-password"
-                textContentType="newPassword"
-                returnKeyType="go"
-                onSubmitEditing={() => onSubmit()}
-                editable={!signUp.isPending}
-              />
-            )}
-          />
-        </View>
-
-        {formError === undefined ? null : (
-          <View style={{ gap: theme.space.xs }}>
-            <Text
-              accessibilityLiveRegion="polite"
-              style={{
-                color: theme.colors.destructive,
-                fontFamily: theme.fontFamily.body,
-                fontSize: theme.fontSize.sm,
-              }}
-            >
-              {formError}
-            </Text>
-            {emailTaken ? (
-              <TextLink
-                label={strings.signUp.signInInstead}
-                onPress={goToSignIn}
-              />
-            ) : null}
-          </View>
-        )}
-
-        <Button
-          label={strings.signUp.submit}
-          busyLabel={strings.signUp.submitting}
-          busy={signUp.isPending}
-          onPress={onSubmit}
-        />
-
-        <View
+      <View style={{ gap: theme.space.xs }}>
+        <Text
+          accessibilityRole="header"
           style={{
-            alignItems: "center",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: theme.space.xs,
-            justifyContent: "center",
+            color: theme.colors.foreground,
+            fontFamily: theme.fontFamily.headingBold,
+            fontSize: theme.fontSize.xl,
           }}
         >
+          {strings.signUp.heading}
+        </Text>
+        <Text
+          style={{
+            color: theme.colors.mutedForeground,
+            fontFamily: theme.fontFamily.body,
+            fontSize: theme.fontSize.base,
+          }}
+        >
+          {strings.signUp.subheading}
+        </Text>
+      </View>
+
+      <View style={{ gap: theme.space.base }}>
+        <Controller
+          control={control}
+          name="firstName"
+          render={({ field }) => (
+            <Field
+              label={strings.signUp.firstNameLabel}
+              placeholder={strings.signUp.firstNamePlaceholder}
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.firstName?.message}
+              autoCapitalize="words"
+              autoComplete="given-name"
+              editable={!signUp.isPending}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="lastName"
+          render={({ field }) => (
+            <Field
+              label={strings.signUp.lastNameLabel}
+              placeholder={strings.signUp.lastNamePlaceholder}
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.lastName?.message}
+              autoCapitalize="words"
+              autoComplete="family-name"
+              editable={!signUp.isPending}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="mobile"
+          render={({ field }) => (
+            <Field
+              label={strings.signUp.mobileLabel}
+              placeholder={strings.signUp.mobilePlaceholder}
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.mobile?.message}
+              keyboardType="phone-pad"
+              autoComplete="tel"
+              editable={!signUp.isPending}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="email"
+          render={({ field }) => (
+            <Field
+              label={strings.signUp.emailLabel}
+              placeholder={strings.signUp.emailPlaceholder}
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.email?.message}
+              keyboardType="email-address"
+              autoComplete="email"
+              textContentType="emailAddress"
+              editable={!signUp.isPending}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="password"
+          render={({ field }) => (
+            <Field
+              label={strings.signUp.passwordLabel}
+              placeholder={strings.signUp.passwordPlaceholder}
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.password?.message}
+              secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
+              editable={!signUp.isPending}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <Field
+              label={strings.signUp.confirmPasswordLabel}
+              placeholder={strings.signUp.confirmPasswordPlaceholder}
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.confirmPassword?.message}
+              secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
+              returnKeyType="go"
+              onSubmitEditing={() => onSubmit()}
+              editable={!signUp.isPending}
+            />
+          )}
+        />
+      </View>
+
+      {formError === undefined ? null : (
+        <View style={{ gap: theme.space.xs }}>
           <Text
+            accessibilityLiveRegion="polite"
             style={{
-              color: theme.colors.mutedForeground,
+              color: theme.colors.destructive,
               fontFamily: theme.fontFamily.body,
               fontSize: theme.fontSize.sm,
             }}
           >
-            {strings.signUp.haveAccount}
+            {formError}
           </Text>
-          <TextLink label={strings.signUp.signIn} onPress={goToSignIn} />
+          {emailTaken ? (
+            <TextLink
+              label={strings.signUp.signInInstead}
+              onPress={goToSignIn}
+            />
+          ) : null}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      )}
+
+      <Button
+        label={strings.signUp.submit}
+        busyLabel={strings.signUp.submitting}
+        busy={signUp.isPending}
+        onPress={onSubmit}
+      />
+
+      <View
+        style={{
+          alignItems: "center",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: theme.space.xs,
+          justifyContent: "center",
+        }}
+      >
+        <Text
+          style={{
+            color: theme.colors.mutedForeground,
+            fontFamily: theme.fontFamily.body,
+            fontSize: theme.fontSize.sm,
+          }}
+        >
+          {strings.signUp.haveAccount}
+        </Text>
+        <TextLink label={strings.signUp.signIn} onPress={goToSignIn} />
+      </View>
+    </FormScreen>
   );
 }

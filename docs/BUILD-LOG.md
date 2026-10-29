@@ -1606,3 +1606,35 @@ would have used it up and the new parent would never see it. The new parent
 now goes first, on the fresh install. Also added: the two Android install
 screens (install unknown apps, Play Protect), and that Android 12 and older
 show no prompt.
+
+### The keyboard covering the form (P-021)
+
+Found by the owner while testing sign-up: the keyboard hid the password
+fields and the form wouldn't scroll up. All three forms had their own
+identical `SafeAreaView` + `ScrollView` and nothing for the keyboard; under
+Android's edge to edge the window no longer shrinks for it
+(`docs/PROBLEMS-LOG.md`, P-021).
+
+Read React Native 0.88's `KeyboardAvoidingView.js` (padding = the frame's
+bottom minus the keyboard's top), `ReactRootView.java` (Android's
+`keyboardDidShow` reports the keyboard's top from the visible window frame)
+and `ReactScrollView.kt` (`onSizeChanged` keeps Android's own "scroll the
+focused field back into view when I shrink"). Built
+`src/components/form/form-screen.tsx` and moved the three screens onto it:
+`<FormScreen centered>` for sign-in and sign-up, `<FormScreen>` for linking a
+child. The `contentContainerStyle` is the screens' old one, unchanged.
+
+The test's first run failed with `TypeError: event.persist is not a function`:
+`KeyboardAvoidingView`'s `onLayout` calls `event.persist()`, so the fake
+layout event needs a `persist: () => {}`. Checked the test fails with the
+`KeyboardAvoidingView` disabled (`enabled={false}`), then put it back.
+
+`npx prettier --write` on `sign-in.tsx` also re-wrapped the existing
+`SIGN_IN_FIELDS` line; put back by hand so the diff is only the fix.
+
+The code review (`app-architect`) approved the frame and found the two
+pickers left the keyboard open over themselves: `keyboardShouldPersistTaps=
+"handled"` (already on the old screens) means tapping them doesn't close it.
+Added `Keyboard.dismiss()` before `setOpen(true)` in `select-field.tsx` and
+`date-field.tsx`. It also pointed out the frame's comment said "Android 15 and
+newer" when Expo turns edge to edge on for every version; reworded.
