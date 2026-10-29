@@ -989,3 +989,63 @@ reads `status` any more. Registration needs `granted`; the prompt needs
 `canAsk`. Tests now use the real Android shape:
 `{ status: "denied", granted: false, canAskAgain: true }`.
 
+
+## P-019 — a push with no title shows "null" when pushes are bundled
+
+- **Date:** 2026-10-29
+- **Where:** M7, the owner's phone, the first pushes after Talaan's Step 59.6 removed the title (`docs/API-REQUESTS.md`, 5)
+- **Tag:** Other
+- **Status:** Open, asked of Talaan (`docs/API-REQUESTS.md`, 8)
+
+**Symptom**
+
+Two pushes arrived together. Folded, the bundle shows a bold **null** before
+each line:
+
+```
+Bantay Aral • 1m
+null Katrina tapped in at 8:55 AM
+null Reynaldo tapped in at 8:55 AM
+```
+
+Unfolded (the down arrow), each push shows only "Katrina tapped in at 8:55 AM",
+with no "null" and no title line.
+
+**Cause**
+
+The folded view isn't either push: it's a **summary** that Android makes by
+itself when one app has several notifications showing. Each line of that
+summary is "**title** body", the same shape as Viber's
+"**FoodPH Channel** See today's top…" just below it. Our pushes have no title,
+and the phone's summary writes the missing title as the word "null" instead of
+leaving it out.
+
+The pushes themselves are fine: unfolded, each has no title, as Talaan
+intended. So it isn't the server's text, Expo's push service, or the app's
+code; it's how this phone draws a summary of untitled notifications.
+
+```
+push 1 (no title) ─┐
+                   ├─► Android bundles them ─► summary line = title + " " + body ─► "null Katrina…"
+push 2 (no title) ─┘
+```
+
+A first guess, that Expo's push service turns a missing title into the text
+"null", was wrong: then the unfolded pushes would say "null" too.
+
+**Options weighed**
+
+1. **The child's first name as the title**, the rest as the body:
+   **Katrina** / "Tapped in at 8:55 AM". The summary reads
+   "**Katrina** Tapped in at 8:55 AM", like every messaging app; no
+   "Bantay Aral" twice. A server change (Talaan) and a wording decision.
+2. Back to the title "Bantay Aral". No "null", but the summary reads
+   "**Bantay Aral** Katrina tapped in…" under the app's own name "Bantay Aral".
+3. Fix it in the app by posting our own group summary. Needs native Android
+   code (`expo-notifications` doesn't do it), and a push is drawn before any
+   of the app's JavaScript runs. Rejected.
+
+**Solution**
+
+Option 1, chosen by the owner on 2026-10-29 and written up as
+`docs/API-REQUESTS.md`, request 8. Nothing changes in the app.

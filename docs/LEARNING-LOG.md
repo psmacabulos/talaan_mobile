@@ -16,6 +16,7 @@ Short, plain-language answers to things that came up while building. Organised b
   - [Google's developer verification, and why it matters by 2027](#googles-developer-verification-and-why-it-matters-by-2027)
   - [Expo Go runs one SDK, and the store copy lags](#expo-go-runs-one-sdk-and-the-store-copy-lags)
   - [Installing a package, and what a config plugin is](#installing-a-package-and-what-a-config-plugin-is)
+  - [Does every build mean installing it again?](#does-every-build-mean-installing-it-again)
 - [Talking to the server](#talking-to-the-server)
   - [What EXPO_PUBLIC_API_URL should be](#what-expo_public_api_url-should-be)
 - [Push notifications](#push-notifications)
@@ -25,6 +26,7 @@ Short, plain-language answers to things that came up while building. Organised b
   - [The server is set to send. Why doesn't my phone buzz yet?](#the-server-is-set-to-send-why-doesnt-my-phone-buzz-yet)
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
   - [Why a push's icon is white, not the colour logo](#why-a-pushs-icon-is-white-not-the-colour-logo)
+  - [Why folded pushes said "null"](#why-folded-pushes-said-null)
 - [Design](#design)
   - [Is there a Google approval for an app's design?](#is-there-a-google-approval-for-an-apps-design)
   - [Why a picture is shrunk to 3 times its size on screen](#why-a-picture-is-shrunk-to-3-times-its-size-on-screen)
@@ -229,6 +231,21 @@ npx expo config --type prebuild
 on your phone until the next `eas build`. Plain JavaScript changes don't need
 a build; they arrive from `npx expo start`.
 
+### Does every build mean installing it again?
+
+Asked by the owner, 2026-10-28, after the M7c build finished.
+
+Yes: a build is a new copy of the app, and it only reaches the phone once you
+download the APK from the link `eas build` prints (or expo.dev → Builds) and
+install it. It installs over the old one, because it has the same package id
+and the same signing key, which EAS keeps. So you stay signed in.
+
+But a new build is rare. Code in `src/` comes to the phone over Wi-Fi from
+`npx expo start --dev-client`, with no build at all. Only a native change
+needs one: `app.config.ts`, a picture built into the app (like M7c's push
+icon), or a new package with native code (`docs/COMMANDS.md`, 2a). Once the
+app is on Google Play, parents' phones update by themselves.
+
 ## Talking to the server
 
 ### What EXPO_PUBLIC_API_URL should be
@@ -410,6 +427,23 @@ white outline, which Android puts in a circle of the mark's blue. It's the same
 file in light and dark mode, because Android does the colouring. The iPhone in
 the mockup shows the colour logo on the left; iPhones allow that, Android
 doesn't. More in `docs/PUSH.md`, "What a push looks like".
+
+### Why folded pushes said "null"
+
+Asked by the owner, 2026-10-29: "it says null. Is there something that we can
+fix on our side?"
+
+When one app has several notifications showing, Android folds them into a
+**summary** it makes itself: one line per notification, each "**title** body",
+like Viber's "**FoodPH Channel** See today's top…". Our pushes had no title,
+and the phone wrote the missing title as the word "null". Unfolded, each push
+was fine.
+
+The app can't change this: Android draws pushes and their summary before any
+of the app's code runs. The fix is a title on every push, so the server will
+send the child's first name as the title ("**Juan**", "Tapped in at 7:56
+AM"). Full story in `docs/PROBLEMS-LOG.md`, P-019, and the request in
+`docs/API-REQUESTS.md`, 8.
 
 ## Design
 

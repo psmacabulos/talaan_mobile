@@ -27,6 +27,7 @@ starts.
 | — | The child's photo in a push | **Not asked for, agreed** | — |
 | 6 | The notification list shows today only | **Taken** (the owner's own decision) | 59.7 |
 | 7 | A range of days, for an attendance month | **Planned**, after the school calendar | 63.1 |
+| 8 | The child's first name as the push title | Not yet taken to Talaan | — |
 
 ---
 
@@ -309,3 +310,56 @@ month is about 22 requests on mobile data.
 holiday or typhoon suspension never shows as Absent. A month of false Absents
 would alarm parents. **Don't build the month view until then.**
 
+---
+
+## 8. The child's first name as the push title
+
+**Found:** 2026-10-29, by the owner, on the first pushes after Talaan's Step
+59.6 (request 5). Details in `docs/PROBLEMS-LOG.md`, P-019.
+
+**What happens now.** Pushes have no title, as request 5 asked. One push on
+its own looks right. But when two or more are showing, Android folds them
+into a summary it makes itself, one line per push, each line "**title**
+body". With no title, the owner's phone writes the word "null" there:
+
+```
+(icon)  Bantay Aral · 1m
+        null Katrina tapped in at 8:55 AM
+        null Reynaldo tapped in at 8:55 AM
+```
+
+Unfolded, each push is correct, with no "null". So the server's text is
+right; the phone just needs a title to put in the summary. The app can't fix
+it: Android draws the push and the summary before any of the app's code runs.
+
+**What we'd like:** a `title` again, now the **child's first name**, and the
+rest of the sentence as the body, starting with a capital. Everything else
+(`data`, sound, priority, channel `attendance`, no photo) stays as now.
+
+| `kind` | `title` | `body` |
+|---|---|---|
+| `time_in` | `Juan` | `Tapped in at 7:56 AM` |
+| `time_out` | `Juan` | `Tapped out at 4:12 PM` |
+| `guardian_linked` | `Juan` | `A new parent account was linked` |
+
+How it looks on the phone, one push and two:
+
+```
+(icon)  Bantay Aral · now
+        Juan
+        Tapped in at 7:56 AM
+
+(icon)  Bantay Aral · 1m
+        Katrina  Tapped in at 8:55 AM
+        Reynaldo Tapped in at 8:55 AM
+```
+
+**Why.** "Bantay Aral" still shows once, at the top, as request 5 wanted, and
+the bold line now says whose child it is, the way every messaging app shows
+the sender. The title holds only the first name, the same as today's body,
+so nothing more about the child reaches the lock screen, Expo, Google or
+Apple. Talaan's change is in `toPushMessage()` and `pushBody()`
+(`src/services/push/push-message.ts`, in the Talaan repository).
+
+**Until then.** Folded pushes show "null". Nothing breaks, and nothing in the
+app changes either way.

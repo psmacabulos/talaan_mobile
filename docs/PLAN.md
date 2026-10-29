@@ -26,8 +26,8 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M6.3b | Notification rows with icon tiles, like the mockup | 0/4 | Set aside: comes back with Notifications as an inbox (`docs/NAVIGATION.md`) |
 | M6.4a | Home's child card as designed: status icons, the times panel | 4/4 | **Approved** |
 | M6.4b | Home's header, tab icons, and a card with only what matters | 4/4 | Parked: built and committed, its phone check and polish come later |
-| M7a | **The phone buzzes when a child taps**, with the app closed | 7/7 | Built, awaiting review |
-| M7c | The Bantay Aral logo on every push | 3/3 | Built, awaiting review |
+| M7a | **The phone buzzes when a child taps**, with the app closed | 7/7 | **Approved** |
+| M7c | The Bantay Aral logo on every push | 3/3 | **Approved** |
 | M7b | A push with the app open, and a tap on one opens the feed | 0/2 | Not started |
 | M8 | An installable build, and the demo run | 0/4 | Not started |
 
@@ -483,7 +483,7 @@ Expo Go).
 | Leave Home and come back, pull to refresh | No second "Allow" prompt |
 | Sign out, then tap the card at the gate | No push |
 
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved" (2026-10-28)
 
 ### Step M7c: The Bantay Aral logo on every push
 
@@ -519,7 +519,7 @@ link on the phone, install the APK over the old one. Then
 | Phone in dark mode, tap again | The same mark, still clearly visible |
 | Read the words | Still "Bantay Aral" twice until Talaan drops the title (`docs/API-REQUESTS.md`, item 5). Not this step's to fix |
 
-- [ ] Owner review: I checked it and said "approved"
+- [x] Owner review: I checked it and said "approved" (2026-10-28)
 
 ### Step M7b: Push, with the app open
 - [ ] In the foreground: shown in the app, home and feed refreshed. Tapping a push opens the feed at that notification
