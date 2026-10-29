@@ -2,15 +2,15 @@
 
 Steps M1 to M8 get to the demo. Work on the first step whose "Owner review" box isn't ticked, skipping any the owner set aside or parked (`CLAUDE.md`, "One step at a time"). Each step's "Commit:" line is a suggestion; the owner makes the commit.
 
-**The server:** Talaan's live server on Heroku (`https://bantayaral.herokuapp.com`), over HTTPS, deployed through Talaan's Step 54.1. Talaan on the owner's Mac is the fallback (`docs/SERVER.md`).
+**The server:** Talaan's live server, `https://bantayaral.com`, over HTTPS, sending real pushes. Talaan on the owner's Mac is the fallback (`docs/SERVER.md`).
 
 ## Progress
 
 Updated at the end of each step, when its "Owner review" box is ticked.
 
-**To the demo: 48 of 60 tasks, 10 of 12 steps approved** (M6.3b and M6.4b, set aside, not counted).
+**To the demo: 50 of 60 tasks, 11 of 12 steps approved** (M6.3b and M6.4b, set aside, not counted).
 
-`████████████████░░░░` 80%
+`█████████████████░░░` 83%
 
 | Step | What it gives a parent | Tasks | Status |
 |---|---|---|---|
@@ -28,8 +28,8 @@ Updated at the end of each step, when its "Owner review" box is ticked.
 | M6.4b | Home's header, tab icons, and a card with only what matters | 4/4 | Parked: built and committed, its phone check and polish come later |
 | M7a | **The phone buzzes when a child taps**, with the app closed | 7/7 | **Approved** |
 | M7c | The Bantay Aral logo on every push | 3/3 | **Approved** |
-| M7b | A push with the app open, and a tap on one opens the feed | 2/2 | Built, awaiting review |
-| M8 | An installable build, and the demo run | 0/4 | Not started |
+| M7b | A push with the app open, and a tap on one opens the feed | 2/2 | **Approved** |
+| M8 | An installable build, and the demo run | 2/4 | Built; waiting for the owner's build and demo run |
 
 Work that waits on Talaan is planned under "Waiting on the server", below
 the demo script, and is not counted here.
@@ -545,28 +545,36 @@ the phone.
 | A link notice's push (link a child from a second account) | Opens Notifications, never a child's day |
 | Font size at maximum, small phone | The tapped row sits fully in view, not under the "Today" header |
 | TalkBack on, app open, make a tap | The banner is read out |
-- [ ] Owner review: I checked it and said "approved"
+
+- [x] Owner review: I checked it and said "approved" (2026-10-29)
 
 ### Step M8: The demo build
-- [ ] Check with the owner that Heroku runs Talaan's latest approved step, with `PUSH_SENDER=expo`
-- [ ] The app icon and splash screen from the logo, on white, with the name Bantay Aral
-- [ ] An installable Android build pointing at the live server over HTTPS
-- [ ] The demo script below in `docs/DEMO.md`, run from start to finish
+- [x] The live server runs Talaan's latest step and sends pushes: real pushes from `https://bantayaral.com` reached the owner's phone on 2026-10-28 and 29 (Heroku is gone, P-007)
+- [x] The app icon and splash screen from the logo, on white. The name Bantay Aral was already the app's name (M1); the splash shows the mark only, since Android 12+ shows a round icon there
+- [ ] An installable Android build pointing at the live server over HTTPS: the `preview` profile is ready in `eas.json`; the owner runs `eas build --profile preview --platform android`
+- [ ] `docs/DEMO.md` run from start to finish, both parts, on the APK
 Done when: the owner runs the demo script on a real phone without help.
 Commit: `chore(release): add the demo build`
+
+Owner decisions (2026-10-29): the demo runs on the owner's phone, with the
+development build uninstalled first; `docs/DEMO.md` has two parts (a new
+parent first, then their own account) and uses any test student.
+
+| On the phone, with the APK installed | You should see |
+|---|---|
+| The home screen and app drawer | The Bantay Aral mark on white, named "Bantay Aral", not Expo's logo |
+| Android 13+: Settings → Wallpaper → Themed icons on | A one-colour outline of the mark |
+| Phone in dark mode | The same icon, still white behind the mark |
+| Force-stop, then open it | The splash: the mark on white, whole, not cut off at a circle's edge |
+| Turn on airplane mode, pull to refresh on Home | "Can't reach Bantay Aral right now." with Try again |
+| `docs/DEMO.md`, parts 1 and 2 | Every row as written |
+
 - [ ] Owner review: I checked it and said "approved"
 
 ## The demo script
 
-**Before:** Talaan is live on Heroku, sending pushes (`PUSH_SENDER=expo`), with the gate tablet connected. One of the owner's NFC stickers is linked to the demo student Jose Pascual (web app: Students → Jose Pascual → Card serial). Balanga's notification setting (Settings) isn't "Off".
-
-1. Install the demo build on an Android phone.
-2. Sign up as a new parent. Or sign in as the demo parent `parent-one@balanga.example`, password `Talaan123!` (the demo password keeps the code name).
-3. Link a child: school **Balanga City National Science High School**, LRN **100000000002**, last name **Pascual**, birth date **2014-03-03** (Talaan's demo data, checked 2026-10-19; if it has changed, ask the owner).
-4. Allow notifications.
-5. Tap Jose's sticker at the gate. The phone shows "Jose tapped in at …". A push may take a few minutes when the server is busy: the time it shows is always the real tap time.
-6. Open the app. Home shows Jose present, with his time in. The feed shows the notification. Open it, and it's read.
-7. Tap again after 2 minutes: "Jose tapped out at …".
+In `docs/DEMO.md` since M8: two parts, the owner's own account and a
+brand-new parent, with any test student (owner decision, 2026-10-29).
 
 ## Waiting on the server
 

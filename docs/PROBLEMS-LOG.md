@@ -342,7 +342,7 @@ entry in the log to reopen.
 - **Date:** 2026-10-21
 - **Where:** M2, checking `GET /schools` against the live server
 - **Tag:** Other
-- **Status:** Open — needs the owner to confirm
+- **Status:** Fixed (2026-10-29): `docs/SERVER.md` names `https://bantayaral.com`, confirmed by real pushes from it; the demo APK points there (M8)
 
 **Symptom**
 

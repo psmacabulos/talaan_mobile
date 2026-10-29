@@ -1539,3 +1539,70 @@ The name came from older React Native typings. In 0.88 it exists only inside
 package root exports it as `ScrollToLocationParamsType`
 (`types_generated/index.d.ts:78`). Renamed in the hook and the recipe
 (P-020).
+
+## M8 — The demo build
+
+**Nothing needed on Talaan.** Real pushes from `https://bantayaral.com`
+reached the owner's phone on 2026-10-28 and 29, so `PUSH_SENDER=expo` is
+live. `docs/SERVER.md` still named Heroku, gone since P-007; rewritten.
+
+**The pictures.** `design/logo/` (exported 2026-10-28 from the web's vector
+mark) already had files under the placeholders' names. Copied over, sizes
+from `sips -g pixelWidth -g pixelHeight` and `stat -f %z`:
+
+| File | Before | After |
+|---|---|---|
+| `icon.png` | 1024², 799,005 B (Expo's) | 1024², 38,261 B, opaque |
+| `android-icon-foreground.png` | 512², 78,796 B | 1024², 34,031 B |
+| `android-icon-background.png` | 512², 17,549 B | 1024², 6,515 B |
+| `android-icon-monochrome.png` | 432², 4,140 B | 1024², 19,682 B |
+| `splash-icon.png` | 228 × 213, 3,317 B | 1024², 34,031 B |
+
+Not shrunk: CLAUDE.md keeps the icon and splash at the sizes Expo asks for.
+All five together went from 903 KB to 133 KB.
+
+**The splash, a dead end first.** `design/logo/splash-icon.png` is the mark
+filling 90% of its square. Measured with a short Python PNG reader in the
+scratchpad (no PIL on this Mac): bounding box x 80–1005, y 67–965, the
+furthest pixel 558 px from the centre, 109% of the half-width. The review
+pointed out that Android 12 and newer show the splash icon inside a circle
+about two-thirds of its box, so the rays and the book's corner would be cut
+off. `android-icon-foreground.png` is the same mark padded for exactly that
+circle (furthest pixel 327 px, 64% of the half-width), so it's copied as
+`splash-icon.png` too. `imageWidth` 76 → 200.
+
+**A test that every picture exists.** `app.config.test.ts`: the icon, the
+three adaptive layers and the splash image, each `jest.requireActual`'d, as
+M7c's push icon test does. Checked by moving `splash-icon.png` into the
+scratchpad: `Tests: 1 failed, 11 passed`; moved back: 12 passed.
+
+**The `preview` profile.** `eas.json`: `distribution: "internal"`,
+`environment: "preview"`, `android.buildType: "apk"`, and
+`env.EXPO_PUBLIC_API_URL: "https://bantayaral.com"`. `.env` is gitignored, so
+EAS never sees it; the address is public, so it lives in git with the
+profile. `GOOGLE_SERVICES_JSON` was already uploaded for `preview` in M7.
+The plan review asked to set the address in one place only: it isn't an EAS
+environment variable as well.
+
+**Release mode, checked by the review:** `__DEV__` only gates logs
+(`src/api/client.ts`); a missing or `http` address becomes a config error,
+not a crash (`src/api/config.ts`); `expo-dev-client` is only active in debug
+builds.
+
+**The demo APK replaces the development build.** Same package id, same EAS
+keystore, both `versionCode` 1, so it would install over it and keep the
+signed-in token. Owner's choice: uninstall the development build first, so
+Part 2 of `docs/DEMO.md` really starts from a new phone.
+
+**The demo script** moved from `docs/PLAN.md` to `docs/DEMO.md`, rewritten
+after the owner asked why a script at all: two parts (their own account, then
+a brand-new parent), any test student instead of the seed data's Jose
+Pascual, and today's push wording and M7b's tap behaviour.
+
+**The code review** found DEMO.md contradicting itself: "Allow
+notifications?" is asked once per phone, the first time Home has a child
+(`src/push/use-ask-permission.ts`), so the owner's own account, run first,
+would have used it up and the new parent would never see it. The new parent
+now goes first, on the fresh install. Also added: the two Android install
+screens (install unknown apps, Play Protect), and that Android 12 and older
+show no prompt.

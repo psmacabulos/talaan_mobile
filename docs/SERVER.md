@@ -1,21 +1,14 @@
 # Which server the app talks to
 
-> **The address below is out of date (checked 2026-10-21).**
-> `https://bantayaral.herokuapp.com` returns Heroku's "no such app" page. The
-> live API answers at `https://bantayaral.com`, with the same demo data, and
-> `.env.example` points there. This file is left as the owner wrote it until
-> they confirm the move — see `docs/PROBLEMS-LOG.md`, P-007.
-
-
-**The live server is the default.** Talaan is deployed on Heroku at `https://bantayaral.herokuapp.com`, current through Talaan's Step 54.1 (as of 2026-10-19): every parent API address in `docs/TALAAN-API.md` is live there. Develop against it, over HTTPS, so every build behaves like the real one.
+**The live server is the default.** Talaan answers at `https://bantayaral.com` (it moved from `bantayaral.herokuapp.com`, which is gone: `docs/PROBLEMS-LOG.md`, P-007). Every parent API address in `docs/TALAAN-API.md` is live there, and it sends real pushes (checked 2026-10-29). Develop against it, over HTTPS, so every build behaves like the real one.
 
 Talaan running on the owner's Mac is the fallback, for when the owner is testing a Talaan change that isn't deployed yet, or wants to reset the demo data freely.
 
 ```mermaid
 flowchart LR
-    Phone["Android phone<br/>(this app)"] -- "HTTPS (default)" --> Heroku["Talaan on Heroku<br/>bantayaral.herokuapp.com"]
+    Phone["Android phone<br/>(this app)"] -- "HTTPS (default)" --> Live["Talaan, live<br/>bantayaral.com"]
     Phone -. "Wi-Fi, http://192.168.x.x:3000 (fallback)" .-> Mac["Talaan on the Mac<br/>npm run dev"]
-    Heroku -- "pushes, once PUSH_SENDER=expo" --> Expo["Expo push service"] --> FCM["Firebase Cloud Messaging"] --> Phone
+    Live -- "pushes (PUSH_SENDER=expo)" --> Expo["Expo push service"] --> FCM["Firebase Cloud Messaging"] --> Phone
 ```
 
 ## The live server (default)
@@ -23,10 +16,12 @@ flowchart LR
 In this app's `.env`, the owner sets:
 
 ```
-EXPO_PUBLIC_API_URL=https://bantayaral.herokuapp.com
+EXPO_PUBLIC_API_URL=https://bantayaral.com
 ```
 
-Then restart Expo with `npx expo start --clear` (environment variables are read when the bundle is built). Check from the phone's browser that `https://bantayaral.herokuapp.com/api/v1/health` answers.
+Then restart Expo with `npx expo start --clear` (environment variables are read when the bundle is built). Check from the phone's browser that `https://bantayaral.com/api/v1/health` answers.
+
+The demo APK (M8) doesn't read `.env`: its address is written into `eas.json`'s `preview` profile.
 
 Things to know about it:
 - **It's shared with the web app's demo.** Accounts and links made from the app are real rows there. Use the demo accounts below, or test accounts with clearly fake emails.
@@ -43,18 +38,10 @@ Things to know about it:
 
 ## Testing a real push (M7)
 
-The live server's push setting is `PUSH_SENDER=log` until M7 (Talaan's `docs/DEPLOY.md`): it builds each push and only writes it to the log. To send for real:
+**Done (2026-10-28):** the live server sends real pushes, with `PUSH_SENDER=expo` and an `EXPO_ACCESS_TOKEN` set where it runs. The token is typed there by hand, never pasted into a chat or a file. To test one:
 
-1. The owner has a free Expo account and the app's EAS project, and an **access token** from expo.dev (Account settings → Access tokens).
-2. The owner sets both on Heroku, typing the token themselves (never pasted into a chat or a file), from the `talaan` folder:
-
-   ```bash
-   heroku config:set PUSH_SENDER=expo EXPO_ACCESS_TOKEN=<the token> --app bantayaral
-   ```
-
-   Heroku restarts the server by itself.
-3. On the phone, sign in and allow notifications (the app registers its push token).
-4. Tap a linked child's sticker at the gate. The phone should show "Jose tapped in at …" within seconds. `heroku logs --tail --app bantayaral` shows `push: sent 1, …`.
+1. On the phone, sign in and allow notifications (the app registers its push token).
+2. Tap a linked child's sticker at the gate. Within seconds the phone shows the child's first name over "Tapped in at …". The server's log shows `push: sent 1, …`.
 
 If nothing arrives: check the app got `204` from `POST /api/v1/parents/push-tokens`, that the `attendance` channel exists on the phone, and that the school's notification setting isn't "Off". About 15 to 20 minutes after a push, the server checks Expo's receipts; an `InvalidCredentials` or `MismatchSenderId` line in the log means the Firebase setup in Expo's credentials is wrong. Add what you find to `docs/PROBLEMS-LOG.md`.
 
@@ -72,11 +59,11 @@ npm run dev                    # Talaan, at http://localhost:3000
 3. Check `http://192.168.1.23:3000/api/v1/health` from the phone's browser. If it doesn't answer, the phone and the Mac aren't on the same network, or macOS's firewall is blocking Node (System Settings → Network → Firewall). The Mac's address can change when it reconnects.
 
 Good to know about the Mac:
-- **Plain `http` works in development builds and Expo Go only.** Android blocks it in release builds. Check the current Expo docs if a development build refuses it. Every installable build points at Heroku.
+- **Plain `http` works in development builds and Expo Go only.** Android blocks it in release builds. Check the current Expo docs if a development build refuses it. Every installable build points at `https://bantayaral.com`.
 - `npm run db:reset` refills the demo data and signs every phone out, so the app's `401` handling sends it to sign-in, which is expected.
 - Pushes go to the log only, unless the owner adds `PUSH_SENDER="expo"` and `EXPO_ACCESS_TOKEN="…"` to Talaan's `.env` and restarts `npm run dev`.
 - To tap a chosen child without a reader: make a gate token (`npm run device:create -- --school school-balanga --kind gate --label "Mac gate"`), then `npm run tap:record -- --token <gate token>` and type the card serial (Jose's demo card is `04:5B:B6:11:6C:C7:22`). It runs outside the server, so its push waits for the next check, up to 5 minutes.
 
 ## Trying the API by hand
 
-`docs/TALAAN-API.md` has a `curl` example for every address, written for `http://localhost:3000`. Swap in `https://bantayaral.herokuapp.com` for the live server.
+`docs/TALAAN-API.md` has a `curl` example for every address, written for `http://localhost:3000`. Swap in `https://bantayaral.com` for the live server.

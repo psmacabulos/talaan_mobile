@@ -234,10 +234,8 @@ EXPO_ACCESS_TOKEN=<from expo.dev → Account settings → Access tokens>
 - **He types it on the server himself.** It never comes near this repository,
   this app's `.env`, or a chat window.
 
-> `docs/SERVER.md` still says to do this with `heroku config:set`. That is out
-> of date — the server moved and now answers at `https://bantayaral.com`
-> (`docs/PROBLEMS-LOG.md`, P-007). Ask him where it runs and how to set
-> environment variables there.
+> Done on 2026-10-28: the live server at `https://bantayaral.com` sends real
+> pushes (`docs/SERVER.md`, "Testing a real push").
 
 ---
 
@@ -406,7 +404,7 @@ sequenceDiagram
 **Known trade-offs**
 - Tapping a push while linking a child closes the half-filled form
   (`dismissAll()`), against the "never lose what was typed" rule. Accepted for
-  now: it's a deliberate tap. Waiting on the owner's call.
+  now: it's a deliberate tap (owner, 2026-10-29).
 - If the cached feed is older than 30 seconds, opening it fetches once before
   the read mark and once after: the row shows unread for a moment, then read.
 

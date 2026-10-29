@@ -86,6 +86,33 @@ Open the link it prints on the phone, download the APK, install it.
 | Upload `google-services.json` again (after changing Firebase) | `eas env:set --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json --visibility secret --environment development --environment preview --environment production` |
 | See or change the Firebase key Expo sends with | `eas credentials` → Android → development |
 
+## 2b. Make the demo APK (since M8)
+
+The demo build is the release kind: all the code is inside it, so it runs on
+any phone with no laptop, and it talks to `https://bantayaral.com` (set in
+`eas.json`'s `preview` profile, not `.env`). What it's for and how it differs
+from the development build: `docs/LEARNING-LOG.md`, "The development build
+and the demo build".
+
+```bash
+eas env:list --environment preview                   # should list GOOGLE_SERVICES_JSON
+eas config --platform android --profile preview      # should show the preview profile, buildType apk
+eas build --profile preview --platform android       # 1 of the 15 a month, 10–20 min on Expo's servers
+```
+
+It may ask "Install and run the Android build on an emulator?": answer **n**.
+When it finishes it prints a link. On the phone:
+
+1. Uninstall the development build first (long-press its icon → Uninstall).
+   Both are `com.bantayaral.parent`, so they can't sit side by side.
+2. Open the link, download the APK, install it (allow installs from the
+   browser; Play Protect → **Install anyway**).
+3. Run `docs/DEMO.md`.
+
+To develop again: uninstall the demo APK, reinstall the development build
+(expo.dev → the project → Builds → the latest `development` build), then
+`npx expo start --dev-client --clear`.
+
 ## 3. The checks
 
 Run all four before saying a step is done. CI runs the same four on every push.
@@ -157,8 +184,7 @@ Then check it on the phone, in light and dark.
 
 ## 6. Later steps
 
-Push, development builds and the installable APK arrive in M7 and M8. Their
-commands get added here then.
+Push and the development build are in 2a, the demo APK in 2b.
 
 ## 7. Run the checks the way CI runs them
 

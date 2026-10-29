@@ -16,8 +16,8 @@ import type { ExpoConfig } from "expo/config";
  * fails to load (docs/PROBLEMS-LOG.md, P-002). app.config.test.ts checks
  * these against src/product.ts and src/theme so the two can't drift apart.
  *
- * The icon and splash artwork are still Expo's placeholders: drawing them
- * from the Bantay Aral mark is M8 (docs/PLAN.md:84).
+ * The icon and splash are the Bantay Aral mark, copied from design/logo/ in
+ * M8 (design/logo/README.md, "App icon and splash").
  */
 const APP_ID = "com.bantayaral.parent";
 const PRODUCT_NAME = "Bantay Aral";
@@ -84,10 +84,14 @@ const config: ExpoConfig = {
     "expo-router",
     [
       "expo-splash-screen",
+      // The mark with the adaptive icon's padding (the same picture as
+      // android-icon-foreground.png): Android 12 and newer show the splash
+      // inside a circle, which would cut the corners off a mark that fills
+      // its square.
       {
         backgroundColor: ICON_BACKGROUND,
         image: "./assets/images/splash-icon.png",
-        imageWidth: 76,
+        imageWidth: 200,
       },
     ],
     // Android draws a push's icon in one colour, from its shape alone, so the

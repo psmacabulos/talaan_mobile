@@ -1,38 +1,50 @@
 # Learning log
 
-Short, plain-language answers to things that came up while building. Organised by topic, newest entry at the end of its section.
+Short, plain-language answers to things that came up while building. Organised
+by topic, not by date: a new entry goes at the end of the section it belongs
+to. Every section ends with a link back here.
 
 ## Contents
 
-- [Setting up the machine](#setting-up-the-machine)
+- [Your computer and the code](#your-computer-and-the-code)
   - [nvm installs a Node version without switching to it](#nvm-installs-a-node-version-without-switching-to-it)
   - [npm install changed package-lock.json on a new computer](#npm-install-changed-package-lockjson-on-a-new-computer)
-- [Builds and installing the app](#builds-and-installing-the-app)
-  - [Running the app on a phone without any store](#running-the-app-on-a-phone-without-any-store)
-  - [Can the app get real pushes without the Play Store?](#can-the-app-get-real-pushes-without-the-play-store)
-  - [APK or AAB: only one of them installs by hand](#apk-or-aab-only-one-of-them-installs-by-hand)
-  - [How many free EAS builds we get](#how-many-free-eas-builds-we-get)
-  - [What the owner sees on the phone when installing by hand](#what-the-owner-sees-on-the-phone-when-installing-by-hand)
-  - [Google's developer verification, and why it matters by 2027](#googles-developer-verification-and-why-it-matters-by-2027)
-  - [Expo Go runs one SDK, and the store copy lags](#expo-go-runs-one-sdk-and-the-store-copy-lags)
   - [Installing a package, and what a config plugin is](#installing-a-package-and-what-a-config-plugin-is)
+- [Secrets, backups and moving to another computer](#secrets-backups-and-moving-to-another-computer)
+  - [Which files go in git, and which never do](#which-files-go-in-git-and-which-never-do)
+  - [What to keep safe, so losing the Mac loses nothing](#what-to-keep-safe-so-losing-the-mac-loses-nothing)
+  - [Moving to a new computer](#moving-to-a-new-computer)
+- [Running the app while building it](#running-the-app-while-building-it)
+  - [Running the app on a phone without any store](#running-the-app-on-a-phone-without-any-store)
+  - [Expo Go runs one SDK, and the store copy lags](#expo-go-runs-one-sdk-and-the-store-copy-lags)
+  - [Why Expo Go can't test push](#why-expo-go-cant-test-push)
+  - [The development build and the demo build: both APKs, not the same app](#the-development-build-and-the-demo-build-both-apks-not-the-same-app)
   - [Does every build mean installing it again?](#does-every-build-mean-installing-it-again)
+  - [How many free EAS builds we get](#how-many-free-eas-builds-we-get)
+  - [APK or AAB: only one of them installs by hand](#apk-or-aab-only-one-of-them-installs-by-hand)
+- [Installing by hand, and the demo](#installing-by-hand-and-the-demo)
+  - [What the owner sees on the phone when installing by hand](#what-the-owner-sees-on-the-phone-when-installing-by-hand)
+  - [Why a demo script, and why a brand-new account](#why-a-demo-script-and-why-a-brand-new-account)
+- [Google Play](#google-play)
+  - [Can the app get real pushes without the Play Store?](#can-the-app-get-real-pushes-without-the-play-store)
   - [What getting onto the Play Store needs](#what-getting-onto-the-play-store-needs)
+  - [Google's developer verification, and why it matters by 2027](#googles-developer-verification-and-why-it-matters-by-2027)
+  - [Is there a Google approval for an app's design?](#is-there-a-google-approval-for-an-apps-design)
 - [Talking to the server](#talking-to-the-server)
   - [What EXPO_PUBLIC_API_URL should be](#what-expo_public_api_url-should-be)
+  - [Why it looks like "just the website"](#why-it-looks-like-just-the-website)
+  - [Why the app keeps only the origin](#why-the-app-keeps-only-the-origin)
+  - [Telling the three failures apart](#telling-the-three-failures-apart)
 - [Push notifications](#push-notifications)
-  - [Why Expo Go can't test push](#why-expo-go-cant-test-push)
   - [Why push needs Firebase at all](#why-push-needs-firebase-at-all)
-  - [Which push files go in git, and which never do](#which-push-files-go-in-git-and-which-never-do)
   - [The server is set to send. Why doesn't my phone buzz yet?](#the-server-is-set-to-send-why-doesnt-my-phone-buzz-yet)
   - [Why a push can arrive late, or not at all, on a cheap Android phone](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)
   - [Why a push's icon is white, not the colour logo](#why-a-pushs-icon-is-white-not-the-colour-logo)
   - [Why folded pushes said "null"](#why-folded-pushes-said-null)
-- [Design](#design)
-  - [Is there a Google approval for an app's design?](#is-there-a-google-approval-for-an-apps-design)
+- [Pictures in the app](#pictures-in-the-app)
   - [Why a picture is shrunk to 3 times its size on screen](#why-a-picture-is-shrunk-to-3-times-its-size-on-screen)
 
-## Setting up the machine
+## Your computer and the code
 
 ### nvm installs a Node version without switching to it
 
@@ -65,9 +77,144 @@ git restore package-lock.json   # undo the churn, keep node_modules as installed
 npm ci                          # next time: installs exactly the lockfile and never rewrites it
 ```
 
-`npm ci` is the one to use on a new machine. `npm install` is for when you mean to change packages.
+`npm ci` is the one to use on a new machine ([Moving to a new computer](#moving-to-a-new-computer)). `npm install` is for when you mean to change packages.
 
-## Builds and installing the app
+### Installing a package, and what a config plugin is
+
+**Installing.** For anything made for Expo, use `npx expo install`, not
+`npm install`:
+
+```bash
+npx expo install expo-dev-client expo-notifications
+```
+
+It runs `npm install` for you, but first picks the version that matches this
+project's SDK (58). Plain `npm install` takes the newest version, which may
+expect a different SDK and break the build. It changes `package.json` and
+`package-lock.json`, nothing else; `git diff` shows it.
+
+**A config plugin** is a small piece of code that comes *inside* a package.
+You don't install it separately: installing `expo-notifications` brought its
+plugin with it. Its job is to change the Android (and iOS) project files while
+EAS builds the app: for push, it adds the Firebase setup and the permission to
+show notifications.
+
+Listing the package's name in [app.config.ts](../app.config.ts) is how you
+switch it on:
+
+```ts
+plugins: [
+  "expo-router",
+  ["expo-splash-screen", { /* its settings */ }],
+  "expo-notifications",          // ← switched on, default settings
+],
+```
+
+A name alone means default settings; a `[name, { … }]` pair passes settings.
+Some packages, like `expo-dev-client`, switch theirs on by themselves when
+installed, so they need no line. To see which plugins actually run:
+
+```bash
+npx expo config --type prebuild
+```
+
+**Why it matters for builds:** a plugin only runs during a build. Changing
+`plugins`, or installing a package with native code, does nothing to the app
+on your phone until the next `eas build`
+([Does every build mean installing it again?](#does-every-build-mean-installing-it-again)).
+Plain JavaScript changes don't need a build; they arrive from `npx expo start`.
+
+[↑ Contents](#contents)
+
+## Secrets, backups and moving to another computer
+
+### Which files go in git, and which never do
+
+The test is one question: **could someone who has this file act as us?**
+
+| File | What it is | In git? |
+|---|---|---|
+| [eas.json](../eas.json) | build settings: which profiles exist, APK or not, the demo build's server address | **Yes.** No secrets, and EAS needs it on every machine that builds |
+| [app.config.ts](../app.config.ts) (project ID, owner) | names our Expo project | **Yes.** A name, not a key |
+| `.env` | one line, the server's address | **No**, but not because it's secret: each computer may point somewhere different. [.env.example](../.env.example) is the copy in git |
+| `google-services.json` | tells the app which Firebase project it belongs to | **No.** It identifies rather than unlocks, but it stays out of git; cloud builds get it from Expo ([PUSH.md, Part D](PUSH.md#part-d--the-development-build)) |
+| `…-firebase-adminsdk-….json` | a private key that can **send** pushes as Bantay Aral | **Never.** Upload it to Expo, then move it out of the project |
+| `EXPO_ACCESS_TOKEN` | lets a server use our Expo account | **Never.** Typed on the server only |
+| The signing key (`.jks`) | proves an update really comes from us | **Never.** Expo keeps it; a backup goes somewhere private ([below](#what-to-keep-safe-so-losing-the-mac-loses-nothing)) |
+
+The difference is identifying versus authorising. An ID only says "this is
+our project". A key or token lets whoever holds it act as us. Anything that
+authorises stays out of git for good, because GitHub keeps history: deleting
+the file in a later commit leaves it readable in the old one, and the only
+real fix is to revoke the key and make a new one.
+
+Before committing after any setup step, look at `git status` and read every
+`??` line. That's how the Firebase key was caught
+([PROBLEMS-LOG.md, P-014](PROBLEMS-LOG.md#p-014--the-firebase-private-key-wasnt-ignored-by-git)).
+
+### What to keep safe, so losing the Mac loses nothing
+
+Asked by the owner, 2026-10-29: "If I happen to lose my Mac, does it mean I
+can't update the app?"
+
+No. The things that matter live in **accounts**, not on the laptop:
+
+| Account | What it holds |
+|---|---|
+| **Expo** (`pmacabulos`) | The project, every build, the uploaded `google-services.json`, the Firebase key Expo sends pushes with, and **the app's signing key** |
+| **Google / Firebase** (project `bantayaral-58731`) | The Firebase project that carries pushes to Android |
+| **GitHub** | All the code and docs |
+
+Turn on two-step sign-in for all three, and keep their recovery codes
+somewhere other than the Mac.
+
+The files only on this Mac, and what losing each would mean:
+
+| File | If it's lost |
+|---|---|
+| `.env` | Nothing: `cp .env.example .env` |
+| `google-services.json` | Download it again: [Firebase console](https://console.firebase.google.com) → `bantayaral-58731` → ⚙️ Project settings → **Your apps** → the Android app `com.bantayaral.parent` → **google-services.json** |
+| `bantayaral-58731-firebase-adminsdk-….json` | Expo already has it, so pushes keep working. A new one: Firebase → Project settings → **Service accounts** → **Generate new private key**, then upload it with `eas credentials`. **It shouldn't be in the project folder at all**: move it somewhere private, or delete it |
+
+**The one thing that can't be replaced is the signing key.** Android only
+accepts an update signed with the same key as the app already installed. Expo
+keeps it, but download a backup once and store it with the Firebase key, never
+in the project:
+
+```bash
+eas credentials
+```
+
+Android → `production` → **Keystore** → **Download**. It saves a `.jks` file
+and prints its passwords; keep both.
+
+### Moving to a new computer
+
+Asked by the owner, 2026-10-29, about moving to a mini PC. Everything comes
+from GitHub and the accounts above:
+
+```bash
+git clone <the repository>
+cd talaan_parents_app
+nvm install 24.11.0 && nvm use 24.11.0   # Windows: an Administrator terminal for `nvm use`
+npm ci                                   # installs exactly the lockfile
+cp .env.example .env
+npm install -g eas-cli && eas login
+```
+
+That's enough to edit, run, test and make builds: EAS builds in the cloud and
+takes `google-services.json` and the keys from the Expo account. The phone
+needs a development build installed to load code from the new computer
+([COMMANDS.md, 2a](COMMANDS.md#2a-the-development-build-since-m7)). Copy
+`google-services.json` across only for a local build with Android Studio.
+
+The same steps let someone else, like the owner's brother, work on the repo.
+What they can't do is run `eas build`: the Expo project belongs to a personal
+account, which can't add people.
+
+[↑ Contents](#contents)
+
+## Running the app while building it
 
 ### Running the app on a phone without any store
 
@@ -78,76 +225,7 @@ npm install              # once
 npx expo start --clear   # then scan the QR code with Expo Go
 ```
 
-The phone and the computer must be on the same Wi-Fi, `.env` must hold `EXPO_PUBLIC_API_URL`, and Expo Go must be the build for this project's SDK (see "Expo Go runs one SDK, and the store copy lags" below). Expo Go can't receive push, so M7 installs a development build instead, and M8 makes an APK you can send to any phone. Neither needs a store. The full list is in `docs/COMMANDS.md`.
-
-### Can the app get real pushes without the Play Store?
-
-Yes. Installing the app by hand (copying an `.apk` to the phone and tapping it) gives you the same push notifications as a Play Store install. The Play Store is a shop, not a requirement.
-
-The push travels like this:
-
-```mermaid
-flowchart LR
-    Gate["NFC tap at the gate"] --> Talaan["Talaan on Heroku"]
-    Talaan --> Expo["Expo push service"]
-    Expo --> FCM["Firebase Cloud Messaging"]
-    FCM --> Phone["The phone<br/>com.bantayaral.parent"]
-```
-
-Nothing in that chain asks where the app came from. Two things are easy to mix up:
-
-- **Google Play *Services*** is a set of Google components already on the phone. Firebase Cloud Messaging needs it, because it is the part of the phone that holds the always-open connection to Google and wakes our app. Nearly every Android phone sold in the Philippines has it.
-- **The Google Play *Store*** is distribution: a listing, a US$25 one-time fee, a privacy policy, a review. We need none of that to receive a push.
-
-What ties a push to our app is the **package id** `com.bantayaral.parent`, registered in a free Firebase project. Firebase matches by package id, never by where the app was installed from. This is why `CLAUDE.md` calls the package id permanent: change it and every registered phone stops receiving.
-
-Everything M7 needs is free: an Expo account, an EAS project id, and a Firebase project with an Android app on that package id.
-
-### APK or AAB: only one of them installs by hand
-
-EAS Build makes an **`.aab`** (Android App Bundle) by default for Android, and *an `.aab` cannot be installed on a phone*. It is a package for the Play Store to slice up. Handing one to the owner's phone just fails.
-
-For a build to install by hand, `eas.json` has to ask for an APK:
-
-```json
-{
-  "build": {
-    "preview": {
-      "android": {
-        "buildType": "apk"
-      }
-    }
-  }
-}
-```
-
-Setting `distribution: "internal"` or `developmentClient: true` on a profile also produces an APK. M8's installable build needs this; it is the single easiest thing to get wrong.
-
-### How many free EAS builds we get
-
-The free plan gives **15 Android builds a month** (it was 30 until 2025-10-09, so older guides are wrong). Builds that fail in under 3 minutes don't count. Free builds use the low-priority queue, which can wait 90 minutes or more at busy times.
-
-15 is enough for M1 to M8 if we aren't careless, but M7 is the step that burns builds, because a push problem often can't be seen without a new build. If we run out, a local build with Android Studio is free and unlimited (`CLAUDE.md`, "Stack"), just slower to set up.
-
-### What the owner sees on the phone when installing by hand
-
-Three prompts, all normal:
-
-1. **"Install unknown apps"** — Android asks permission for the app you're installing *from* (Files, Chrome, Drive), not for our app. Granted once per source.
-2. **Play Protect: "Unsafe app blocked"** or a scan prompt — because the app isn't signed by a known developer. Choose "Install anyway" / "More details". Expected for an unlisted app.
-3. **The notification permission** (Android 13 and newer) — this one is ours, and M7 asks for it right after the first child is linked, never at first launch.
-
-### Google's developer verification, and why it matters by 2027
-
-Google now requires developers to verify their identity for apps installed on certified Android devices, **including apps installed by hand**. Enforcement began 2026-09-30 in Brazil, Indonesia, Singapore and Thailand, and Google says it expands globally in 2027.
-
-Where this leaves us:
-
-- **The Philippines is not in the first wave,** so installing by hand works normally today (checked 2026-10-21). The demo is unaffected.
-- A free **Limited Distribution account** lets students, teachers and hobbyists share an app with **up to 20 devices**, with no government ID and no fee. That covers the demo and a small trial.
-- 20 devices does **not** cover a 500-student pilot. When global enforcement lands, a pilot that size needs either a verified developer account or the Play Store (the US$25 one-time fee, plus a privacy policy page).
-
-So: hand-installing is right for the demo and fine for a small trial, but the 500-student rollout should plan on Google Play. That is already on `docs/PLAN.md`'s after-the-demo list; the new part is that 2027 puts a clock on it.
+The phone and the computer must be on the same Wi-Fi, `.env` must hold `EXPO_PUBLIC_API_URL`, and Expo Go must be the build for this project's SDK ([Expo Go runs one SDK, and the store copy lags](#expo-go-runs-one-sdk-and-the-store-copy-lags)). Expo Go can't receive push, so M7 installs a development build instead, and M8 makes an APK you can send to any phone. Neither needs a store. The full list is in [COMMANDS.md](COMMANDS.md).
 
 ### Expo Go runs one SDK, and the store copy lags
 
@@ -182,55 +260,38 @@ https://api.expo.dev/v2/versions/latest
 
 Each entry has an `androidClientUrl` pointing at an APK on Expo's own GitHub
 releases. Download that on the phone and install it — the same hand-installing
-as [[can-the-app-get-real-pushes-without-the-play-store]]. It replaces whatever
-Expo Go is already there.
+as [any APK](#what-the-owner-sees-on-the-phone-when-installing-by-hand). It
+replaces whatever Expo Go is already there.
 
 **This stops mattering at M7.** A development build carries its own copy of the
 runtime, so it never consults Expo Go and never cares which SDK the stores are
 on.
 
-### Installing a package, and what a config plugin is
+### Why Expo Go can't test push
 
-**Installing.** For anything made for Expo, use `npx expo install`, not
-`npm install`:
+Expo Go is Expo's own app, so on Android it carries Expo's package id and Expo's Firebase setup, not ours. From Expo SDK 53 onward it can't receive pushes on Android at all. Push testing always needs a real build of *our* app — a development build in M7, or the installable APK in M8. This is why M7 lists "a development build installed on the phone" before anything else.
 
-```bash
-npx expo install expo-dev-client expo-notifications
-```
+### The development build and the demo build: both APKs, not the same app
 
-It runs `npm install` for you, but first picks the version that matches this
-project's SDK (58). Plain `npm install` takes the newest version, which may
-expect a different SDK and break the build. It changes `package.json` and
-`package-lock.json`, nothing else; `git diff` shows it.
+Asked by the owner, 2026-10-29: "Isn't the one I downloaded last time also an
+APK file? What's the difference on this step?"
 
-**A config plugin** is a small piece of code that comes *inside* a package.
-You don't install it separately: installing `expo-notifications` brought its
-plugin with it. Its job is to change the Android (and iOS) project files while
-EAS builds the app: for push, it adds the Firebase setup and the permission to
-show notifications.
+Both are APKs, built by EAS, installed by hand. What's inside differs:
 
-Listing the package's name in `app.config.ts` is how you switch it on:
+| | Development build (M7) | Demo build (M8) |
+|---|---|---|
+| [eas.json](../eas.json) profile | `development` | `preview` |
+| The screens' code (`src/`) | **Not inside.** Loaded over Wi-Fi from `npx expo start --dev-client` on the Mac each time it opens | **Inside the APK** |
+| Needs the Mac running | Yes. Without it, the app shows Expo's launcher, not ours | No. Works on any phone, anywhere |
+| Which server | Whatever the Mac's `.env` says (the Mac, or the live one) | Written in at build time: `https://bantayaral.com` |
+| Mode | Debug: slower, a developer menu, red error screens, plain `http` allowed | Release: fast, no developer menu, `https` only. What a parent gets |
+| Who it's for | Us, while building | A parent, or a demo |
+| How to make it | [COMMANDS.md, 2a](COMMANDS.md#2a-the-development-build-since-m7) | [COMMANDS.md, 2b](COMMANDS.md#2b-make-the-demo-apk-since-m8) |
 
-```ts
-plugins: [
-  "expo-router",
-  ["expo-splash-screen", { /* its settings */ }],
-  "expo-notifications",          // ← switched on, default settings
-],
-```
-
-A name alone means default settings; a `[name, { … }]` pair passes settings.
-Some packages, like `expo-dev-client`, switch theirs on by themselves when
-installed, so they need no line. To see which plugins actually run:
-
-```bash
-npx expo config --type prebuild
-```
-
-**Why it matters for builds:** a plugin only runs during a build. Changing
-`plugins`, or installing a package with native code, does nothing to the app
-on your phone until the next `eas build`. Plain JavaScript changes don't need
-a build; they arrive from `npx expo start`.
+**The logo is a separate matter.** The app icon, splash and push icon are
+pictures built into the APK when it's made. The earlier builds were made
+before the logo files replaced Expo's placeholders, so they show Expo's. M8
+swaps them, and any build after that, either kind, shows Bantay Aral.
 
 ### Does every build mean installing it again?
 
@@ -243,17 +304,104 @@ and the same signing key, which EAS keeps. So you stay signed in.
 
 But a new build is rare. Code in `src/` comes to the phone over Wi-Fi from
 `npx expo start --dev-client`, with no build at all. Only a native change
-needs one: `app.config.ts`, a picture built into the app (like M7c's push
-icon), or a new package with native code (`docs/COMMANDS.md`, 2a). Once the
+needs one: [app.config.ts](../app.config.ts), a picture built into the app
+(like M7c's push icon), or a new package with native code
+([COMMANDS.md, 2a](COMMANDS.md#2a-the-development-build-since-m7)). Once the
 app is on Google Play, parents' phones update by themselves.
+
+### How many free EAS builds we get
+
+The free plan gives **15 Android builds a month** (it was 30 until 2025-10-09, so older guides are wrong). Builds that fail in under 3 minutes don't count. Free builds use the low-priority queue, which can wait 90 minutes or more at busy times.
+
+15 is enough for M1 to M8 if we aren't careless, but M7 is the step that burns builds, because a push problem often can't be seen without a new build. If we run out, a local build with Android Studio is free and unlimited ([CLAUDE.md, "Stack"](../CLAUDE.md#stack-a-proposal-for-m1-ask-before-adding-anything-else)), just slower to set up.
+
+### APK or AAB: only one of them installs by hand
+
+EAS Build makes an **`.aab`** (Android App Bundle) by default for Android, and *an `.aab` cannot be installed on a phone*. It is a package for the Play Store to slice up. Handing one to the owner's phone just fails.
+
+For a build to install by hand, [eas.json](../eas.json) has to ask for an APK, as both our `development` and `preview` profiles do:
+
+```json
+{
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}
+```
+
+Setting `distribution: "internal"` or `developmentClient: true` on a profile also produces an APK. The Play Store, later, needs the `.aab` ([What getting onto the Play Store needs](#what-getting-onto-the-play-store-needs)).
+
+[↑ Contents](#contents)
+
+## Installing by hand, and the demo
+
+### What the owner sees on the phone when installing by hand
+
+Three prompts, all normal:
+
+1. **"Install unknown apps"** — Android asks permission for the app you're installing *from* (Files, Chrome, Drive), not for our app. Granted once per source.
+2. **Play Protect: "Unsafe app blocked"** or a scan prompt — because the app isn't signed by a known developer. Choose "Install anyway" / "More details". Expected for an unlisted app.
+3. **The notification permission** (Android 13 and newer) — this one is ours. The app asks once Home has a child, never at first launch, and only once per phone.
+
+The demo APK and the development build are both `com.bantayaral.parent`, so
+only one can be on a phone at a time. Uninstall one before installing the
+other ([COMMANDS.md, 2b](COMMANDS.md#2b-make-the-demo-apk-since-m8)).
+
+### Why a demo script, and why a brand-new account
+
+Asked by the owner, 2026-10-29: "Why do we need a demo script? Why not just
+log in on that account and see if it works?"
+
+The "script" isn't code. It's [DEMO.md](DEMO.md), a checklist of "do this, you
+should see that", so the demo goes the same way every time and anyone can run
+it.
+
+Signing in with an existing account is a real test (Part 2). But that
+account did its first-time steps (sign up, link a child, allow
+notifications) long ago, on the development build. A new parent goes through
+them on the release build, where a release-only bug would hide, so Part 1
+makes a new account on the fresh install. It comes first because "Allow
+notifications?" is asked once per phone, not per account. Any test student
+works; use a test one, because linking tells the child's other parents.
+
+[↑ Contents](#contents)
+
+## Google Play
+
+### Can the app get real pushes without the Play Store?
+
+Yes. Installing the app by hand (copying an `.apk` to the phone and tapping it) gives you the same push notifications as a Play Store install. The Play Store is a shop, not a requirement.
+
+The push travels like this:
+
+```mermaid
+flowchart LR
+    Gate["NFC tap at the gate"] --> Talaan["Talaan<br/>bantayaral.com"]
+    Talaan --> Expo["Expo push service"]
+    Expo --> FCM["Firebase Cloud Messaging"]
+    FCM --> Phone["The phone<br/>com.bantayaral.parent"]
+```
+
+Nothing in that chain asks where the app came from. Two things are easy to mix up:
+
+- **Google Play *Services*** is a set of Google components already on the phone. Firebase Cloud Messaging needs it, because it is the part of the phone that holds the always-open connection to Google and wakes our app. Nearly every Android phone sold in the Philippines has it.
+- **The Google Play *Store*** is distribution: a listing, a US$25 one-time fee, a privacy policy, a review. We need none of that to receive a push.
+
+What ties a push to our app is the **package id** `com.bantayaral.parent`, registered in a free Firebase project. Firebase matches by package id, never by where the app was installed from. This is why [CLAUDE.md](../CLAUDE.md#scope) calls the package id permanent: change it and every registered phone stops receiving.
+
+Everything M7 needs is free: an Expo account, an EAS project id, and a Firebase project with an Android app on that package id ([Why push needs Firebase at all](#why-push-needs-firebase-at-all)).
 
 ### What getting onto the Play Store needs
 
 Asked by the owner, 2026-10-29: "How far are we in registering the app for
 the playstore?"
 
-Not started, on purpose: it's after the demo (`docs/PLAN.md`, "After the
-demo"). What it takes:
+Not started, on purpose: it's after the demo
+([PLAN.md, "After the demo"](PLAN.md#after-the-demo)). What it takes:
 
 - **Done already:** the app's permanent ID, `com.bantayaral.parent` (M1).
 - **The owner's:** a Google Play developer account (US$25, once), with
@@ -262,9 +410,9 @@ demo"). What it takes:
 - **Talaan's:** a privacy policy page (for example on `bantayaral.com`), and
   deleting your own account from inside the app (Talaan's Step 60), which
   both stores require of an app that makes accounts.
-- **The app's:** a store build (`.aab`, not the `.apk` installed by hand), and
-  the listing: screenshots, description, the "Data safety" form, content
-  rating.
+- **The app's:** a store build (an [`.aab`](#apk-or-aab-only-one-of-them-installs-by-hand),
+  not the `.apk` installed by hand), and the listing: screenshots,
+  description, the "Data safety" form, content rating.
 - **Closed testing:** as understood on 2026-10-29, a new *personal* account
   must run a closed test with at least 12 testers for 14 days before going
   public; an *organisation* account skips it but needs a D-U-N-S number
@@ -272,7 +420,41 @@ demo"). What it takes:
   when signing up.
 
 The accounts are worth starting early: their waiting happens outside the
-code.
+code. The 2027 deadline below is one more reason.
+
+### Google's developer verification, and why it matters by 2027
+
+Google now requires developers to verify their identity for apps installed on certified Android devices, **including apps installed by hand**. Enforcement began 2026-09-30 in Brazil, Indonesia, Singapore and Thailand, and Google says it expands globally in 2027.
+
+Where this leaves us:
+
+- **The Philippines is not in the first wave,** so installing by hand works normally today (checked 2026-10-21). The demo is unaffected.
+- A free **Limited Distribution account** lets students, teachers and hobbyists share an app with **up to 20 devices**, with no government ID and no fee. That covers the demo and a small trial.
+- 20 devices does **not** cover a 500-student pilot. When global enforcement lands, a pilot that size needs either a verified developer account or the Play Store (the US$25 one-time fee, plus a privacy policy page).
+
+So: hand-installing is right for the demo and fine for a small trial, but the 500-student rollout should plan on Google Play. That is already on [PLAN.md's after-the-demo list](PLAN.md#after-the-demo); the new part is that 2027 puts a clock on it.
+
+### Is there a Google approval for an app's design?
+
+No. Nobody at Google approves how an app looks. Two different things get
+mixed up:
+
+- **Google Play's review** checks policy, not design: what data the app
+  collects and says it collects (the Data safety form), the permissions it
+  asks for, the content, ads, and, for apps with accounts, a way to delete
+  your account. A plain-looking app passes; a beautiful one that hides what it
+  does with children's data doesn't.
+- **Material Design** ([m3.material.io](https://m3.material.io)) is Google's
+  design guidance for Android: how lists, headers, buttons and spacing should
+  behave. Following it makes an app feel at home on Android. Nothing checks it.
+
+What can be checked is **accessibility**: Android's own Accessibility Scanner
+app, TalkBack, the largest font size, contrast measured against WCAG 2.2 AA,
+48dp touch targets. That's the bar this app holds itself to
+([CLAUDE.md, "Constraints"](../CLAUDE.md#constraints), the UX quality bar),
+and it's what the "Check it on the phone" tables in [PLAN.md](PLAN.md) test.
+
+[↑ Contents](#contents)
 
 ## Talking to the server
 
@@ -292,6 +474,7 @@ url = `${getBaseUrl()}${path}`;        // src/api/client.ts
 path: "/api/v1/parents/schools"        // src/api/endpoints.ts
 ```
 
+([client.ts](../src/api/client.ts), [endpoints.ts](../src/api/endpoints.ts)),
 so the value you set and the path the app knows meet exactly once.
 
 | What you put in `.env` | What the app asks for | |
@@ -300,6 +483,10 @@ so the value you set and the path the app knows meet exactly once.
 | `https://bantayaral.com/` | the same — a trailing slash is stripped | fine |
 | `https://bantayaral.com/api/v1` | `…/api/v1/api/v1/parents/schools` | 404 |
 | `https://bantayaral.com/api/v1/parents/schools` | one endpoint doubled onto every other | 404 |
+
+The demo APK doesn't read `.env` at all: its address is written into
+[eas.json](../eas.json)'s `preview` profile. Which server to use when:
+[SERVER.md](SERVER.md).
 
 ### Why it looks like "just the website"
 
@@ -319,10 +506,10 @@ all talk to that one server. It is not a separate API domain, and there is no
 ### Why the app keeps only the origin
 
 Because not every address lives under `/api/v1/parents`. A child's photo is at
-`/api/v1/photos/<key>` (`docs/TALAAN-API.md:62`). If the base URL carried the
-`/parents` part, photos would be the awkward exception that has to undo it.
-Keeping the base bare means every path is written out in full and nothing needs
-a special case.
+`/api/v1/photos/<key>` ([TALAAN-API.md](TALAAN-API.md)). If the base URL
+carried the `/parents` part, photos would be the awkward exception that has to
+undo it. Keeping the base bare means every path is written out in full and
+nothing needs a special case.
 
 ### Telling the three failures apart
 
@@ -339,20 +526,11 @@ That last one catches people out: `EXPO_PUBLIC_*` values are baked into the
 bundle when it is built, not read while the app runs. Editing `.env` changes
 nothing until `npx expo start --clear`.
 
+[↑ Contents](#contents)
+
 ## Push notifications
 
-### Why Expo Go can't test push
-
-Expo Go is Expo's own app, so on Android it carries Expo's package id and Expo's Firebase setup, not ours. From Expo SDK 53 onward it can't receive pushes on Android at all. Push testing always needs a real build of *our* app — a development build in M7, or the installable APK in M8. This is why M7 lists "a development build installed on the phone" before anything else.
-
-### Why a push can arrive late, or not at all, on a cheap Android phone
-
-Two causes worth knowing before the demo, neither of them our bug:
-
-- **The phone maker's battery saver.** Xiaomi, Oppo, Vivo, Realme, Infinix and Tecno — the phones most parents in Balanga will actually own — kill background apps harder than stock Android does, which delays or drops pushes. The fix is per phone: exempt Bantay Aral from battery optimisation in Android's settings. Worth doing on every demo phone, and worth telling parents once the pilot starts.
-- **No Google Play Services at all.** Huawei phones sold after 2019 ship without it, so Firebase Cloud Messaging can never reach them. There is no workaround in our app; it would need Huawei's own push service. Rare, but it exists in the Philippines, so don't demo on a Huawei.
-
-If a push doesn't arrive, `docs/SERVER.md` ("Testing a real push") lists what to check on the server side, and anything new goes in `docs/PROBLEMS-LOG.md`.
+How the app's push works, file by file: [PUSH.md](PUSH.md).
 
 ### Why push needs Firebase at all
 
@@ -395,29 +573,7 @@ would still be there.
 **The one real consequence:** a phone with no Google Play Services, such as a
 Huawei sold after 2019, cannot receive push at all. Nothing in this app changes
 that, which is why the demo should not be run on one
-[[what-the-owner-sees-on-the-phone-when-installing-by-hand]].
-
-### Which push files go in git, and which never do
-
-The test is one question: **could someone who has this file act as us?**
-
-| File | What it is | In git? |
-|---|---|---|
-| `eas.json` | build settings: which profiles exist, APK or not | **Yes.** No secrets, and EAS needs it on every machine that builds |
-| `app.config.ts` (project ID, owner) | names our Expo project | **Yes.** A name, not a key |
-| `google-services.json` | tells the app which Firebase project it belongs to | Ignored for now; Part D decides how the build gets it |
-| `…-firebase-adminsdk-….json` | a private key that can **send** pushes as Bantay Aral | **Never.** Upload it to Expo, then move it out of the project |
-| `EXPO_ACCESS_TOKEN` | lets a server use our Expo account | **Never.** Typed on the server only |
-
-The difference is identifying versus authorising. An ID only says "this is
-our project". A key or token lets whoever holds it act as us. Anything that
-authorises stays out of git for good, because GitHub keeps history: deleting
-the file in a later commit leaves it readable in the old one, and the only
-real fix is to revoke the key and make a new one.
-
-Before committing after any setup step, look at `git status` and read every
-`??` line. That's how the Firebase key was caught
-(`docs/PROBLEMS-LOG.md`, P-014).
+([Why a push can arrive late, or not at all](#why-a-push-can-arrive-late-or-not-at-all-on-a-cheap-android-phone)).
 
 ### The server is set to send. Why doesn't my phone buzz yet?
 
@@ -427,17 +583,27 @@ one only works if the ones before it are there too:
 
 | | What | Whose |
 |---|---|---|
-| 1 | Expo and Firebase know about the app (project id, FCM key) | the owner, `docs/PUSH.md` Parts A to C |
-| 2 | The app on the phone can receive push: a development build, not Expo Go | an EAS build, Part D |
+| 1 | Expo and Firebase know about the app (project id, FCM key) | the owner, [PUSH.md](PUSH.md) Parts A to C |
+| 2 | The app on the phone can receive push: a development build, not Expo Go | an EAS build, [Part D](PUSH.md#part-d--the-development-build) |
 | 3 | The parent allowed notifications, and the app sent the phone's address (`POST /push-tokens`) | the app's code, M7a |
-| 4 | The server sends for real (`PUSH_SENDER=expo`) instead of only logging | the server's settings, Part E |
+| 4 | The server sends for real (`PUSH_SENDER=expo`) instead of only logging | the server's settings, [SERVER.md](SERVER.md#testing-a-real-push-m7) |
 
 With 1, 2 and 4 done but not 3, the server has a tap, a parent, and nowhere to
 send it: its log says `push: sent 0`. That's also the first thing to check if
 a push never arrives later: did this phone register since it last signed in?
 
 Code changes like M7a's reach the phone over Wi-Fi from `npx expo start`. Only
-a change to native code or `app.config.ts` needs a new EAS build.
+a change to native code or [app.config.ts](../app.config.ts) needs a new EAS
+build.
+
+### Why a push can arrive late, or not at all, on a cheap Android phone
+
+Two causes worth knowing before the demo, neither of them our bug:
+
+- **The phone maker's battery saver.** Xiaomi, Oppo, Vivo, Realme, Infinix and Tecno — the phones most parents in Balanga will actually own — kill background apps harder than stock Android does, which delays or drops pushes. The fix is per phone: exempt Bantay Aral from battery optimisation in Android's settings. Worth doing on every demo phone, and worth telling parents once the pilot starts.
+- **No Google Play Services at all.** Huawei phones sold after 2019 ship without it, so Firebase Cloud Messaging can never reach them. There is no workaround in our app; it would need Huawei's own push service. Rare, but it exists in the Philippines, so don't demo on a Huawei.
+
+If a push doesn't arrive, [SERVER.md, "Testing a real push"](SERVER.md#testing-a-real-push-m7) and [PUSH.md, "When it does not work"](PUSH.md#when-it-does-not-work) list what to check, and anything new goes in [PROBLEMS-LOG.md](PROBLEMS-LOG.md).
 
 ### Why a push's icon is white, not the colour logo
 
@@ -450,11 +616,13 @@ and paints it, so a colour logo there becomes a white blob. Every Android app
 lives with this, which is why Gmail's and Messenger's push icons are plain
 outlines. The **right** one may be full colour, but it's optional.
 
-So the app's push icon is `assets/images/notification-icon.png`: the mark as a
-white outline, which Android puts in a circle of the mark's blue. It's the same
-file in light and dark mode, because Android does the colouring. The iPhone in
-the mockup shows the colour logo on the left; iPhones allow that, Android
-doesn't. More in `docs/PUSH.md`, "What a push looks like".
+So the app's push icon is
+[assets/images/notification-icon.png](../assets/images/notification-icon.png):
+the mark as a white outline, which Android puts in a circle of the mark's
+blue. It's the same file in light and dark mode, because Android does the
+colouring. The iPhone in the mockup shows the colour logo on the left; iPhones
+allow that, Android doesn't. More in
+[PUSH.md, "What a push looks like"](PUSH.md#what-a-push-looks-like-m7c).
 
 ### Why folded pushes said "null"
 
@@ -468,32 +636,16 @@ and the phone wrote the missing title as the word "null". Unfolded, each push
 was fine.
 
 The app can't change this: Android draws pushes and their summary before any
-of the app's code runs. The fix is a title on every push, so the server will
-send the child's first name as the title ("**Juan**", "Tapped in at 7:56
-AM"). Full story in `docs/PROBLEMS-LOG.md`, P-019, and the request in
-`docs/API-REQUESTS.md`, 8.
+of the app's code runs. The fix was a title on every push: the server now
+sends the child's first name as the title ("**Juan**", "Tapped in at 7:56
+AM"). Full story in
+[PROBLEMS-LOG.md, P-019](PROBLEMS-LOG.md#p-019--a-push-with-no-title-shows-null-when-pushes-are-bundled),
+and the request in
+[API-REQUESTS.md, 8](API-REQUESTS.md#8-the-childs-first-name-as-the-push-title).
 
-## Design
+[↑ Contents](#contents)
 
-### Is there a Google approval for an app's design?
-
-No. Nobody at Google approves how an app looks. Two different things get
-mixed up:
-
-- **Google Play's review** checks policy, not design: what data the app
-  collects and says it collects (the Data safety form), the permissions it
-  asks for, the content, ads, and, for apps with accounts, a way to delete
-  your account. A plain-looking app passes; a beautiful one that hides what it
-  does with children's data doesn't.
-- **Material Design** (`m3.material.io`) is Google's design guidance for
-  Android: how lists, headers, buttons and spacing should behave. Following
-  it makes an app feel at home on Android. Nothing checks it.
-
-What can be checked is **accessibility**: Android's own Accessibility Scanner
-app, TalkBack, the largest font size, contrast measured against WCAG 2.2 AA,
-48dp touch targets. That's the bar this app holds itself to (`CLAUDE.md`, "UX
-quality bar"), and it's what the "Check it on the phone" tables in
-`docs/PLAN.md` test.
+## Pictures in the app
 
 ### Why a picture is shrunk to 3 times its size on screen
 
@@ -510,5 +662,10 @@ It isn't free, though. The school picture as exported was 1536 × 1024:
   4 bytes per pixel, whatever the file size. At 360 × 240 it's about 0.3 MB,
   which matters on the cheap phones many parents have.
 
-The owner made this a rule (`CLAUDE.md`, "Images are sized for how they're
-shown"). How to do it: `docs/COMMANDS.md`, "Add a picture to the app".
+The owner made this a rule
+([CLAUDE.md, "Constraints"](../CLAUDE.md#constraints), "Images are sized for
+how they're shown"). The app icon and splash are the exception: they keep the
+sizes Expo asks for (1024 × 1024). How to shrink one:
+[COMMANDS.md, "Add a picture to the app"](COMMANDS.md#5a-add-a-picture-to-the-app).
+
+[↑ Contents](#contents)

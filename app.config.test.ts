@@ -85,4 +85,24 @@ describe("the app's identity", () => {
       ICON_BACKGROUND,
     );
   });
+
+  test("every icon and splash picture the build reads exists (M8)", () => {
+    const splash = appConfig.plugins?.find(
+      (plugin) => Array.isArray(plugin) && plugin[0] === "expo-splash-screen",
+    );
+    const adaptive = appConfig.android?.adaptiveIcon;
+    const pictures = [
+      appConfig.icon,
+      adaptive?.foregroundImage,
+      adaptive?.backgroundImage,
+      adaptive?.monochromeImage,
+      Array.isArray(splash) ? splash[1].image : undefined,
+    ];
+
+    for (const picture of pictures) {
+      expect(picture).toEqual(expect.stringMatching(/^\.\/assets\/images\//));
+      // A wrong path would otherwise only show up as a failed EAS build.
+      expect(() => jest.requireActual(picture as string)).not.toThrow();
+    }
+  });
 });
